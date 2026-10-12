@@ -1,4 +1,4 @@
-.PHONY: all gen build test lint clean image selinux
+.PHONY: all gen build test lint clean image selinux fuzz
 
 all: lint test build
 
@@ -28,3 +28,15 @@ lint:
 
 clean:
 	rm -rf bin/
+
+# Parsers the root daemon runs on guest-controlled data (threat model review). FUZZTIME=5m for longer.
+FUZZTIME ?= 30s
+fuzz:
+	go test ./internal/capture/ -run '^$$' -fuzz '^FuzzParseClientHello$$' -fuzztime $(FUZZTIME)
+	go test ./internal/capture/ -run '^$$' -fuzz '^FuzzParseHTTPHost$$' -fuzztime $(FUZZTIME)
+	go test ./internal/capture/ -run '^$$' -fuzz '^FuzzReassemble$$' -fuzztime $(FUZZTIME)
+	go test ./internal/report/ -run '^$$' -fuzz '^FuzzBuild$$' -fuzztime $(FUZZTIME)
+	go test ./internal/report/ -run '^$$' -fuzz '^FuzzBuildHost$$' -fuzztime $(FUZZTIME)
+	go test ./internal/netns/ -run '^$$' -fuzz '^FuzzParseReply$$' -fuzztime $(FUZZTIME)
+	go test ./internal/netns/ -run '^$$' -fuzz '^FuzzParseBlocked$$' -fuzztime $(FUZZTIME)
+	go test ./internal/netns/ -run '^$$' -fuzz '^FuzzParseCounters$$' -fuzztime $(FUZZTIME)

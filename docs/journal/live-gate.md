@@ -30,6 +30,12 @@ The dev sudoers rule has to go before live mode, and with it passwordless `sudo 
 - **SELinux:** started by systemd, the daemon runs as `unconfined_service_t`, not `unconfined_t`, so the policy (1.2.0) defines the VMM transition from both. Without that, every run would have been refused by the per-run confinement check: failing closed, but unusable.
 - **Not tested yet:** installing needs the operator's sudo. To do with the operator: install, start, `urljail doctor`, a detonation, the self-test.
 
+## Fuzzing (from the threat-model review)
+
+Go native fuzz targets for every parser the root daemon runs on guest-controlled bytes (`make fuzz`, 30 s each by default): ClientHello, HTTP Host, segment reassembly, the report builder (guest events and done.json; host flows, DNS and blocked records, through to protojson marshalling), unbound's log, NFLOG packets, nft counters.
+
+**Found:** `parseHTTPHost` lowercased the guest's `Host:` header after checking its length; `strings.ToLower` turns each invalid UTF-8 byte into U+FFFD (3 bytes), so junk passed and grew. Guest-supplied hostnames (Host and SNI) now pass only as DNS characters; anything else becomes `invalid:<hex of the first 32 bytes>`, kept as evidence. The crashing input stays in `testdata/fuzz/` as a regression test.
+
 ## Checklist
 
 | Item | State |

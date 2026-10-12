@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"encoding/binary"
 	"errors"
+	"fmt"
 	"net"
 	"sort"
 	"strings"
@@ -84,7 +85,7 @@ func parseClientHello(b []byte) (Hello, error) {
 			for !list.err && len(list.b) >= 3 {
 				kind, name := list.u8(), list.bytes(list.u16())
 				if kind == 0 && !list.err && h.SNI == "" {
-					h.SNI = string(name)
+					h.SNI = hostname(string(name))
 				}
 			}
 		case 16: // application_layer_protocol_negotiation
@@ -150,10 +151,31 @@ func parseHTTPHost(b []byte) string {
 			if h, _, err := net.SplitHostPort(host); err == nil {
 				host = h
 			}
-			if len(host) <= 253 {
-				return strings.ToLower(host)
-			}
+			return hostname(host)
 		}
 	}
 	return ""
+}
+
+// hostname returns s lowercased if it's a plausible DNS name (ASCII letters, digits, '.', '-',
+// '_', at most 253 bytes). The bytes come from a hostile guest: anything else is kept as
+// evidence, but hex-encoded and short, never as free text (found by fuzzing: lowercasing
+// invalid UTF-8 grows it and lets junk through).
+func hostname(s string) string {
+	if s == "" {
+		return ""
+	}
+	ok := len(s) <= 253
+	for i := 0; ok && i < len(s); i++ {
+		c := s[i]
+		ok = c >= 'a' && c <= 'z' || c >= 'A' && c <= 'Z' || c >= '0' && c <= '9' || c == '.' || c == '-' || c == '_'
+	}
+	if ok {
+		return strings.ToLower(s)
+	}
+	b := []byte(s)
+	if len(b) > 32 {
+		b = b[:32]
+	}
+	return fmt.Sprintf("invalid:%x", b)
 }

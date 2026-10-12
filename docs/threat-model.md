@@ -92,7 +92,7 @@ Each threat above, against what exists after P1–P5 and the live-gate work. *Ve
 
 | Threat | Adversary | Current mitigation | Recommendation |
 | ------ | --------- | ------------------ | -------------- |
-| **The root daemon parses guest-controlled data**: the gRPC/HTTP2 stream over vsock, CDP event JSON, artifacts, ClientHello and HTTP bytes from eBPF, and the report built from all of it | A3 | Go (memory-safe); artifact name allowlist; size, count and record caps; tolerant parsers that skip bad input; parsers unit-tested with truncated input | **Before live:** fuzz the ClientHello, HTTP-Host and report parsers (Go native fuzzing). **Later:** build reports in an unprivileged helper process instead of the root daemon |
+| **The root daemon parses guest-controlled data**: the gRPC/HTTP2 stream over vsock, CDP event JSON, artifacts, ClientHello and HTTP bytes from eBPF, and the report built from all of it | A3 | Go (memory-safe); artifact name allowlist; size, count and record caps; tolerant parsers that skip bad input; **fuzzed** (`make fuzz`: ClientHello, HTTP Host, reassembly, report builder over guest and host records, unbound log, NFLOG packets, nft counters). Fuzzing found that guest-supplied hostnames could carry junk into reports (lowercasing invalid UTF-8 grows it); hostnames are now restricted to DNS characters, anything else recorded as `invalid:<hex>` | **Later:** build reports in an unprivileged helper process instead of the root daemon |
 | **unbound parses attacker-controlled DNS answers** (a phishing domain's own nameservers) | A1 | Runs as user `unbound` in the egress namespace, forwarding only | **Should:** confine it in SELinux (it runs as `unconfined_t` when the daemon starts it, not `named_t`) |
 | **Root executing operator-writable binaries** (`bin/urljaild`, `~/.local/bin/{jailer,firecracker}`) | A5 | Only in dev | **Before live:** the service install (root-owned copies) |
 | **Daemon crash leaves live VMs browsing** | A5 | Restart reaps them; the systemd unit restarts on failure after 5 s | **Should:** put VM cgroups under the service's delegated cgroup so systemd kills them with the daemon |
@@ -105,6 +105,6 @@ Each threat above, against what exists after P1–P5 and the live-gate work. *Ve
 
 1. Install the daemon as a service from root-owned binaries, then delete `/etc/sudoers.d/urljail-dev` (the daemon enforces the second).
 2. A real VPN config; the self-test's exit-IP check must pass (the daemon enforces this at start).
-3. Fuzz the parsers that run as root on guest data.
+3. ~~Fuzz the parsers that run as root on guest data~~ done (`make fuzz`); rerun after parser changes.
 4. Feed terms decided (Q13) and ingestion designed with URLs strictly as data.
 5. Re-read this table if any layer changes.
