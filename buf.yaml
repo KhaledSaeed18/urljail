@@ -4,6 +4,11 @@ modules:
 lint:
   use:
     - STANDARD
+  ignore_only:
+    # The report schema is versioned v0 while it's a draft (ADR 0008, docs/report-schema.md);
+    # buf only accepts v1 and up (or v1alpha1 and similar) as package versions.
+    PACKAGE_VERSION_SUFFIX:
+      - api/proto/urljail/report/v0
 breaking:
   use:
     - FILE

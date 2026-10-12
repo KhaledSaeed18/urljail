@@ -2,7 +2,7 @@
 
 > Detonate suspicious URLs in disposable Firecracker microVMs and report what they actually do.
 
-**Status:** P1 done (boot scripts in `scripts/p1/`); P2 next. No code yet. Last updated 2026-10-12.
+**Status:** P2 done: `urljail detonate` works end to end in dev mode (cold boot, guest-attested report). P3 (network isolation and host-side capture) next. No code yet. Last updated 2026-10-12.
 
 ## Reading order
 

@@ -1,9 +1,10 @@
 # P2: Vertical slice: `urljail detonate`
 
-- Status: **in progress**
+- Status: **closed**
 - Started: 2026-10-12
+- Closed: 2026-10-12
 - Roadmap: [P2](../roadmap.md#p2-vertical-slice-urljail-detonate-next)
-- Exit: `urljail detonate https://example.com` → report + screenshot; VM always torn down (including on Ctrl-C and timeout).
+- Exit: `urljail detonate https://example.com` → report + screenshot; VM always torn down (including on Ctrl-C and timeout). **Met** (see M5).
 
 ## Milestones
 
@@ -13,7 +14,7 @@
 | M2 | Hand-written Firecracker client ([ADR 0011](../decisions/0011-hand-written-firecracker-client.md)), dev host networking, cold boot + guaranteed teardown | done |
 | M3 | Debian 13 rootfs with Chrome stable, tiny init + guest agent answering `Hello` over vsock, built rootless | done |
 | M4 | Guest agent drives Chrome over its own pipe CDP client, streams raw events, screenshot + DOM + key log | done |
-| M5 | `report.json`; exit criterion | |
+| M5 | `report.json` (protobuf schema, protojson, generated JSON Schema), CLI summary, `urljail report`; exit criterion | done |
 
 ## Toolchain
 
@@ -85,4 +86,52 @@ Plan change: the Debian image has no SSH, so the "guest is up" check moved onto 
 | Client Ctrl-C during observation | Guest RPC cancelled, VM torn down, `status: cancelled` |
 | Back-to-back runs | Each starts from a fresh disk; nothing left over |
 
-**Not recorded yet:** runs refused before a slot is taken (busy, policy) leave no run directory. The report schema has a `refused` status; decide in M5 whether refusals get a record.
+## M5 notes
+
+- **Schema in protobuf** (`api/proto/urljail/report/v0/report.proto`, ADR 0008), written with protojson using proto field names. `make gen` also generates `api/schema/report.v0.schema.json` (bufbuild's `protoc-gen-jsonschema` v0.6.0, the bundled proto-names variant), and a test validates built reports against it. buf's lint doesn't accept a `v0` package version; one directory is exempted rather than renaming the draft schema.
+- **Builder** (`internal/report`) is a pure function of the run directory, parsing guest data with small tolerant structs (malformed lines and wrong shapes are skipped, not fatal). `urljail report <run-dir>` regenerates; on a real run the regenerated report was byte-for-byte identical in content.
+- **Redirect chain:** every main-frame document request, with how it was reached: `initial`, `http` (from `redirectResponse`), `js` / `meta` / `header` (from `Page.frameRequestedNavigation` reasons), else `other`. A redirect reuses Chrome's request ID, so the builder splits it into one request per hop. Unit-tested with a 302 followed by a script navigation.
+- **Gaps are explicit:** every P2 report says that all network facts are guest-attested (no host capture until P3), that no interaction was simulated, and that QUIC/ECH/DoH are off; plus per-run gaps (dropped events, omitted `data:` URLs, non-completed status, missing guest result).
+- **Every run with a run directory gets a report**, failed and cancelled ones included. Refused runs (preflight) get none: nothing ran.
+
+## Exit criterion
+
+```
+$ urljail detonate https://example.com
+     6ms  REQUESTED    https://example.com
+     7ms  BOOTING      cold boot (no snapshots before P4)
+  1.899s  NET_READY    guest agent up 1383 ms after start (Chrome 155.0.8059.39-1, kernel 6.18.51+)
+  5.353s  NAVIGATING   https://example.com
+  5.541s  OBSERVING    waiting for network idle
+  9.293s  COLLECTING   final https://example.com/ after 3.754s (network idle)
+  9.293s  TEARDOWN     stopping VM, removing tap and disk
+ 10.583s  done
+
+  final     https://example.com/
+  title     "Example Domain"
+  chain     1. initial 200  https://example.com/
+  requests  2 (0 failed), 1 TLS hosts
+  ...
+```
+
+Teardown verified on success, navigation error, timeout (in boot and before observation), client Ctrl-C (during boot and during observation), daemon SIGTERM mid-run, and concurrency limits; each time no TAP, VMM, disk clone, socket or `DOCKER-USER` rule was left.
+
+## Where the time goes (example.com, cold boot)
+
+| Step | Time |
+| ---- | ---- |
+| Preflight, disk clone, TAP | ~0.5 s |
+| Kernel + init + agent `Hello` | 1.4 s |
+| Chrome start | ~3.3 s |
+| Navigation + dwell to network idle | ~3.7 s |
+| Collect (screenshot, DOM, logs) | ~0.3 s |
+| Teardown | ~1.3 s |
+| **Total** | **~10.5 s** |
+
+Boot and Chrome start (~4.7 s) are what P4's snapshots remove; the dwell is policy (Q11), not overhead.
+
+## Follow-ups (not P2)
+
+- Separate uids for the agent and Chrome (M3 note): with P5 hardening.
+- Collect download files (hash, never execute) and label browser-background traffic in the report.
+- `internal/hostnet` is dev-only scaffolding: P3 replaces it with per-VM network namespaces and the egress namespace.

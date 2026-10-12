@@ -2,7 +2,6 @@ package daemon
 
 import (
 	"context"
-	"encoding/json"
 	"errors"
 	"fmt"
 	"net"
@@ -19,6 +18,7 @@ import (
 	guestv1 "github.com/KhaledSaeed18/urljail/gen/urljail/guest/v1"
 	"github.com/KhaledSaeed18/urljail/internal/guestinfo"
 	"github.com/KhaledSaeed18/urljail/internal/hostnet"
+	"github.com/KhaledSaeed18/urljail/internal/report"
 	"github.com/KhaledSaeed18/urljail/internal/version"
 	"github.com/KhaledSaeed18/urljail/internal/vm"
 )
@@ -32,20 +32,6 @@ const (
 	// the time the others need.
 	cleanupStepTimeout = 10 * time.Second
 )
-
-// meta is runs/<id>/meta.json: the inputs of a run (docs/architecture.md#storage-layout-per-run).
-type meta struct {
-	RunID     string            `json:"run_id"`
-	URL       string            `json:"url"`
-	Profile   string            `json:"profile"`
-	Egress    string            `json:"egress"`
-	Timeout   string            `json:"timeout"`
-	StartedAt time.Time         `json:"started_at"`
-	EndedAt   time.Time         `json:"ended_at,omitzero"`
-	Status    string            `json:"status,omitempty"`
-	Error     string            `json:"error,omitempty"`
-	Versions  map[string]string `json:"versions"`
-}
 
 // detonate runs the VM part of a detonation. It always tears down what it started.
 func (s *Server) detonate(ctx context.Context, r *run, u *url.URL, profile string, timeout time.Duration) (err error) {
@@ -63,7 +49,7 @@ func (s *Server) detonate(ctx context.Context, r *run, u *url.URL, profile strin
 	if err := os.MkdirAll(filepath.Join(runDir, "host"), 0o700); err != nil {
 		return err
 	}
-	m := meta{
+	m := report.Meta{
 		RunID: r.id, URL: u.String(), Profile: profile, Egress: string(s.cfg.Policy.Mode),
 		Timeout: timeout.String(), StartedAt: time.Now().UTC(),
 		Versions: map[string]string{
@@ -74,7 +60,7 @@ func (s *Server) detonate(ctx context.Context, r *run, u *url.URL, profile strin
 			"browser":      img.Manifest.Browser.Version,
 		},
 	}
-	writeMeta(runDir, m)
+	_ = report.WriteMeta(runDir, m)
 	defer func() {
 		m.EndedAt = time.Now().UTC()
 		m.Status = "completed"
@@ -87,7 +73,7 @@ func (s *Server) detonate(ctx context.Context, r *run, u *url.URL, profile strin
 			m.Status = "error"
 			m.Error = err.Error()
 		}
-		writeMeta(runDir, m)
+		_ = report.WriteMeta(runDir, m)
 	}()
 
 	// Teardown ignores cancellation of the run: a client disconnecting or the timeout firing
@@ -238,9 +224,4 @@ func waitAgent(ctx context.Context, m *vm.Machine, c guestv1.GuestAgentServiceCl
 	default:
 	}
 	return nil, fmt.Errorf("guest agent not reachable: %w", err)
-}
-
-func writeMeta(runDir string, m meta) {
-	b, _ := json.MarshalIndent(m, "", "  ")
-	_ = os.WriteFile(filepath.Join(runDir, "meta.json"), append(b, '\n'), 0o600)
 }

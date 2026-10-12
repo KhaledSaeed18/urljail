@@ -24,6 +24,7 @@ const usage = `usage: urljail [-socket path] <command> [args]
 
 commands:
   detonate [-profile p] [-timeout d] <url>   open a URL in a fresh microVM
+  report <run-dir>                           rebuild report.json from a run's artifacts
   version                                    show CLI and daemon versions
 `
 
@@ -69,6 +70,8 @@ func run() error {
 		return cmdVersion(ctx, client)
 	case "detonate":
 		return cmdDetonate(ctx, client, args)
+	case "report":
+		return cmdReport(args)
 	default:
 		fmt.Fprintf(os.Stderr, "unknown command %q\n\n", cmd)
 		flag.Usage()
@@ -122,10 +125,14 @@ func cmdDetonate(ctx context.Context, c daemonv1.DaemonServiceClient, args []str
 		elapsed := time.Since(start).Round(time.Millisecond)
 		switch m.GetState() {
 		case daemonv1.RunState_RUN_STATE_DONE:
-			fmt.Printf("%8s  done  %s\n", elapsed, m.GetRunDir())
+			fmt.Printf("%8s  done\n", elapsed)
+			printSummary(m.GetRunDir())
 			return nil
 		case daemonv1.RunState_RUN_STATE_FAILED:
 			fmt.Printf("%8s  FAILED  %s\n", elapsed, m.GetError())
+			if m.GetRunDir() != "" {
+				printSummary(m.GetRunDir())
+			}
 			return exitError(1)
 		default:
 			fmt.Printf("%8s  %-12s %s\n", elapsed, stateName(m.GetState()), m.GetMessage())

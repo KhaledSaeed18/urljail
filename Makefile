@@ -4,6 +4,9 @@ all: lint test build
 
 gen:
 	buf generate
+	buf generate --template buf.gen.schema.yaml --type urljail.report.v0.Report
+	mv api/schema/tmp/urljail.report.v0.Report.schema.bundle.json api/schema/report.v0.schema.json
+	rm -rf api/schema/tmp
 
 build:
 	go build -o bin/ ./cmd/urljail ./cmd/urljaild

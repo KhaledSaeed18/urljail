@@ -1,0 +1,142 @@
+syntax = "proto3";
+
+// The report schema (ADR 0008). report.json is this message in protojson with proto field names;
+// a JSON Schema is generated from it into api/schema/. Prose reference: docs/report-schema.md.
+package urljail.report.v0;
+
+import "google/protobuf/timestamp.proto";
+
+// Report is derived from a run's raw artifacts and can always be regenerated from them.
+// Every observation says who attests to it in `source`: "guest.cdp" (Chrome, inside the VM:
+// guest-attested evidence) or "host.*" (observed outside the VM, from P3).
+message Report {
+  // "urljail.report/v0".
+  string schema = 1;
+  Run run = 2;
+  Navigation navigation = 3;
+  Network network = 4;
+  Page page = 5;
+  Artifacts artifacts = 6;
+  // What could not be observed in this run, stated explicitly (design goal G4).
+  repeated string gaps = 7;
+}
+
+message Run {
+  // UUIDv7.
+  string id = 1;
+  string submitted_url = 2;
+  string profile = 3;
+  Egress egress = 4;
+  google.protobuf.Timestamp started_at = 5;
+  google.protobuf.Timestamp ended_at = 6;
+  // "completed", "timeout", "cancelled" or "error".
+  string status = 7;
+  string error = 8;
+  // Component versions: urljail, firecracker, image, guest_kernel, browser.
+  map<string, string> versions = 9;
+}
+
+message Egress {
+  // "dev" (host NAT) or "live" (WireGuard).
+  string mode = 1;
+  // Exit identity in live mode, e.g. "wg:mullvad-de-fra-001".
+  string exit = 2;
+}
+
+message Navigation {
+  string final_url = 1;
+  string title = 2;
+  // Every URL the main frame loaded, in order, starting with the submitted URL.
+  repeated Hop redirect_chain = 3;
+  uint32 dwell_ms = 4;
+  // "network idle", "max dwell" or "cancelled".
+  string dwell_reason = 5;
+  // Set when the navigation itself failed, e.g. "net::ERR_NAME_NOT_RESOLVED".
+  string error = 6;
+}
+
+message Hop {
+  string url = 1;
+  // HTTP status of this URL's response; 0 if none arrived.
+  int32 status = 2;
+  // How the main frame got to this URL: "initial", "http" (3xx redirect), "js" (script),
+  // "meta" (meta refresh), "header" (Refresh header) or "other".
+  string kind = 3;
+  string source = 4;
+}
+
+message Network {
+  repeated Request requests = 1;
+  // One entry per host with a TLS connection.
+  repeated Tls tls = 2;
+  // Hosts contacted, grouped by registrable domain (eTLD+1).
+  repeated Domain domains = 3;
+}
+
+message Request {
+  string url = 1;
+  string method = 2;
+  // Chrome's resource type: "Document", "Script", "Image", "XHR", ...
+  string type = 3;
+  int32 status = 4;
+  string remote_ip = 5;
+  // Bytes received on the wire (encoded length).
+  uint32 bytes = 6;
+  // What started the request: "parser", "script", "redirect", "other", ...
+  string initiator = 7;
+  // Set when the request failed, e.g. "net::ERR_CONNECTION_REFUSED".
+  string error = 8;
+  bool from_cache = 9;
+  // Network protocol, e.g. "h2", "http/1.1".
+  string protocol = 10;
+  string source = 11;
+}
+
+message Tls {
+  string host = 1;
+  string protocol = 2;
+  string subject = 3;
+  string issuer = 4;
+  google.protobuf.Timestamp not_before = 5;
+  google.protobuf.Timestamp not_after = 6;
+  repeated string san = 7;
+  string source = 8;
+}
+
+message Domain {
+  string registrable = 1;
+  repeated string hosts = 2;
+}
+
+message Page {
+  repeated Dialog dialogs = 1;
+  repeated Download downloads = 2;
+}
+
+message Dialog {
+  // "alert", "confirm", "prompt" or "beforeunload". Dialogs are dismissed automatically.
+  string type = 1;
+  string message = 2;
+  string url = 3;
+  string source = 4;
+}
+
+message Download {
+  string url = 1;
+  string filename = 2;
+  // Last state Chrome reported: "inProgress", "completed" or "canceled".
+  string state = 3;
+  uint32 bytes = 4;
+  string source = 5;
+}
+
+// Paths relative to the run directory; empty when the file wasn't produced.
+message Artifacts {
+  string screenshot = 1;
+  string dom = 2;
+  string sslkeylog = 3;
+  string events = 4;
+  string chrome_log = 5;
+  string serial_log = 6;
+  string firecracker_log = 7;
+}

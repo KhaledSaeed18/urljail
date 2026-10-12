@@ -6,6 +6,7 @@ import (
 	"errors"
 	"fmt"
 	"log/slog"
+	"os"
 	"path/filepath"
 	"sync"
 	"time"
@@ -19,6 +20,7 @@ import (
 	"github.com/KhaledSaeed18/urljail/internal/hostnet"
 	"github.com/KhaledSaeed18/urljail/internal/image"
 	"github.com/KhaledSaeed18/urljail/internal/policy"
+	"github.com/KhaledSaeed18/urljail/internal/report"
 	"github.com/KhaledSaeed18/urljail/internal/version"
 )
 
@@ -117,10 +119,21 @@ func (s *Server) Detonate(req *daemonv1.DetonateRequest, stream daemonv1.DaemonS
 		return r.fail(errors.New("daemon has no VM backend configured"))
 	}
 
-	if err := s.detonate(stream.Context(), r, u, req.GetProfile(), timeout); err != nil {
-		return r.fail(err)
+	runDir := filepath.Join(s.cfg.RunsDir, r.id)
+	err = s.detonate(stream.Context(), r, u, req.GetProfile(), timeout)
+	// Every run that got a run directory gets a report, failed ones included: its gaps
+	// say what couldn't be observed.
+	if _, statErr := os.Stat(filepath.Join(runDir, "meta.json")); statErr == nil {
+		if _, rerr := report.Write(runDir); rerr != nil {
+			r.log.Warn("writing report", "err", rerr)
+		}
+	} else {
+		runDir = ""
 	}
-	return r.done(filepath.Join(s.cfg.RunsDir, r.id))
+	if err != nil {
+		return r.failIn(runDir, err)
+	}
+	return r.done(runDir)
 }
 
 func (s *Server) timeout(req *daemonv1.DetonateRequest) (time.Duration, error) {
@@ -162,12 +175,16 @@ func (r *run) done(runDir string) error {
 }
 
 // fail reports a terminal failure. The RPC itself succeeds: the outcome is in the stream.
-func (r *run) fail(err error) error {
+func (r *run) fail(err error) error { return r.failIn("", err) }
+
+// failIn reports a failure of a run that has a run directory with its evidence.
+func (r *run) failIn(runDir string, err error) error {
 	r.log.Warn("run failed", "err", err)
 	return r.stream.Send(&daemonv1.DetonateResponse{
-		RunId: r.id,
-		State: daemonv1.RunState_RUN_STATE_FAILED,
-		Time:  timestamppb.Now(),
-		Error: err.Error(),
+		RunId:  r.id,
+		State:  daemonv1.RunState_RUN_STATE_FAILED,
+		Time:   timestamppb.Now(),
+		Error:  err.Error(),
+		RunDir: runDir,
 	})
 }

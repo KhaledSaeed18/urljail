@@ -2,7 +2,7 @@
 
 **Detonate suspicious URLs in disposable Firecracker microVMs and report what they actually do.**
 
-> **Status: Phase 2 next.** Design docs plus the P1 boot scripts; no Go code yet. See the [roadmap](docs/roadmap.md).
+> **Status: Phase 3 next.** P2's vertical slice works: `urljail detonate` boots a Firecracker VM, drives sandboxed Chrome over a CDP pipe, and writes `report.json` + screenshot. Dev mode only (benign allowlisted URLs, no network isolation yet). See the [roadmap](docs/roadmap.md).
 
 ## What it does
 

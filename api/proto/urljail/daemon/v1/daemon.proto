@@ -57,7 +57,8 @@ message DetonateResponse {
   google.protobuf.Timestamp time = 3;
   // Human-readable detail for this step.
   string message = 4;
-  // Set with RUN_STATE_DONE: path of the run directory on the daemon host.
+  // Set with RUN_STATE_DONE, and with RUN_STATE_FAILED when the run got far enough to have
+  // evidence: path of the run directory (report.json, artifacts) on the daemon host.
   string run_dir = 5;
   // Set with RUN_STATE_FAILED.
   string error = 6;

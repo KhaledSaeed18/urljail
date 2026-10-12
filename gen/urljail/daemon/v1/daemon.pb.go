@@ -279,7 +279,8 @@ type DetonateResponse struct {
 	Time  *timestamppb.Timestamp `protobuf:"bytes,3,opt,name=time,proto3" json:"time,omitempty"`
 	// Human-readable detail for this step.
 	Message string `protobuf:"bytes,4,opt,name=message,proto3" json:"message,omitempty"`
-	// Set with RUN_STATE_DONE: path of the run directory on the daemon host.
+	// Set with RUN_STATE_DONE, and with RUN_STATE_FAILED when the run got far enough to have
+	// evidence: path of the run directory (report.json, artifacts) on the daemon host.
 	RunDir string `protobuf:"bytes,5,opt,name=run_dir,json=runDir,proto3" json:"run_dir,omitempty"`
 	// Set with RUN_STATE_FAILED.
 	Error         string `protobuf:"bytes,6,opt,name=error,proto3" json:"error,omitempty"`

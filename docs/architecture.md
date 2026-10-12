@@ -102,38 +102,50 @@ Messages (draft):
 
 ```
 runs/<run-id>/
-  report.json          # derived; regenerable
-  meta.json            # inputs: url, profile, snapshot id, egress mode, versions
-  guest/events.jsonl   # raw CDP-derived events
+  report.json          # derived; regenerable (urljail report <run-dir>)
+  meta.json            # inputs and outcome: url, profile, egress mode, status, versions
+  guest/events.jsonl   # raw CDP events, one JSON object per line
+  guest/done.json      # the guest agent's result (final URL, title, dwell)
   guest/screenshot.png
   guest/dom.html
   guest/sslkeys.log    # TLS key log (decrypts host pcap offline)
-  host/capture.pcapng  # full packet capture on the VM's TAP
-  host/flows.jsonl     # eBPF flow + SNI records
-  host/dns.jsonl       # resolver log slice for this run
-  downloads/<sha256>   # never executed
+  guest/chrome.log     # Chrome's stderr
+  host/serial.log      # guest serial console
+  host/firecracker.log
+  host/capture.pcapng  # (P3) full packet capture on the VM's TAP
+  host/flows.jsonl     # (P3) eBPF flow + SNI records
+  host/dns.jsonl       # (P3) resolver log slice for this run
+  downloads/<sha256>   # (later) never executed
 ```
 
 `<run-id>` is a UUIDv7 ([ADR 0008](./decisions/0008-protobuf-report-schema.md)).
 
 **Retention:** pcaps are deleted after N days (configurable) and under a total disk cap, oldest first. Reports, metadata and the other small artifacts are kept. The policy is implemented in P7.
 
-## Planned repo layout (when code starts)
+## Repo layout
 
 ```
-cmd/urljail/          # CLI
+cmd/urljail/          # CLI: detonate, report, version
 cmd/urljaild/         # host agent
-guest/agent/          # guest agent (GOOS=linux, CGO_ENABLED=0)
-internal/vm/          # Firecracker API client (hand-written, ADR 0011), process + jailer launch
-internal/pool/
-internal/netns/
-internal/firewall/    # generated nft -f ruleset + hash check
-internal/capture/     # bpf/*.c + bpf2go output
-internal/report/
+cmd/urljail-agent/    # guest agent: vsock gRPC, drives Chrome (GOOS=linux, CGO_ENABLED=0)
+cmd/urljail-init/     # guest PID 1
+internal/daemon/      # gRPC service, run lifecycle, teardown, orphan reaping
+internal/policy/      # egress-mode URL interlock
+internal/vm/          # Firecracker API client (hand-written, ADR 0011), VMM process, vsock dialer
+internal/hostnet/     # dev-mode host networking (P2 only; replaced by netns in P3)
+internal/cdp/         # CDP client over --remote-debugging-pipe (ADR 0013)
+internal/report/      # report.json builder
+internal/image/       # guest image manifests
+internal/guestinfo/   # guest-side facts for Hello
 api/proto/            # gRPC: CLI↔daemon, host↔guest; report schema
-images/               # kernel config, rootfs build scripts, Chromium policy
+api/schema/           # generated JSON Schema for report.json
+gen/                  # generated Go code (committed)
+images/debian-chrome/ # rootless guest image build (Containerfile, Chrome policy)
+scripts/p1/           # P1 boot scripts
 docs/
 ```
+
+Planned: `internal/netns/` and `internal/firewall/` (P3, replacing `hostnet`), `internal/capture/` (P3, eBPF), `internal/pool/` (P4).
 
 ## Resource budget (this laptop)
 

@@ -1,0 +1,6 @@
+# JSON Schema for report.json (ADR 0008). Used by `make gen` with --type urljail.report.v0.Report.
+version: v2
+plugins:
+  - local: protoc-gen-jsonschema
+    out: api/schema/tmp
+    strategy: all

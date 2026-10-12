@@ -1,6 +1,6 @@
 # Roadmap
 
-Status: **P0 and P1 done; P2 next**. Each phase ends with a written note in [`docs/journal/`](./journal/): what worked, what broke, what changed in the design.
+Status: **P0–P2 done; P3 next**. Each phase ends with a written note in [`docs/journal/`](./journal/): what worked, what broke, what changed in the design.
 
 The order is deliberate: **safety before live URLs, a working end-to-end slice before optimization, the familiar web stack last.**
 
@@ -32,7 +32,7 @@ Learn the raw primitives before writing any Go. **No isolation exists yet**: the
 
 **Exit:** reproducible shell script that boots a VM with networking; journal entry with timings and every gotcha. **Met:** [scripts/p1/](../scripts/p1/), [journal](./journal/p1-boot.md).
 
-## P2: Vertical slice: `urljail detonate` (next)
+## P2: Vertical slice: `urljail detonate` (done 2026-10-12)
 The whole pipeline, as simple as possible, **cold boot** (no snapshots yet).
 - Go module, `urljaild` + `urljail` skeletons, gRPC over a Unix socket
 - Hand-written Firecracker API client over the Unix socket ([ADR 0011](./decisions/0011-hand-written-firecracker-client.md)); per-run TAP + simple NAT (dev egress), reusing P1's Docker/firewalld handling
@@ -41,9 +41,9 @@ The whole pipeline, as simple as possible, **cold boot** (no snapshots yet).
 - Guest agent: navigate, collect CDP events, screenshot, DOM → stream back
 - First `report.json` (navigation + requests + screenshot only)
 
-**Exit:** `urljail detonate https://example.com` → report + screenshot; VM always torn down (including on Ctrl-C and timeout).
+**Exit:** `urljail detonate https://example.com` → report + screenshot; VM always torn down (including on Ctrl-C and timeout). **Met:** [P2 journal](./journal/p2-slice.md).
 
-## P3: Network layer
+## P3: Network layer (next)
 - Per-VM netns + egress netns topology from [network.md](./network.md)
 - nftables ruleset (load + verify hash at preflight)
 - unbound in egress netns with logging + rebind protection; DNAT 53

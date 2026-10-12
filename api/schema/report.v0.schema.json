@@ -1,0 +1,559 @@
+{
+  "$defs": {
+    "google.protobuf.Timestamp.schema.json": {
+      "$schema": "https://json-schema.org/draft/2020-12/schema",
+      "format": "date-time",
+      "title": "Timestamp",
+      "type": "string"
+    },
+    "urljail.report.v0.Artifacts.schema.json": {
+      "$schema": "https://json-schema.org/draft/2020-12/schema",
+      "additionalProperties": false,
+      "description": "Paths relative to the run directory; empty when the file wasn't produced.",
+      "patternProperties": {
+        "^(chromeLog)$": {
+          "default": "",
+          "type": "string"
+        },
+        "^(firecrackerLog)$": {
+          "default": "",
+          "type": "string"
+        },
+        "^(serialLog)$": {
+          "default": "",
+          "type": "string"
+        }
+      },
+      "properties": {
+        "chrome_log": {
+          "default": "",
+          "type": "string"
+        },
+        "dom": {
+          "default": "",
+          "type": "string"
+        },
+        "events": {
+          "default": "",
+          "type": "string"
+        },
+        "firecracker_log": {
+          "default": "",
+          "type": "string"
+        },
+        "screenshot": {
+          "default": "",
+          "type": "string"
+        },
+        "serial_log": {
+          "default": "",
+          "type": "string"
+        },
+        "sslkeylog": {
+          "default": "",
+          "type": "string"
+        }
+      },
+      "title": "Artifacts",
+      "type": "object"
+    },
+    "urljail.report.v0.Dialog.schema.json": {
+      "$schema": "https://json-schema.org/draft/2020-12/schema",
+      "additionalProperties": false,
+      "properties": {
+        "message": {
+          "default": "",
+          "type": "string"
+        },
+        "source": {
+          "default": "",
+          "type": "string"
+        },
+        "type": {
+          "default": "",
+          "description": "\"alert\", \"confirm\", \"prompt\" or \"beforeunload\". Dialogs are dismissed automatically.",
+          "type": "string"
+        },
+        "url": {
+          "default": "",
+          "type": "string"
+        }
+      },
+      "title": "Dialog",
+      "type": "object"
+    },
+    "urljail.report.v0.Domain.schema.json": {
+      "$schema": "https://json-schema.org/draft/2020-12/schema",
+      "additionalProperties": false,
+      "properties": {
+        "hosts": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "registrable": {
+          "default": "",
+          "type": "string"
+        }
+      },
+      "title": "Domain",
+      "type": "object"
+    },
+    "urljail.report.v0.Download.schema.json": {
+      "$schema": "https://json-schema.org/draft/2020-12/schema",
+      "additionalProperties": false,
+      "properties": {
+        "bytes": {
+          "anyOf": [
+            {
+              "maximum": 4294967295,
+              "minimum": 0,
+              "type": "integer"
+            },
+            {
+              "pattern": "^[0-9]+$",
+              "type": "string"
+            }
+          ],
+          "default": 0
+        },
+        "filename": {
+          "default": "",
+          "type": "string"
+        },
+        "source": {
+          "default": "",
+          "type": "string"
+        },
+        "state": {
+          "default": "",
+          "description": "Last state Chrome reported: \"inProgress\", \"completed\" or \"canceled\".",
+          "type": "string"
+        },
+        "url": {
+          "default": "",
+          "type": "string"
+        }
+      },
+      "title": "Download",
+      "type": "object"
+    },
+    "urljail.report.v0.Egress.schema.json": {
+      "$schema": "https://json-schema.org/draft/2020-12/schema",
+      "additionalProperties": false,
+      "properties": {
+        "exit": {
+          "default": "",
+          "description": "Exit identity in live mode, e.g. \"wg:mullvad-de-fra-001\".",
+          "type": "string"
+        },
+        "mode": {
+          "default": "",
+          "description": "\"dev\" (host NAT) or \"live\" (WireGuard).",
+          "type": "string"
+        }
+      },
+      "title": "Egress",
+      "type": "object"
+    },
+    "urljail.report.v0.Hop.schema.json": {
+      "$schema": "https://json-schema.org/draft/2020-12/schema",
+      "additionalProperties": false,
+      "properties": {
+        "kind": {
+          "default": "",
+          "description": "How the main frame got to this URL: \"initial\", \"http\" (3xx redirect), \"js\" (script),\n \"meta\" (meta refresh), \"header\" (Refresh header) or \"other\".",
+          "type": "string"
+        },
+        "source": {
+          "default": "",
+          "type": "string"
+        },
+        "status": {
+          "anyOf": [
+            {
+              "maximum": 2147483647,
+              "minimum": -2147483648,
+              "type": "integer"
+            },
+            {
+              "pattern": "^-?[0-9]+$",
+              "type": "string"
+            }
+          ],
+          "default": 0,
+          "description": "HTTP status of this URL's response; 0 if none arrived."
+        },
+        "url": {
+          "default": "",
+          "type": "string"
+        }
+      },
+      "title": "Hop",
+      "type": "object"
+    },
+    "urljail.report.v0.Navigation.schema.json": {
+      "$schema": "https://json-schema.org/draft/2020-12/schema",
+      "additionalProperties": false,
+      "patternProperties": {
+        "^(dwellMs)$": {
+          "anyOf": [
+            {
+              "maximum": 4294967295,
+              "minimum": 0,
+              "type": "integer"
+            },
+            {
+              "pattern": "^[0-9]+$",
+              "type": "string"
+            }
+          ],
+          "default": 0
+        },
+        "^(dwellReason)$": {
+          "default": "",
+          "description": "\"network idle\", \"max dwell\" or \"cancelled\".",
+          "type": "string"
+        },
+        "^(finalUrl)$": {
+          "default": "",
+          "type": "string"
+        },
+        "^(redirectChain)$": {
+          "description": "Every URL the main frame loaded, in order, starting with the submitted URL.",
+          "items": {
+            "$ref": "#/$defs/urljail.report.v0.Hop.schema.json"
+          },
+          "type": "array"
+        }
+      },
+      "properties": {
+        "dwell_ms": {
+          "anyOf": [
+            {
+              "maximum": 4294967295,
+              "minimum": 0,
+              "type": "integer"
+            },
+            {
+              "pattern": "^[0-9]+$",
+              "type": "string"
+            }
+          ],
+          "default": 0
+        },
+        "dwell_reason": {
+          "default": "",
+          "description": "\"network idle\", \"max dwell\" or \"cancelled\".",
+          "type": "string"
+        },
+        "error": {
+          "default": "",
+          "description": "Set when the navigation itself failed, e.g. \"net::ERR_NAME_NOT_RESOLVED\".",
+          "type": "string"
+        },
+        "final_url": {
+          "default": "",
+          "type": "string"
+        },
+        "redirect_chain": {
+          "description": "Every URL the main frame loaded, in order, starting with the submitted URL.",
+          "items": {
+            "$ref": "#/$defs/urljail.report.v0.Hop.schema.json"
+          },
+          "type": "array"
+        },
+        "title": {
+          "default": "",
+          "type": "string"
+        }
+      },
+      "title": "Navigation",
+      "type": "object"
+    },
+    "urljail.report.v0.Network.schema.json": {
+      "$schema": "https://json-schema.org/draft/2020-12/schema",
+      "additionalProperties": false,
+      "properties": {
+        "domains": {
+          "description": "Hosts contacted, grouped by registrable domain (eTLD+1).",
+          "items": {
+            "$ref": "#/$defs/urljail.report.v0.Domain.schema.json"
+          },
+          "type": "array"
+        },
+        "requests": {
+          "items": {
+            "$ref": "#/$defs/urljail.report.v0.Request.schema.json"
+          },
+          "type": "array"
+        },
+        "tls": {
+          "description": "One entry per host with a TLS connection.",
+          "items": {
+            "$ref": "#/$defs/urljail.report.v0.Tls.schema.json"
+          },
+          "type": "array"
+        }
+      },
+      "title": "Network",
+      "type": "object"
+    },
+    "urljail.report.v0.Page.schema.json": {
+      "$schema": "https://json-schema.org/draft/2020-12/schema",
+      "additionalProperties": false,
+      "properties": {
+        "dialogs": {
+          "items": {
+            "$ref": "#/$defs/urljail.report.v0.Dialog.schema.json"
+          },
+          "type": "array"
+        },
+        "downloads": {
+          "items": {
+            "$ref": "#/$defs/urljail.report.v0.Download.schema.json"
+          },
+          "type": "array"
+        }
+      },
+      "title": "Page",
+      "type": "object"
+    },
+    "urljail.report.v0.Report.schema.json": {
+      "$schema": "https://json-schema.org/draft/2020-12/schema",
+      "additionalProperties": false,
+      "description": "Report is derived from a run's raw artifacts and can always be regenerated from them.\n Every observation says who attests to it in `source`: \"guest.cdp\" (Chrome, inside the VM:\n guest-attested evidence) or \"host.*\" (observed outside the VM, from P3).",
+      "properties": {
+        "artifacts": {
+          "$ref": "#/$defs/urljail.report.v0.Artifacts.schema.json"
+        },
+        "gaps": {
+          "description": "What could not be observed in this run, stated explicitly (design goal G4).",
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "navigation": {
+          "$ref": "#/$defs/urljail.report.v0.Navigation.schema.json"
+        },
+        "network": {
+          "$ref": "#/$defs/urljail.report.v0.Network.schema.json"
+        },
+        "page": {
+          "$ref": "#/$defs/urljail.report.v0.Page.schema.json"
+        },
+        "run": {
+          "$ref": "#/$defs/urljail.report.v0.Run.schema.json"
+        },
+        "schema": {
+          "default": "",
+          "description": "\"urljail.report/v0\".",
+          "type": "string"
+        }
+      },
+      "title": "Report",
+      "type": "object"
+    },
+    "urljail.report.v0.Request.schema.json": {
+      "$schema": "https://json-schema.org/draft/2020-12/schema",
+      "additionalProperties": false,
+      "patternProperties": {
+        "^(fromCache)$": {
+          "default": false,
+          "type": "boolean"
+        },
+        "^(remoteIp)$": {
+          "default": "",
+          "type": "string"
+        }
+      },
+      "properties": {
+        "bytes": {
+          "anyOf": [
+            {
+              "maximum": 4294967295,
+              "minimum": 0,
+              "type": "integer"
+            },
+            {
+              "pattern": "^[0-9]+$",
+              "type": "string"
+            }
+          ],
+          "default": 0,
+          "description": "Bytes received on the wire (encoded length)."
+        },
+        "error": {
+          "default": "",
+          "description": "Set when the request failed, e.g. \"net::ERR_CONNECTION_REFUSED\".",
+          "type": "string"
+        },
+        "from_cache": {
+          "default": false,
+          "type": "boolean"
+        },
+        "initiator": {
+          "default": "",
+          "description": "What started the request: \"parser\", \"script\", \"redirect\", \"other\", ...",
+          "type": "string"
+        },
+        "method": {
+          "default": "",
+          "type": "string"
+        },
+        "protocol": {
+          "default": "",
+          "description": "Network protocol, e.g. \"h2\", \"http/1.1\".",
+          "type": "string"
+        },
+        "remote_ip": {
+          "default": "",
+          "type": "string"
+        },
+        "source": {
+          "default": "",
+          "type": "string"
+        },
+        "status": {
+          "anyOf": [
+            {
+              "maximum": 2147483647,
+              "minimum": -2147483648,
+              "type": "integer"
+            },
+            {
+              "pattern": "^-?[0-9]+$",
+              "type": "string"
+            }
+          ],
+          "default": 0
+        },
+        "type": {
+          "default": "",
+          "description": "Chrome's resource type: \"Document\", \"Script\", \"Image\", \"XHR\", ...",
+          "type": "string"
+        },
+        "url": {
+          "default": "",
+          "type": "string"
+        }
+      },
+      "title": "Request",
+      "type": "object"
+    },
+    "urljail.report.v0.Run.schema.json": {
+      "$schema": "https://json-schema.org/draft/2020-12/schema",
+      "additionalProperties": false,
+      "patternProperties": {
+        "^(endedAt)$": {
+          "$ref": "#/$defs/google.protobuf.Timestamp.schema.json"
+        },
+        "^(startedAt)$": {
+          "$ref": "#/$defs/google.protobuf.Timestamp.schema.json"
+        },
+        "^(submittedUrl)$": {
+          "default": "",
+          "type": "string"
+        }
+      },
+      "properties": {
+        "egress": {
+          "$ref": "#/$defs/urljail.report.v0.Egress.schema.json"
+        },
+        "ended_at": {
+          "$ref": "#/$defs/google.protobuf.Timestamp.schema.json"
+        },
+        "error": {
+          "default": "",
+          "type": "string"
+        },
+        "id": {
+          "default": "",
+          "description": "UUIDv7.",
+          "type": "string"
+        },
+        "profile": {
+          "default": "",
+          "type": "string"
+        },
+        "started_at": {
+          "$ref": "#/$defs/google.protobuf.Timestamp.schema.json"
+        },
+        "status": {
+          "default": "",
+          "description": "\"completed\", \"timeout\", \"cancelled\" or \"error\".",
+          "type": "string"
+        },
+        "submitted_url": {
+          "default": "",
+          "type": "string"
+        },
+        "versions": {
+          "additionalProperties": {
+            "type": "string"
+          },
+          "description": "Component versions: urljail, firecracker, image, guest_kernel, browser.",
+          "propertyNames": {
+            "type": "string"
+          },
+          "type": "object"
+        }
+      },
+      "title": "Run",
+      "type": "object"
+    },
+    "urljail.report.v0.Tls.schema.json": {
+      "$schema": "https://json-schema.org/draft/2020-12/schema",
+      "additionalProperties": false,
+      "patternProperties": {
+        "^(notAfter)$": {
+          "$ref": "#/$defs/google.protobuf.Timestamp.schema.json"
+        },
+        "^(notBefore)$": {
+          "$ref": "#/$defs/google.protobuf.Timestamp.schema.json"
+        }
+      },
+      "properties": {
+        "host": {
+          "default": "",
+          "type": "string"
+        },
+        "issuer": {
+          "default": "",
+          "type": "string"
+        },
+        "not_after": {
+          "$ref": "#/$defs/google.protobuf.Timestamp.schema.json"
+        },
+        "not_before": {
+          "$ref": "#/$defs/google.protobuf.Timestamp.schema.json"
+        },
+        "protocol": {
+          "default": "",
+          "type": "string"
+        },
+        "san": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "source": {
+          "default": "",
+          "type": "string"
+        },
+        "subject": {
+          "default": "",
+          "type": "string"
+        }
+      },
+      "title": "Tls",
+      "type": "object"
+    }
+  },
+  "$id": "urljail.report.v0.Report.schema.bundle.json",
+  "$ref": "#/$defs/urljail.report.v0.Report.schema.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema"
+}
