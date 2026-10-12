@@ -21,6 +21,10 @@ Firecracker documents this concern in `docs/snapshotting/random-for-clones.md` (
 | Kernel-derived values (TCP ISN, etc.) | depend on CRNG + secrets | fixed if CRNG reseeded before first use |
 | **Userspace PRNGs** (BoringSSL in Chromium, V8 `Math.random`, Go runtime in guest agent) | **cloned, and the kernel reseed does not touch them** | open question: this is the interesting part |
 
+## First data point (P4 M2, 2026-10-12)
+
+Three clones of one snapshot, Chrome 155 prepared before the snapshot, guest kernel 6.18 with VMGenID: the kernel reseeded on every restore (`crng reseeded due to virtual machine fork`), guest `getrandom` output differed, and **all 25 TLS ClientHello randoms and session IDs** captured on the host were distinct. Not yet checked: key shares, V8 `Math.random`, other userspace state. See [the P4 journal](../journal/p4-snapshots.md#m2-notes).
+
 ## Experiments
 
 1. **Baseline:** restore N clones *without* VMGenID/reseed; have each make a TLS connection to a test server we control; collect ClientHello random, session ID, key shares (from pcap) and `Math.random()` outputs (from a test page). Count duplicates.

@@ -133,6 +133,60 @@
       "title": "Blocked",
       "type": "object"
     },
+    "urljail.report.v0.Clone.schema.json": {
+      "$schema": "https://json-schema.org/draft/2020-12/schema",
+      "additionalProperties": false,
+      "patternProperties": {
+        "^(guestClockSkewMs)$": {
+          "anyOf": [
+            {
+              "maximum": 2147483647,
+              "minimum": -2147483648,
+              "type": "integer"
+            },
+            {
+              "pattern": "^-?[0-9]+$",
+              "type": "string"
+            }
+          ],
+          "default": 0,
+          "description": "Guest wall clock against the host's right after restore."
+        },
+        "^(vmgenidReseed)$": {
+          "default": false,
+          "description": "The guest kernel reseeded its RNG on restore (VMGenID).",
+          "type": "boolean"
+        }
+      },
+      "properties": {
+        "guest_clock_skew_ms": {
+          "anyOf": [
+            {
+              "maximum": 2147483647,
+              "minimum": -2147483648,
+              "type": "integer"
+            },
+            {
+              "pattern": "^-?[0-9]+$",
+              "type": "string"
+            }
+          ],
+          "default": 0,
+          "description": "Guest wall clock against the host's right after restore."
+        },
+        "snapshot": {
+          "default": "",
+          "type": "string"
+        },
+        "vmgenid_reseed": {
+          "default": false,
+          "description": "The guest kernel reseeded its RNG on restore (VMGenID).",
+          "type": "boolean"
+        }
+      },
+      "title": "Clone",
+      "type": "object"
+    },
     "urljail.report.v0.Dialog.schema.json": {
       "$schema": "https://json-schema.org/draft/2020-12/schema",
       "additionalProperties": false,
@@ -917,6 +971,10 @@
         }
       },
       "properties": {
+        "clone": {
+          "$ref": "#/$defs/urljail.report.v0.Clone.schema.json",
+          "description": "Set when the VM was restored from a snapshot (P4)."
+        },
         "egress": {
           "$ref": "#/$defs/urljail.report.v0.Egress.schema.json"
         },
@@ -952,7 +1010,7 @@
           "additionalProperties": {
             "type": "string"
           },
-          "description": "Component versions: urljail, firecracker, image, guest_kernel, browser.",
+          "description": "Component versions: urljail, firecracker, image, guest_kernel, browser, snapshot.",
           "propertyNames": {
             "type": "string"
           },

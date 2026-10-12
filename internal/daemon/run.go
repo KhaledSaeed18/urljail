@@ -1,7 +1,9 @@
 package daemon
 
 import (
+	"bytes"
 	"context"
+	"encoding/hex"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -77,6 +79,10 @@ func (s *Server) detonate(ctx context.Context, r *run, u *url.URL, profile strin
 	_ = report.WriteMeta(runDir, m)
 	defer func() {
 		m.EndedAt = time.Now().UTC()
+		if m.Clone != nil { // teardown has run, so the serial log is complete
+			b, _ := os.ReadFile(filepath.Join(runDir, "host", "serial.log"))
+			m.Clone.VMGenIDReseed = bytes.Contains(b, []byte("crng reseeded due to virtual machine fork"))
+		}
 		m.Status = "completed"
 		switch {
 		case errors.Is(ctx.Err(), context.DeadlineExceeded):
@@ -112,9 +118,13 @@ func (s *Server) detonate(ctx context.Context, r *run, u *url.URL, profile strin
 		return err
 	}
 
-	agent, err := s.bootVM(ctx, r, slot, runDir, func(f func(context.Context)) { cleanups = append(cleanups, f) })
+	agent, clone, err := s.bootVM(ctx, r, slot, runDir, func(f func(context.Context)) { cleanups = append(cleanups, f) })
 	if err != nil {
 		return err
+	}
+	if clone != nil {
+		m.Clone = clone
+		m.Versions["snapshot"] = clone.Snapshot
 	}
 
 	d, err := s.dwellFor(ctx)
@@ -134,12 +144,12 @@ func (s *Server) detonate(ctx context.Context, r *run, u *url.URL, profile strin
 
 // bootVM prepares slot's disk and namespace, starts the VM and waits for its guest agent.
 // Everything it creates is registered with addCleanup, so the caller's teardown removes it.
-func (s *Server) bootVM(ctx context.Context, r *run, slot int, runDir string, addCleanup func(func(context.Context))) (*grpc.ClientConn, error) {
+func (s *Server) bootVM(ctx context.Context, r *run, slot int, runDir string, addCleanup func(func(context.Context))) (*grpc.ClientConn, *report.Clone, error) {
 	img := s.cfg.Image
 	op := s.cfg.Operator
 	workDir := filepath.Join(s.cfg.WorkDir, r.id)
 	if err := op.MkdirAll(workDir, 0o700); err != nil {
-		return nil, err
+		return nil, nil, err
 	}
 	addCleanup(func(context.Context) { os.RemoveAll(workDir) })
 	rootfs := filepath.Join(workDir, "rootfs.ext4")
@@ -148,19 +158,19 @@ func (s *Server) bootVM(ctx context.Context, r *run, slot int, runDir string, ad
 		base = s.snap.rootfs // the disk the snapshot's page cache expects
 	}
 	if err := vm.CloneFile(base, rootfs); err != nil {
-		return nil, fmt.Errorf("cloning rootfs: %w", err)
+		return nil, nil, fmt.Errorf("cloning rootfs: %w", err)
 	}
 	if err := op.Chown(rootfs); err != nil { // Firecracker opens it as the operator
-		return nil, err
+		return nil, nil, err
 	}
 
 	netVM, err := s.net.AddVM(ctx, slot, op.UID, op.GID)
 	if err != nil {
-		return nil, err
+		return nil, nil, err
 	}
 	addCleanup(func(ctx context.Context) { s.net.RemoveVM(ctx, netVM) })
 	if err := s.net.VerifyVM(ctx, netVM); err != nil {
-		return nil, fmt.Errorf("preflight: %w", err)
+		return nil, nil, fmt.Errorf("preflight: %w", err)
 	}
 
 	// Host-attested records: every DNS reply the resolver sends this VM, every packet of it
@@ -168,12 +178,12 @@ func (s *Server) bootVM(ctx context.Context, r *run, slot int, runDir string, ad
 	client := netns.VMOutsideIP(slot)
 	dns, err := newJSONLog(filepath.Join(runDir, "host", "dns.jsonl"), maxHostRecords)
 	if err != nil {
-		return nil, err
+		return nil, nil, err
 	}
 	s.net.Resolver().Attach(client, func(q netns.Query) { dns.write(q) })
 	blocked, err := newJSONLog(filepath.Join(runDir, "host", "blocked.jsonl"), maxHostRecords)
 	if err != nil {
-		return nil, err
+		return nil, nil, err
 	}
 	s.net.AttachBlocked(client, func(b netns.Blocked) { blocked.write(b) })
 	addCleanup(func(context.Context) {
@@ -185,7 +195,7 @@ func (s *Server) bootVM(ctx context.Context, r *run, slot int, runDir string, ad
 	})
 	probe, err := capture.Attach(netVM.NS, netns.TapName, r.log)
 	if err != nil {
-		return nil, err
+		return nil, nil, err
 	}
 	addCleanup(func(context.Context) {
 		flows := probe.Close()
@@ -201,11 +211,11 @@ func (s *Server) bootVM(ctx context.Context, r *run, slot int, runDir string, ad
 	})
 	pcap := filepath.Join(runDir, "host", "capture.pcap")
 	if err := op.Chown(filepath.Join(runDir, "host")); err != nil {
-		return nil, err
+		return nil, nil, err
 	}
 	capture, err := netns.StartCapture(netVM, pcap, op.Name, maxPackets)
 	if err != nil {
-		return nil, fmt.Errorf("packet capture: %w", err)
+		return nil, nil, fmt.Errorf("packet capture: %w", err)
 	}
 	addCleanup(func(context.Context) {
 		r.log.Info("capture stopped", "tcpdump", strings.Join(capture.Stop(), "; "))
@@ -237,7 +247,7 @@ func (s *Server) bootVM(ctx context.Context, r *run, slot int, runDir string, ad
 		machine, err = vm.Start(ctx, vmCfg)
 	}
 	if err != nil {
-		return nil, err
+		return nil, nil, err
 	}
 	addCleanup(func(ctx context.Context) {
 		gctx, gcancel := context.WithTimeout(ctx, shutdownGrace)
@@ -248,12 +258,12 @@ func (s *Server) bootVM(ctx context.Context, r *run, slot int, runDir string, ad
 
 	agent, err := dialAgent(vsockUDS)
 	if err != nil {
-		return nil, err
+		return nil, nil, err
 	}
 	addCleanup(func(context.Context) { agent.Close() })
 	hello, err := waitAgent(ctx, machine, guestv1.NewGuestAgentServiceClient(agent))
 	if err != nil {
-		return nil, err
+		return nil, nil, err
 	}
 	if hello.GetBrowserVersion() != img.Manifest.Browser.Version {
 		// Guest-attested, so only a warning: the host's record (the image manifest) stands.
@@ -261,6 +271,7 @@ func (s *Server) bootVM(ctx context.Context, r *run, slot int, runDir string, ad
 			"guest", hello.GetBrowserVersion(), "manifest", img.Manifest.Browser.Version)
 	}
 	how := "cold boot"
+	var clone *report.Clone
 	if s.snap != nil {
 		how = "restored " + s.snap.manifest.Name
 		if !hello.GetPrepared() {
@@ -274,12 +285,16 @@ func (s *Server) bootVM(ctx context.Context, r *run, slot int, runDir string, ad
 	if skew > 2*time.Second {
 		r.log.Warn("guest clock is off after start", "skew", skew)
 	}
+	if s.snap != nil {
+		clone = &report.Clone{Snapshot: s.snap.manifest.Name, GuestClockSkewMs: skew.Milliseconds(),
+			GuestRandom: hex.EncodeToString(hello.GetRandom())}
+	}
 	if err := r.send(daemonv1.RunState_RUN_STATE_NET_READY,
 		fmt.Sprintf("guest agent up %d ms after start (%s; Chrome %s; guest clock within %s)",
 			time.Since(t0).Milliseconds(), how, hello.GetBrowserVersion(), skew.Round(time.Millisecond))); err != nil {
-		return nil, err
+		return nil, nil, err
 	}
-	return agent, nil
+	return agent, clone, nil
 }
 
 // collectMargin is the time kept back from the run's deadline for collecting artifacts.

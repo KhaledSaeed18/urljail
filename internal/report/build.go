@@ -68,6 +68,13 @@ func Build(runDir string) (*reportv0.Report, error) {
 		"No interaction simulated: content behind clicks, CAPTCHAs or other gates was not reached",
 		"QUIC, Encrypted Client Hello and DNS-over-HTTPS are disabled by browser policy",
 	)
+	if c := meta.Clone; c != nil {
+		r.Run.Clone = &reportv0.Clone{Snapshot: c.Snapshot, GuestClockSkewMs: int32(c.GuestClockSkewMs), VmgenidReseed: c.VMGenIDReseed}
+		r.Gaps = append(r.Gaps, "Restored from snapshot "+c.Snapshot+": the guest kernel's RNG is reseeded on restore (VMGenID), but Chrome's userspace RNG state is copied from the snapshot (research R2)")
+		if !c.VMGenIDReseed {
+			r.Gaps = append(r.Gaps, "The guest kernel didn't log a VMGenID reseed: this clone may share kernel RNG state with others from the same snapshot")
+		}
+	}
 	if meta.Status != "completed" {
 		r.Gaps = append(r.Gaps, fmt.Sprintf("Run ended with status %q: observations may be incomplete", meta.Status))
 	}

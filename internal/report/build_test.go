@@ -32,6 +32,7 @@ func writeRun(t *testing.T, withGuest bool) string {
 	if err := WriteMeta(dir, Meta{
 		RunID: "01a1", URL: "https://short.test/a", Egress: "dev", Status: "completed",
 		StartedAt: time.Unix(1, 0), EndedAt: time.Unix(2, 0), Versions: map[string]string{"browser": "155"},
+		Clone: &Clone{Snapshot: "img-baseline", GuestClockSkewMs: 214, VMGenIDReseed: true},
 	}); err != nil {
 		t.Fatal(err)
 	}
@@ -49,6 +50,9 @@ func TestBuild(t *testing.T) {
 	r, err := Build(writeRun(t, true))
 	if err != nil {
 		t.Fatal(err)
+	}
+	if c := r.GetRun().GetClone(); c.GetSnapshot() != "img-baseline" || !c.GetVmgenidReseed() || c.GetGuestClockSkewMs() != 214 {
+		t.Fatalf("clone = %v", c)
 	}
 	if r.GetSchema() != Schema || r.GetRun().GetVersions()["browser"] != "155" {
 		t.Fatalf("run = %v", r.GetRun())

@@ -82,7 +82,7 @@ func (s *Server) SelfTest(ctx context.Context, _ *daemonv1.SelfTestRequest) (*da
 			scancel()
 		}
 	}()
-	agent, err := s.bootVM(ctx, r, slot, runDir, func(f func(context.Context)) { cleanups = append(cleanups, f) })
+	agent, clone, err := s.bootVM(ctx, r, slot, runDir, func(f func(context.Context)) { cleanups = append(cleanups, f) })
 	if err != nil {
 		return nil, status.Errorf(codes.Internal, "booting the test VM: %v", err)
 	}
@@ -166,6 +166,22 @@ func (s *Server) SelfTest(ctx context.Context, _ *daemonv1.SelfTestRequest) (*da
 		case !pass:
 			row.Result = "fail"
 			out.Passed = false
+		}
+		out.Checks = append(out.Checks, row)
+	}
+	if clone != nil { // clone safety (P4)
+		row := &daemonv1.Check{Name: "Guest clock after restore", Expected: "within 2s of the host",
+			Observed: fmt.Sprintf("guest: %d ms off", clone.GuestClockSkewMs), Result: "pass"}
+		if clone.GuestClockSkewMs > 2000 {
+			row.Result, out.Passed = "fail", false
+		}
+		out.Checks = append(out.Checks, row)
+		serial, _ := os.ReadFile(filepath.Join(runDir, "host", "serial.log"))
+		reseeded := strings.Contains(string(serial), "crng reseeded due to virtual machine fork")
+		row = &daemonv1.Check{Name: "Kernel RNG reseeded on restore", Expected: "VMGenID reseed in the guest log",
+			Observed: fmt.Sprintf("serial log: %v", reseeded), Result: "pass"}
+		if !reseeded {
+			row.Result, out.Passed = "fail", false
 		}
 		out.Checks = append(out.Checks, row)
 	}

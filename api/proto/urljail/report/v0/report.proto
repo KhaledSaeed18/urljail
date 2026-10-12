@@ -34,8 +34,18 @@ message Run {
   // "completed", "timeout", "cancelled" or "error".
   string status = 7;
   string error = 8;
-  // Component versions: urljail, firecracker, image, guest_kernel, browser.
+  // Component versions: urljail, firecracker, image, guest_kernel, browser, snapshot.
   map<string, string> versions = 9;
+  // Set when the VM was restored from a snapshot (P4).
+  Clone clone = 10;
+}
+
+message Clone {
+  string snapshot = 1;
+  // Guest wall clock against the host's right after restore.
+  int32 guest_clock_skew_ms = 2;
+  // The guest kernel reseeded its RNG on restore (VMGenID).
+  bool vmgenid_reseed = 3;
 }
 
 message Egress {

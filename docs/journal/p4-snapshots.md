@@ -10,7 +10,7 @@
 | # | Milestone | State |
 | - | --------- | ----- |
 | M1 | Snapshot built at daemon start (Chrome prepared, no network), every run restored from it | done |
-| M2 | Clone safety: clock, VMGenID reseed, distinct kernel randomness across clones | |
+| M2 | Clone safety: clock, VMGenID reseed, distinct kernel randomness across clones | done |
 | M3 | Pool of pre-restored clones, benchmarks (p50/p95, memory per clone, page-cache sharing), concurrency; exit criterion | |
 
 ## M1 notes
@@ -27,3 +27,22 @@
 - **ARP after restore:** each VM namespace's `tap0` now has a fixed MAC, the same everywhere like the rest of the inside of a namespace, so the guest's ARP entry for its gateway, captured in the snapshot, stays right.
 - **Stale-snapshot detection must cover boot args:** the clocksource fix didn't invalidate the first snapshot until boot args joined the manifest's freshness check.
 - Firecracker writes snapshot files `0644`; they're now `0600`.
+
+## M2 notes
+
+- **Per run, `meta.json` → `clone`:** snapshot name, guest clock skew right after restore, 16 bytes of guest `getrandom`, and whether the guest kernel logged `crng reseeded due to virtual machine fork` (read from the serial log after teardown). The report's `run.clone` carries the snapshot, skew and reseed, and every restored run states the remaining gap: Chrome's userspace RNG state is copied from the snapshot.
+- **Self-test gains two clone checks:** guest clock within 2 s of the host after restore, and the VMGenID reseed in the guest log. Both pass.
+
+### Measured: three clones of one snapshot (example.com)
+
+| | Clone 1 | Clone 2 | Clone 3 |
+| - | ------- | ------- | ------- |
+| REQUESTED → NAVIGATING | 255 ms | 169 ms | 199 ms |
+| Guest `getrandom` | `2fb62077…` | `0c95a78a…` | `50f39d23…` |
+| VMGenID reseed | yes | yes | yes |
+| Clock skew after restore | 214 ms | 214 ms | 214 ms |
+| TLS ClientHellos (from the pcap) | 8 | 9 | 8 |
+
+- **ClientHello randoms and session IDs: 25 of 25 distinct across the clones.** BoringSSL in the cloned Chrome isn't replaying the snapshot's state for the values servers see. That's three clones, not a proof of independence (key shares, V8's `Math.random`, other userspace generators weren't checked): it stays research R2's question.
+- **The constant 214 ms skew** is the time between the clock being captured at pause and the snapshot being written (the 1 GiB memory file); every clone lags by it. Well inside the 2 s check, and irrelevant for TLS.
+- With the snapshot's memory in the page cache, restore-to-navigation is **~170–260 ms**; right after a build (pages just written) it was 0.7–1.0 s.

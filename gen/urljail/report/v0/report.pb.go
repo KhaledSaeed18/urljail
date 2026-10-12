@@ -143,8 +143,10 @@ type Run struct {
 	// "completed", "timeout", "cancelled" or "error".
 	Status string `protobuf:"bytes,7,opt,name=status,proto3" json:"status,omitempty"`
 	Error  string `protobuf:"bytes,8,opt,name=error,proto3" json:"error,omitempty"`
-	// Component versions: urljail, firecracker, image, guest_kernel, browser.
-	Versions      map[string]string `protobuf:"bytes,9,rep,name=versions,proto3" json:"versions,omitempty" protobuf_key:"bytes,1,opt,name=key" protobuf_val:"bytes,2,opt,name=value"`
+	// Component versions: urljail, firecracker, image, guest_kernel, browser, snapshot.
+	Versions map[string]string `protobuf:"bytes,9,rep,name=versions,proto3" json:"versions,omitempty" protobuf_key:"bytes,1,opt,name=key" protobuf_val:"bytes,2,opt,name=value"`
+	// Set when the VM was restored from a snapshot (P4).
+	Clone         *Clone `protobuf:"bytes,10,opt,name=clone,proto3" json:"clone,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -242,6 +244,75 @@ func (x *Run) GetVersions() map[string]string {
 	return nil
 }
 
+func (x *Run) GetClone() *Clone {
+	if x != nil {
+		return x.Clone
+	}
+	return nil
+}
+
+type Clone struct {
+	state    protoimpl.MessageState `protogen:"open.v1"`
+	Snapshot string                 `protobuf:"bytes,1,opt,name=snapshot,proto3" json:"snapshot,omitempty"`
+	// Guest wall clock against the host's right after restore.
+	GuestClockSkewMs int32 `protobuf:"varint,2,opt,name=guest_clock_skew_ms,json=guestClockSkewMs,proto3" json:"guest_clock_skew_ms,omitempty"`
+	// The guest kernel reseeded its RNG on restore (VMGenID).
+	VmgenidReseed bool `protobuf:"varint,3,opt,name=vmgenid_reseed,json=vmgenidReseed,proto3" json:"vmgenid_reseed,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *Clone) Reset() {
+	*x = Clone{}
+	mi := &file_urljail_report_v0_report_proto_msgTypes[2]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *Clone) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*Clone) ProtoMessage() {}
+
+func (x *Clone) ProtoReflect() protoreflect.Message {
+	mi := &file_urljail_report_v0_report_proto_msgTypes[2]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use Clone.ProtoReflect.Descriptor instead.
+func (*Clone) Descriptor() ([]byte, []int) {
+	return file_urljail_report_v0_report_proto_rawDescGZIP(), []int{2}
+}
+
+func (x *Clone) GetSnapshot() string {
+	if x != nil {
+		return x.Snapshot
+	}
+	return ""
+}
+
+func (x *Clone) GetGuestClockSkewMs() int32 {
+	if x != nil {
+		return x.GuestClockSkewMs
+	}
+	return 0
+}
+
+func (x *Clone) GetVmgenidReseed() bool {
+	if x != nil {
+		return x.VmgenidReseed
+	}
+	return false
+}
+
 type Egress struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
 	// "dev" (host NAT) or "live" (WireGuard).
@@ -254,7 +325,7 @@ type Egress struct {
 
 func (x *Egress) Reset() {
 	*x = Egress{}
-	mi := &file_urljail_report_v0_report_proto_msgTypes[2]
+	mi := &file_urljail_report_v0_report_proto_msgTypes[3]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -266,7 +337,7 @@ func (x *Egress) String() string {
 func (*Egress) ProtoMessage() {}
 
 func (x *Egress) ProtoReflect() protoreflect.Message {
-	mi := &file_urljail_report_v0_report_proto_msgTypes[2]
+	mi := &file_urljail_report_v0_report_proto_msgTypes[3]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -279,7 +350,7 @@ func (x *Egress) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use Egress.ProtoReflect.Descriptor instead.
 func (*Egress) Descriptor() ([]byte, []int) {
-	return file_urljail_report_v0_report_proto_rawDescGZIP(), []int{2}
+	return file_urljail_report_v0_report_proto_rawDescGZIP(), []int{3}
 }
 
 func (x *Egress) GetMode() string {
@@ -313,7 +384,7 @@ type Navigation struct {
 
 func (x *Navigation) Reset() {
 	*x = Navigation{}
-	mi := &file_urljail_report_v0_report_proto_msgTypes[3]
+	mi := &file_urljail_report_v0_report_proto_msgTypes[4]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -325,7 +396,7 @@ func (x *Navigation) String() string {
 func (*Navigation) ProtoMessage() {}
 
 func (x *Navigation) ProtoReflect() protoreflect.Message {
-	mi := &file_urljail_report_v0_report_proto_msgTypes[3]
+	mi := &file_urljail_report_v0_report_proto_msgTypes[4]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -338,7 +409,7 @@ func (x *Navigation) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use Navigation.ProtoReflect.Descriptor instead.
 func (*Navigation) Descriptor() ([]byte, []int) {
-	return file_urljail_report_v0_report_proto_rawDescGZIP(), []int{3}
+	return file_urljail_report_v0_report_proto_rawDescGZIP(), []int{4}
 }
 
 func (x *Navigation) GetFinalUrl() string {
@@ -398,7 +469,7 @@ type Hop struct {
 
 func (x *Hop) Reset() {
 	*x = Hop{}
-	mi := &file_urljail_report_v0_report_proto_msgTypes[4]
+	mi := &file_urljail_report_v0_report_proto_msgTypes[5]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -410,7 +481,7 @@ func (x *Hop) String() string {
 func (*Hop) ProtoMessage() {}
 
 func (x *Hop) ProtoReflect() protoreflect.Message {
-	mi := &file_urljail_report_v0_report_proto_msgTypes[4]
+	mi := &file_urljail_report_v0_report_proto_msgTypes[5]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -423,7 +494,7 @@ func (x *Hop) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use Hop.ProtoReflect.Descriptor instead.
 func (*Hop) Descriptor() ([]byte, []int) {
-	return file_urljail_report_v0_report_proto_rawDescGZIP(), []int{4}
+	return file_urljail_report_v0_report_proto_rawDescGZIP(), []int{5}
 }
 
 func (x *Hop) GetUrl() string {
@@ -473,7 +544,7 @@ type Network struct {
 
 func (x *Network) Reset() {
 	*x = Network{}
-	mi := &file_urljail_report_v0_report_proto_msgTypes[5]
+	mi := &file_urljail_report_v0_report_proto_msgTypes[6]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -485,7 +556,7 @@ func (x *Network) String() string {
 func (*Network) ProtoMessage() {}
 
 func (x *Network) ProtoReflect() protoreflect.Message {
-	mi := &file_urljail_report_v0_report_proto_msgTypes[5]
+	mi := &file_urljail_report_v0_report_proto_msgTypes[6]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -498,7 +569,7 @@ func (x *Network) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use Network.ProtoReflect.Descriptor instead.
 func (*Network) Descriptor() ([]byte, []int) {
-	return file_urljail_report_v0_report_proto_rawDescGZIP(), []int{5}
+	return file_urljail_report_v0_report_proto_rawDescGZIP(), []int{6}
 }
 
 func (x *Network) GetRequests() []*Request {
@@ -559,7 +630,7 @@ type DnsQuery struct {
 
 func (x *DnsQuery) Reset() {
 	*x = DnsQuery{}
-	mi := &file_urljail_report_v0_report_proto_msgTypes[6]
+	mi := &file_urljail_report_v0_report_proto_msgTypes[7]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -571,7 +642,7 @@ func (x *DnsQuery) String() string {
 func (*DnsQuery) ProtoMessage() {}
 
 func (x *DnsQuery) ProtoReflect() protoreflect.Message {
-	mi := &file_urljail_report_v0_report_proto_msgTypes[6]
+	mi := &file_urljail_report_v0_report_proto_msgTypes[7]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -584,7 +655,7 @@ func (x *DnsQuery) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use DnsQuery.ProtoReflect.Descriptor instead.
 func (*DnsQuery) Descriptor() ([]byte, []int) {
-	return file_urljail_report_v0_report_proto_rawDescGZIP(), []int{6}
+	return file_urljail_report_v0_report_proto_rawDescGZIP(), []int{7}
 }
 
 func (x *DnsQuery) GetQname() string {
@@ -666,7 +737,7 @@ type Flow struct {
 
 func (x *Flow) Reset() {
 	*x = Flow{}
-	mi := &file_urljail_report_v0_report_proto_msgTypes[7]
+	mi := &file_urljail_report_v0_report_proto_msgTypes[8]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -678,7 +749,7 @@ func (x *Flow) String() string {
 func (*Flow) ProtoMessage() {}
 
 func (x *Flow) ProtoReflect() protoreflect.Message {
-	mi := &file_urljail_report_v0_report_proto_msgTypes[7]
+	mi := &file_urljail_report_v0_report_proto_msgTypes[8]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -691,7 +762,7 @@ func (x *Flow) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use Flow.ProtoReflect.Descriptor instead.
 func (*Flow) Descriptor() ([]byte, []int) {
-	return file_urljail_report_v0_report_proto_rawDescGZIP(), []int{7}
+	return file_urljail_report_v0_report_proto_rawDescGZIP(), []int{8}
 }
 
 func (x *Flow) GetProto() string {
@@ -815,7 +886,7 @@ type Blocked struct {
 
 func (x *Blocked) Reset() {
 	*x = Blocked{}
-	mi := &file_urljail_report_v0_report_proto_msgTypes[8]
+	mi := &file_urljail_report_v0_report_proto_msgTypes[9]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -827,7 +898,7 @@ func (x *Blocked) String() string {
 func (*Blocked) ProtoMessage() {}
 
 func (x *Blocked) ProtoReflect() protoreflect.Message {
-	mi := &file_urljail_report_v0_report_proto_msgTypes[8]
+	mi := &file_urljail_report_v0_report_proto_msgTypes[9]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -840,7 +911,7 @@ func (x *Blocked) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use Blocked.ProtoReflect.Descriptor instead.
 func (*Blocked) Descriptor() ([]byte, []int) {
-	return file_urljail_report_v0_report_proto_rawDescGZIP(), []int{8}
+	return file_urljail_report_v0_report_proto_rawDescGZIP(), []int{9}
 }
 
 func (x *Blocked) GetReason() string {
@@ -913,7 +984,7 @@ type Reconciliation struct {
 
 func (x *Reconciliation) Reset() {
 	*x = Reconciliation{}
-	mi := &file_urljail_report_v0_report_proto_msgTypes[9]
+	mi := &file_urljail_report_v0_report_proto_msgTypes[10]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -925,7 +996,7 @@ func (x *Reconciliation) String() string {
 func (*Reconciliation) ProtoMessage() {}
 
 func (x *Reconciliation) ProtoReflect() protoreflect.Message {
-	mi := &file_urljail_report_v0_report_proto_msgTypes[9]
+	mi := &file_urljail_report_v0_report_proto_msgTypes[10]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -938,7 +1009,7 @@ func (x *Reconciliation) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use Reconciliation.ProtoReflect.Descriptor instead.
 func (*Reconciliation) Descriptor() ([]byte, []int) {
-	return file_urljail_report_v0_report_proto_rawDescGZIP(), []int{9}
+	return file_urljail_report_v0_report_proto_rawDescGZIP(), []int{10}
 }
 
 func (x *Reconciliation) GetConsistent() bool {
@@ -1007,7 +1078,7 @@ type Request struct {
 
 func (x *Request) Reset() {
 	*x = Request{}
-	mi := &file_urljail_report_v0_report_proto_msgTypes[10]
+	mi := &file_urljail_report_v0_report_proto_msgTypes[11]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1019,7 +1090,7 @@ func (x *Request) String() string {
 func (*Request) ProtoMessage() {}
 
 func (x *Request) ProtoReflect() protoreflect.Message {
-	mi := &file_urljail_report_v0_report_proto_msgTypes[10]
+	mi := &file_urljail_report_v0_report_proto_msgTypes[11]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1032,7 +1103,7 @@ func (x *Request) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use Request.ProtoReflect.Descriptor instead.
 func (*Request) Descriptor() ([]byte, []int) {
-	return file_urljail_report_v0_report_proto_rawDescGZIP(), []int{10}
+	return file_urljail_report_v0_report_proto_rawDescGZIP(), []int{11}
 }
 
 func (x *Request) GetUrl() string {
@@ -1128,7 +1199,7 @@ type Tls struct {
 
 func (x *Tls) Reset() {
 	*x = Tls{}
-	mi := &file_urljail_report_v0_report_proto_msgTypes[11]
+	mi := &file_urljail_report_v0_report_proto_msgTypes[12]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1140,7 +1211,7 @@ func (x *Tls) String() string {
 func (*Tls) ProtoMessage() {}
 
 func (x *Tls) ProtoReflect() protoreflect.Message {
-	mi := &file_urljail_report_v0_report_proto_msgTypes[11]
+	mi := &file_urljail_report_v0_report_proto_msgTypes[12]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1153,7 +1224,7 @@ func (x *Tls) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use Tls.ProtoReflect.Descriptor instead.
 func (*Tls) Descriptor() ([]byte, []int) {
-	return file_urljail_report_v0_report_proto_rawDescGZIP(), []int{11}
+	return file_urljail_report_v0_report_proto_rawDescGZIP(), []int{12}
 }
 
 func (x *Tls) GetHost() string {
@@ -1222,7 +1293,7 @@ type Domain struct {
 
 func (x *Domain) Reset() {
 	*x = Domain{}
-	mi := &file_urljail_report_v0_report_proto_msgTypes[12]
+	mi := &file_urljail_report_v0_report_proto_msgTypes[13]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1234,7 +1305,7 @@ func (x *Domain) String() string {
 func (*Domain) ProtoMessage() {}
 
 func (x *Domain) ProtoReflect() protoreflect.Message {
-	mi := &file_urljail_report_v0_report_proto_msgTypes[12]
+	mi := &file_urljail_report_v0_report_proto_msgTypes[13]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1247,7 +1318,7 @@ func (x *Domain) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use Domain.ProtoReflect.Descriptor instead.
 func (*Domain) Descriptor() ([]byte, []int) {
-	return file_urljail_report_v0_report_proto_rawDescGZIP(), []int{12}
+	return file_urljail_report_v0_report_proto_rawDescGZIP(), []int{13}
 }
 
 func (x *Domain) GetRegistrable() string {
@@ -1274,7 +1345,7 @@ type Page struct {
 
 func (x *Page) Reset() {
 	*x = Page{}
-	mi := &file_urljail_report_v0_report_proto_msgTypes[13]
+	mi := &file_urljail_report_v0_report_proto_msgTypes[14]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1286,7 +1357,7 @@ func (x *Page) String() string {
 func (*Page) ProtoMessage() {}
 
 func (x *Page) ProtoReflect() protoreflect.Message {
-	mi := &file_urljail_report_v0_report_proto_msgTypes[13]
+	mi := &file_urljail_report_v0_report_proto_msgTypes[14]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1299,7 +1370,7 @@ func (x *Page) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use Page.ProtoReflect.Descriptor instead.
 func (*Page) Descriptor() ([]byte, []int) {
-	return file_urljail_report_v0_report_proto_rawDescGZIP(), []int{13}
+	return file_urljail_report_v0_report_proto_rawDescGZIP(), []int{14}
 }
 
 func (x *Page) GetDialogs() []*Dialog {
@@ -1329,7 +1400,7 @@ type Dialog struct {
 
 func (x *Dialog) Reset() {
 	*x = Dialog{}
-	mi := &file_urljail_report_v0_report_proto_msgTypes[14]
+	mi := &file_urljail_report_v0_report_proto_msgTypes[15]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1341,7 +1412,7 @@ func (x *Dialog) String() string {
 func (*Dialog) ProtoMessage() {}
 
 func (x *Dialog) ProtoReflect() protoreflect.Message {
-	mi := &file_urljail_report_v0_report_proto_msgTypes[14]
+	mi := &file_urljail_report_v0_report_proto_msgTypes[15]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1354,7 +1425,7 @@ func (x *Dialog) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use Dialog.ProtoReflect.Descriptor instead.
 func (*Dialog) Descriptor() ([]byte, []int) {
-	return file_urljail_report_v0_report_proto_rawDescGZIP(), []int{14}
+	return file_urljail_report_v0_report_proto_rawDescGZIP(), []int{15}
 }
 
 func (x *Dialog) GetType() string {
@@ -1399,7 +1470,7 @@ type Download struct {
 
 func (x *Download) Reset() {
 	*x = Download{}
-	mi := &file_urljail_report_v0_report_proto_msgTypes[15]
+	mi := &file_urljail_report_v0_report_proto_msgTypes[16]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1411,7 +1482,7 @@ func (x *Download) String() string {
 func (*Download) ProtoMessage() {}
 
 func (x *Download) ProtoReflect() protoreflect.Message {
-	mi := &file_urljail_report_v0_report_proto_msgTypes[15]
+	mi := &file_urljail_report_v0_report_proto_msgTypes[16]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1424,7 +1495,7 @@ func (x *Download) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use Download.ProtoReflect.Descriptor instead.
 func (*Download) Descriptor() ([]byte, []int) {
-	return file_urljail_report_v0_report_proto_rawDescGZIP(), []int{15}
+	return file_urljail_report_v0_report_proto_rawDescGZIP(), []int{16}
 }
 
 func (x *Download) GetUrl() string {
@@ -1478,7 +1549,7 @@ type Artifacts struct {
 
 func (x *Artifacts) Reset() {
 	*x = Artifacts{}
-	mi := &file_urljail_report_v0_report_proto_msgTypes[16]
+	mi := &file_urljail_report_v0_report_proto_msgTypes[17]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1490,7 +1561,7 @@ func (x *Artifacts) String() string {
 func (*Artifacts) ProtoMessage() {}
 
 func (x *Artifacts) ProtoReflect() protoreflect.Message {
-	mi := &file_urljail_report_v0_report_proto_msgTypes[16]
+	mi := &file_urljail_report_v0_report_proto_msgTypes[17]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1503,7 +1574,7 @@ func (x *Artifacts) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use Artifacts.ProtoReflect.Descriptor instead.
 func (*Artifacts) Descriptor() ([]byte, []int) {
-	return file_urljail_report_v0_report_proto_rawDescGZIP(), []int{16}
+	return file_urljail_report_v0_report_proto_rawDescGZIP(), []int{17}
 }
 
 func (x *Artifacts) GetScreenshot() string {
@@ -1570,7 +1641,7 @@ const file_urljail_report_v0_report_proto_rawDesc = "" +
 	"\x04page\x18\x05 \x01(\v2\x17.urljail.report.v0.PageR\x04page\x12:\n" +
 	"\tartifacts\x18\x06 \x01(\v2\x1c.urljail.report.v0.ArtifactsR\tartifacts\x12\x12\n" +
 	"\x04gaps\x18\a \x03(\tR\x04gaps\x12I\n" +
-	"\x0ereconciliation\x18\b \x01(\v2!.urljail.report.v0.ReconciliationR\x0ereconciliation\"\xa6\x03\n" +
+	"\x0ereconciliation\x18\b \x01(\v2!.urljail.report.v0.ReconciliationR\x0ereconciliation\"\xd6\x03\n" +
 	"\x03Run\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\x12#\n" +
 	"\rsubmitted_url\x18\x02 \x01(\tR\fsubmittedUrl\x12\x18\n" +
@@ -1581,10 +1652,16 @@ const file_urljail_report_v0_report_proto_rawDesc = "" +
 	"\bended_at\x18\x06 \x01(\v2\x1a.google.protobuf.TimestampR\aendedAt\x12\x16\n" +
 	"\x06status\x18\a \x01(\tR\x06status\x12\x14\n" +
 	"\x05error\x18\b \x01(\tR\x05error\x12@\n" +
-	"\bversions\x18\t \x03(\v2$.urljail.report.v0.Run.VersionsEntryR\bversions\x1a;\n" +
+	"\bversions\x18\t \x03(\v2$.urljail.report.v0.Run.VersionsEntryR\bversions\x12.\n" +
+	"\x05clone\x18\n" +
+	" \x01(\v2\x18.urljail.report.v0.CloneR\x05clone\x1a;\n" +
 	"\rVersionsEntry\x12\x10\n" +
 	"\x03key\x18\x01 \x01(\tR\x03key\x12\x14\n" +
-	"\x05value\x18\x02 \x01(\tR\x05value:\x028\x01\"0\n" +
+	"\x05value\x18\x02 \x01(\tR\x05value:\x028\x01\"y\n" +
+	"\x05Clone\x12\x1a\n" +
+	"\bsnapshot\x18\x01 \x01(\tR\bsnapshot\x12-\n" +
+	"\x13guest_clock_skew_ms\x18\x02 \x01(\x05R\x10guestClockSkewMs\x12%\n" +
+	"\x0evmgenid_reseed\x18\x03 \x01(\bR\rvmgenidReseed\"0\n" +
 	"\x06Egress\x12\x12\n" +
 	"\x04mode\x18\x01 \x01(\tR\x04mode\x12\x12\n" +
 	"\x04exit\x18\x02 \x01(\tR\x04exit\"\xd2\x01\n" +
@@ -1720,59 +1797,61 @@ func file_urljail_report_v0_report_proto_rawDescGZIP() []byte {
 	return file_urljail_report_v0_report_proto_rawDescData
 }
 
-var file_urljail_report_v0_report_proto_msgTypes = make([]protoimpl.MessageInfo, 18)
+var file_urljail_report_v0_report_proto_msgTypes = make([]protoimpl.MessageInfo, 19)
 var file_urljail_report_v0_report_proto_goTypes = []any{
 	(*Report)(nil),                // 0: urljail.report.v0.Report
 	(*Run)(nil),                   // 1: urljail.report.v0.Run
-	(*Egress)(nil),                // 2: urljail.report.v0.Egress
-	(*Navigation)(nil),            // 3: urljail.report.v0.Navigation
-	(*Hop)(nil),                   // 4: urljail.report.v0.Hop
-	(*Network)(nil),               // 5: urljail.report.v0.Network
-	(*DnsQuery)(nil),              // 6: urljail.report.v0.DnsQuery
-	(*Flow)(nil),                  // 7: urljail.report.v0.Flow
-	(*Blocked)(nil),               // 8: urljail.report.v0.Blocked
-	(*Reconciliation)(nil),        // 9: urljail.report.v0.Reconciliation
-	(*Request)(nil),               // 10: urljail.report.v0.Request
-	(*Tls)(nil),                   // 11: urljail.report.v0.Tls
-	(*Domain)(nil),                // 12: urljail.report.v0.Domain
-	(*Page)(nil),                  // 13: urljail.report.v0.Page
-	(*Dialog)(nil),                // 14: urljail.report.v0.Dialog
-	(*Download)(nil),              // 15: urljail.report.v0.Download
-	(*Artifacts)(nil),             // 16: urljail.report.v0.Artifacts
-	nil,                           // 17: urljail.report.v0.Run.VersionsEntry
-	(*timestamppb.Timestamp)(nil), // 18: google.protobuf.Timestamp
+	(*Clone)(nil),                 // 2: urljail.report.v0.Clone
+	(*Egress)(nil),                // 3: urljail.report.v0.Egress
+	(*Navigation)(nil),            // 4: urljail.report.v0.Navigation
+	(*Hop)(nil),                   // 5: urljail.report.v0.Hop
+	(*Network)(nil),               // 6: urljail.report.v0.Network
+	(*DnsQuery)(nil),              // 7: urljail.report.v0.DnsQuery
+	(*Flow)(nil),                  // 8: urljail.report.v0.Flow
+	(*Blocked)(nil),               // 9: urljail.report.v0.Blocked
+	(*Reconciliation)(nil),        // 10: urljail.report.v0.Reconciliation
+	(*Request)(nil),               // 11: urljail.report.v0.Request
+	(*Tls)(nil),                   // 12: urljail.report.v0.Tls
+	(*Domain)(nil),                // 13: urljail.report.v0.Domain
+	(*Page)(nil),                  // 14: urljail.report.v0.Page
+	(*Dialog)(nil),                // 15: urljail.report.v0.Dialog
+	(*Download)(nil),              // 16: urljail.report.v0.Download
+	(*Artifacts)(nil),             // 17: urljail.report.v0.Artifacts
+	nil,                           // 18: urljail.report.v0.Run.VersionsEntry
+	(*timestamppb.Timestamp)(nil), // 19: google.protobuf.Timestamp
 }
 var file_urljail_report_v0_report_proto_depIdxs = []int32{
 	1,  // 0: urljail.report.v0.Report.run:type_name -> urljail.report.v0.Run
-	3,  // 1: urljail.report.v0.Report.navigation:type_name -> urljail.report.v0.Navigation
-	5,  // 2: urljail.report.v0.Report.network:type_name -> urljail.report.v0.Network
-	13, // 3: urljail.report.v0.Report.page:type_name -> urljail.report.v0.Page
-	16, // 4: urljail.report.v0.Report.artifacts:type_name -> urljail.report.v0.Artifacts
-	9,  // 5: urljail.report.v0.Report.reconciliation:type_name -> urljail.report.v0.Reconciliation
-	2,  // 6: urljail.report.v0.Run.egress:type_name -> urljail.report.v0.Egress
-	18, // 7: urljail.report.v0.Run.started_at:type_name -> google.protobuf.Timestamp
-	18, // 8: urljail.report.v0.Run.ended_at:type_name -> google.protobuf.Timestamp
-	17, // 9: urljail.report.v0.Run.versions:type_name -> urljail.report.v0.Run.VersionsEntry
-	4,  // 10: urljail.report.v0.Navigation.redirect_chain:type_name -> urljail.report.v0.Hop
-	10, // 11: urljail.report.v0.Network.requests:type_name -> urljail.report.v0.Request
-	11, // 12: urljail.report.v0.Network.tls:type_name -> urljail.report.v0.Tls
-	12, // 13: urljail.report.v0.Network.domains:type_name -> urljail.report.v0.Domain
-	6,  // 14: urljail.report.v0.Network.dns:type_name -> urljail.report.v0.DnsQuery
-	7,  // 15: urljail.report.v0.Network.flows:type_name -> urljail.report.v0.Flow
-	8,  // 16: urljail.report.v0.Network.blocked:type_name -> urljail.report.v0.Blocked
-	18, // 17: urljail.report.v0.DnsQuery.time:type_name -> google.protobuf.Timestamp
-	18, // 18: urljail.report.v0.Flow.first:type_name -> google.protobuf.Timestamp
-	18, // 19: urljail.report.v0.Flow.last:type_name -> google.protobuf.Timestamp
-	18, // 20: urljail.report.v0.Blocked.first:type_name -> google.protobuf.Timestamp
-	18, // 21: urljail.report.v0.Tls.not_before:type_name -> google.protobuf.Timestamp
-	18, // 22: urljail.report.v0.Tls.not_after:type_name -> google.protobuf.Timestamp
-	14, // 23: urljail.report.v0.Page.dialogs:type_name -> urljail.report.v0.Dialog
-	15, // 24: urljail.report.v0.Page.downloads:type_name -> urljail.report.v0.Download
-	25, // [25:25] is the sub-list for method output_type
-	25, // [25:25] is the sub-list for method input_type
-	25, // [25:25] is the sub-list for extension type_name
-	25, // [25:25] is the sub-list for extension extendee
-	0,  // [0:25] is the sub-list for field type_name
+	4,  // 1: urljail.report.v0.Report.navigation:type_name -> urljail.report.v0.Navigation
+	6,  // 2: urljail.report.v0.Report.network:type_name -> urljail.report.v0.Network
+	14, // 3: urljail.report.v0.Report.page:type_name -> urljail.report.v0.Page
+	17, // 4: urljail.report.v0.Report.artifacts:type_name -> urljail.report.v0.Artifacts
+	10, // 5: urljail.report.v0.Report.reconciliation:type_name -> urljail.report.v0.Reconciliation
+	3,  // 6: urljail.report.v0.Run.egress:type_name -> urljail.report.v0.Egress
+	19, // 7: urljail.report.v0.Run.started_at:type_name -> google.protobuf.Timestamp
+	19, // 8: urljail.report.v0.Run.ended_at:type_name -> google.protobuf.Timestamp
+	18, // 9: urljail.report.v0.Run.versions:type_name -> urljail.report.v0.Run.VersionsEntry
+	2,  // 10: urljail.report.v0.Run.clone:type_name -> urljail.report.v0.Clone
+	5,  // 11: urljail.report.v0.Navigation.redirect_chain:type_name -> urljail.report.v0.Hop
+	11, // 12: urljail.report.v0.Network.requests:type_name -> urljail.report.v0.Request
+	12, // 13: urljail.report.v0.Network.tls:type_name -> urljail.report.v0.Tls
+	13, // 14: urljail.report.v0.Network.domains:type_name -> urljail.report.v0.Domain
+	7,  // 15: urljail.report.v0.Network.dns:type_name -> urljail.report.v0.DnsQuery
+	8,  // 16: urljail.report.v0.Network.flows:type_name -> urljail.report.v0.Flow
+	9,  // 17: urljail.report.v0.Network.blocked:type_name -> urljail.report.v0.Blocked
+	19, // 18: urljail.report.v0.DnsQuery.time:type_name -> google.protobuf.Timestamp
+	19, // 19: urljail.report.v0.Flow.first:type_name -> google.protobuf.Timestamp
+	19, // 20: urljail.report.v0.Flow.last:type_name -> google.protobuf.Timestamp
+	19, // 21: urljail.report.v0.Blocked.first:type_name -> google.protobuf.Timestamp
+	19, // 22: urljail.report.v0.Tls.not_before:type_name -> google.protobuf.Timestamp
+	19, // 23: urljail.report.v0.Tls.not_after:type_name -> google.protobuf.Timestamp
+	15, // 24: urljail.report.v0.Page.dialogs:type_name -> urljail.report.v0.Dialog
+	16, // 25: urljail.report.v0.Page.downloads:type_name -> urljail.report.v0.Download
+	26, // [26:26] is the sub-list for method output_type
+	26, // [26:26] is the sub-list for method input_type
+	26, // [26:26] is the sub-list for extension type_name
+	26, // [26:26] is the sub-list for extension extendee
+	0,  // [0:26] is the sub-list for field type_name
 }
 
 func init() { file_urljail_report_v0_report_proto_init() }
@@ -1786,7 +1865,7 @@ func file_urljail_report_v0_report_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_urljail_report_v0_report_proto_rawDesc), len(file_urljail_report_v0_report_proto_rawDesc)),
 			NumEnums:      0,
-			NumMessages:   18,
+			NumMessages:   19,
 			NumExtensions: 0,
 			NumServices:   0,
 		},

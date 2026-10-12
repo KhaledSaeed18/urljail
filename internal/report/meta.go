@@ -21,6 +21,17 @@ type Meta struct {
 	Status    string            `json:"status,omitempty"`
 	Error     string            `json:"error,omitempty"`
 	Versions  map[string]string `json:"versions"`
+	Clone     *Clone            `json:"clone,omitempty"`
+}
+
+// Clone records how a VM restored from a snapshot started (P4 clone safety).
+type Clone struct {
+	Snapshot         string `json:"snapshot"`
+	GuestClockSkewMs int64  `json:"guest_clock_skew_ms"`
+	// 16 bytes the guest read from getrandom(2) right after restore; must differ across clones.
+	GuestRandom string `json:"guest_random"`
+	// The guest kernel logged "crng reseeded due to virtual machine fork" (VMGenID).
+	VMGenIDReseed bool `json:"vmgenid_reseed"`
 }
 
 // WriteMeta writes meta.json in runDir.
