@@ -52,4 +52,4 @@ Go native fuzz targets for every parser the root daemon runs on guest-controlled
 | Threat model reviewed against what was built | done ([review](../threat-model.md#review-against-the-built-system-2026-10-12)): one false claim corrected (downloads), diagram fixed, 8 new threats; adds "fuzz the root parsers" before live |
 | Feed terms of use checked (Q13) | done: free feeds first (operator's decision) |
 | Feed ingestion design, URLs strictly as data | done ([feed-ingestion.md](../feed-ingestion.md)): unprivileged `urljail feeds`, never in the root daemon |
-| Mullvad subscription; exit recorded per run | pending (operator) |
+| VPN config (Proton VPN Free, [ADR 0017](../decisions/0017-proton-vpn-free.md)) | pending (operator) |

@@ -1,6 +1,6 @@
 # 0010: Mullvad as the live-mode WireGuard provider
 
-- Status: Accepted
+- Status: Superseded by [0017](./0017-proton-vpn-free.md) (free plan wanted)
 - Date: 2026-10-12
 
 ## Context

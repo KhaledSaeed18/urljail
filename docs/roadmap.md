@@ -77,7 +77,7 @@ The whole pipeline, as simple as possible, **cold boot** (no snapshots yet).
 - [x] Threat model reviewed against what was actually built ([review](./threat-model.md#review-against-the-built-system-2026-10-12))
 - [x] Dev sudo rule removed (`/etc/sudoers.d/urljail-dev`); urljaild runs as a systemd service from root-owned binaries
 - [x] Feed terms of use checked for each source (Q13): free feeds first ([research/feeds.md](./research/feeds.md))
-- [ ] Mullvad subscription; exit server/IP/ASN recorded per run ([ADR 0010](./decisions/0010-mullvad-live-egress.md))
+- [ ] Proton VPN Free WireGuard config installed ([ADR 0017](./decisions/0017-proton-vpn-free.md)); live self-test passes with it
 - [x] Feed ingestion design treating URLs strictly as data ([feed-ingestion.md](./feed-ingestion.md))
 
 ## P6: Anti-cloaking research

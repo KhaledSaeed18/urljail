@@ -13,13 +13,14 @@ One file per significant decision. Never edit an accepted ADR's decision. Supers
 | [0007](./0007-grpc-over-vsock.md) | gRPC over the Firecracker vsock stream | Accepted | 2026-10-12 |
 | [0008](./0008-protobuf-report-schema.md) | Protobuf as the report schema source of truth; UUIDv7 run IDs | Accepted | 2026-10-12 |
 | [0009](./0009-debian-guest-ci-kernel.md) | Debian 13 slim guest, CI kernel until P4, new headless as baseline | Accepted | 2026-10-12 |
-| [0010](./0010-mullvad-live-egress.md) | Mullvad as the live-mode WireGuard provider | Accepted | 2026-10-12 |
+| [0010](./0010-mullvad-live-egress.md) | Mullvad as the live-mode WireGuard provider | Superseded by 0017 | 2026-10-12 |
 | [0011](./0011-hand-written-firecracker-client.md) | Hand-written Firecracker API client (amends 0002) | Accepted | 2026-10-12 |
 | [0012](./0012-google-chrome-stable-in-guest.md) | Google Chrome stable in the guest, pinned and archived | Accepted | 2026-10-12 |
 | [0013](./0013-own-cdp-client-over-pipe.md) | Own CDP client over --remote-debugging-pipe (cdproto types, no chromedp) | Accepted | 2026-10-12 |
 | [0014](./0014-root-daemon-unprivileged-vmm.md) | urljaild runs as root; VMMs run as the operator | Accepted | 2026-10-12 |
 | [0015](./0015-restore-on-demand.md) | Restore on demand; kvmclock and VMGenID for clone safety (no pool, SyncClock or Reseed) | Accepted | 2026-10-12 |
 | [0016](./0016-every-vmm-jailed.md) | Every VMM runs under the jailer, as a per-slot uid | Accepted | 2026-10-12 |
+| [0017](./0017-proton-vpn-free.md) | Proton VPN Free as the live-mode WireGuard exit (supersedes 0010) | Accepted | 2026-10-12 |
 
 ## Template
 
