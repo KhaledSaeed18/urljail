@@ -1,4 +1,4 @@
-.PHONY: all gen build test lint clean
+.PHONY: all gen build test lint clean image
 
 all: lint test build
 
@@ -6,7 +6,10 @@ gen:
 	buf generate
 
 build:
-	go build -o bin/ ./cmd/...
+	go build -o bin/ ./cmd/urljail ./cmd/urljaild
+
+image:
+	images/debian-chrome/build.sh
 
 test:
 	go test ./...

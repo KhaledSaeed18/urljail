@@ -11,7 +11,13 @@ import (
 	"path/filepath"
 	"time"
 
+	"google.golang.org/grpc"
+	"google.golang.org/grpc/backoff"
+	"google.golang.org/grpc/credentials/insecure"
+
 	daemonv1 "github.com/KhaledSaeed18/urljail/gen/urljail/daemon/v1"
+	guestv1 "github.com/KhaledSaeed18/urljail/gen/urljail/guest/v1"
+	"github.com/KhaledSaeed18/urljail/internal/guestinfo"
 	"github.com/KhaledSaeed18/urljail/internal/hostnet"
 	"github.com/KhaledSaeed18/urljail/internal/version"
 	"github.com/KhaledSaeed18/urljail/internal/vm"
@@ -43,6 +49,7 @@ type meta struct {
 
 // detonate runs the VM part of a detonation. It always tears down what it started.
 func (s *Server) detonate(ctx context.Context, r *run, u *url.URL, profile string, timeout time.Duration) (err error) {
+	img := s.cfg.Image
 	slot, ok := s.slots.acquire()
 	if !ok {
 		return fmt.Errorf("all %d VM slots are busy", s.slots.size())
@@ -62,8 +69,9 @@ func (s *Server) detonate(ctx context.Context, r *run, u *url.URL, profile strin
 		Versions: map[string]string{
 			"urljail":      version.String(),
 			"firecracker":  s.cfg.FirecrackerVersion,
-			"guest_kernel": s.cfg.GuestKernel,
-			"rootfs":       s.cfg.RootfsName,
+			"image":        img.Manifest.Name,
+			"guest_kernel": img.Manifest.Kernel.Name,
+			"browser":      img.Manifest.Browser.Version,
 		},
 	}
 	writeMeta(runDir, m)
@@ -105,7 +113,7 @@ func (s *Server) detonate(ctx context.Context, r *run, u *url.URL, profile strin
 	}
 	cleanups = append(cleanups, func(context.Context) { os.RemoveAll(workDir) })
 	rootfs := filepath.Join(workDir, "rootfs.ext4")
-	if err := vm.CloneFile(s.cfg.Rootfs, rootfs); err != nil {
+	if err := vm.CloneFile(img.Rootfs, rootfs); err != nil {
 		return fmt.Errorf("cloning rootfs: %w", err)
 	}
 
@@ -115,16 +123,18 @@ func (s *Server) detonate(ctx context.Context, r *run, u *url.URL, profile strin
 	}
 	cleanups = append(cleanups, func(ctx context.Context) { s.egress.RemoveTap(ctx, tap.Name) })
 
+	vsockUDS := filepath.Join(s.cfg.SocketDir, r.id+".vsock")
 	t0 := time.Now()
 	machine, err := vm.Start(ctx, vm.Config{
 		Firecracker: s.cfg.Firecracker,
 		Socket:      filepath.Join(s.cfg.SocketDir, r.id+".sock"),
 		LogDir:      filepath.Join(runDir, "host"),
-		Kernel:      s.cfg.Kernel,
-		BootArgs:    "console=ttyS0 reboot=k panic=1 " + tap.BootArgs(),
+		Kernel:      img.Kernel,
+		BootArgs:    "console=ttyS0 reboot=k panic=1 init=" + img.Manifest.Init + " " + tap.BootArgs(s.cfg.DNS),
 		Rootfs:      rootfs,
 		TapName:     tap.Name,
 		GuestMAC:    tap.GuestMAC,
+		VsockUDS:    vsockUDS,
 		VCPUs:       s.cfg.VCPUs,
 		MemMiB:      s.cfg.MemMiB,
 	})
@@ -138,34 +148,63 @@ func (s *Server) detonate(ctx context.Context, r *run, u *url.URL, profile strin
 	})
 	r.log.Info("vm started", "pid", machine.PID(), "tap", tap.Name, "guest", tap.GuestIP)
 
-	// Until the guest agent exists (M4), "ready" means the guest answers on TCP 22.
-	if err := waitTCP(ctx, machine, net.JoinHostPort(tap.GuestIP, "22")); err != nil {
+	agent, err := dialAgent(vsockUDS)
+	if err != nil {
 		return err
 	}
-	if err := r.send(daemonv1.RunState_RUN_STATE_NET_READY,
-		fmt.Sprintf("guest %s reachable %d ms after start (no guest agent yet: nothing is navigated)",
-			tap.GuestIP, time.Since(t0).Milliseconds())); err != nil {
+	cleanups = append(cleanups, func(context.Context) { agent.Close() })
+	hello, err := waitAgent(ctx, machine, guestv1.NewGuestAgentServiceClient(agent))
+	if err != nil {
 		return err
 	}
-	return nil
+	if hello.GetBrowserVersion() != img.Manifest.Browser.Version {
+		// Guest-attested, so only a warning: the host's record (the image manifest) stands.
+		r.log.Warn("guest reports a different browser than the image manifest",
+			"guest", hello.GetBrowserVersion(), "manifest", img.Manifest.Browser.Version)
+	}
+	return r.send(daemonv1.RunState_RUN_STATE_NET_READY,
+		fmt.Sprintf("guest agent up %d ms after start (Chrome %s, kernel %s); navigation arrives in M4",
+			time.Since(t0).Milliseconds(), hello.GetBrowserVersion(), hello.GetKernel()))
 }
 
-// waitTCP polls addr until it accepts a connection, the VM exits, or ctx ends.
-func waitTCP(ctx context.Context, m *vm.Machine, addr string) error {
-	for {
-		d := net.Dialer{Timeout: 200 * time.Millisecond}
-		if c, err := d.DialContext(ctx, "tcp", addr); err == nil {
-			c.Close()
-			return nil
-		}
+// dialAgent returns a gRPC connection to the guest agent over the VM's vsock socket.
+// It connects lazily, so it can be created before the guest is up.
+func dialAgent(uds string) (*grpc.ClientConn, error) {
+	return grpc.NewClient("passthrough:///guest-agent",
+		grpc.WithTransportCredentials(insecure.NewCredentials()),
+		grpc.WithContextDialer(func(ctx context.Context, _ string) (net.Conn, error) {
+			return vm.DialVsock(ctx, uds, guestinfo.AgentPort)
+		}),
+		// The guest is expected within seconds: retry the dial quickly instead of gRPC's
+		// default backoff, which grows to tens of seconds.
+		grpc.WithConnectParams(grpc.ConnectParams{
+			Backoff:           backoff.Config{BaseDelay: 50 * time.Millisecond, Multiplier: 1.3, MaxDelay: 250 * time.Millisecond},
+			MinConnectTimeout: time.Second,
+		}),
+	)
+}
+
+// waitAgent calls Hello until the agent answers, the VM exits, or ctx ends.
+func waitAgent(ctx context.Context, m *vm.Machine, c guestv1.GuestAgentServiceClient) (*guestv1.HelloResponse, error) {
+	hctx, cancel := context.WithCancel(ctx)
+	defer cancel()
+	go func() {
 		select {
 		case <-m.Done():
-			return errors.New("VM exited before the guest came up (see host/serial.log)")
-		case <-ctx.Done():
-			return fmt.Errorf("guest not reachable: %w", ctx.Err())
-		case <-time.After(50 * time.Millisecond):
+			cancel()
+		case <-hctx.Done():
 		}
+	}()
+	hello, err := c.Hello(hctx, &guestv1.HelloRequest{}, grpc.WaitForReady(true))
+	if err == nil {
+		return hello, nil
 	}
+	select {
+	case <-m.Done():
+		return nil, errors.New("VM exited before the guest agent answered (see host/serial.log)")
+	default:
+	}
+	return nil, fmt.Errorf("guest agent not reachable: %w", err)
 }
 
 func writeMeta(runDir string, m meta) {

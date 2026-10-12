@@ -1,0 +1,19 @@
+{
+  "EncryptedClientHelloEnabled": false,
+  "DnsOverHttpsMode": "off",
+  "QuicAllowed": false,
+  "SafeBrowsingProtectionLevel": 0,
+  "MetricsReportingEnabled": false,
+  "UrlKeyedAnonymizedDataCollectionEnabled": false,
+  "SpellCheckServiceEnabled": false,
+  "TranslateEnabled": false,
+  "BackgroundModeEnabled": false,
+  "DefaultBrowserSettingEnabled": false,
+  "BrowserSignin": 0,
+  "SyncDisabled": true,
+  "PasswordManagerEnabled": false,
+  "AutofillAddressEnabled": false,
+  "AutofillCreditCardEnabled": false,
+  "PromptForDownloadLocation": false,
+  "DownloadDirectory": "/run/urljail/downloads"
+}

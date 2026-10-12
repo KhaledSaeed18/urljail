@@ -126,9 +126,11 @@ func TapFor(n int) Tap {
 	}
 }
 
-// BootArgs is the kernel ip= argument that configures the guest's address and gateway.
-func (t Tap) BootArgs() string {
-	return fmt.Sprintf("ip=%s::%s:255.255.255.252::eth0:off", t.GuestIP, t.HostIP)
+// BootArgs is the kernel ip= argument that configures the guest's address, gateway and DNS
+// server. The kernel publishes the DNS server in /proc/net/pnp, which the image links as
+// /etc/resolv.conf.
+func (t Tap) BootArgs(dns string) string {
+	return fmt.Sprintf("ip=%s::%s:255.255.255.252::eth0:off:%s", t.GuestIP, t.HostIP, dns)
 }
 
 // AddTap creates t owned by the current user, so Firecracker can open it without root.

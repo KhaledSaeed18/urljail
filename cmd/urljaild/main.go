@@ -20,6 +20,7 @@ import (
 	daemonv1 "github.com/KhaledSaeed18/urljail/gen/urljail/daemon/v1"
 	"github.com/KhaledSaeed18/urljail/internal/daemon"
 	"github.com/KhaledSaeed18/urljail/internal/hostnet"
+	"github.com/KhaledSaeed18/urljail/internal/image"
 	"github.com/KhaledSaeed18/urljail/internal/paths"
 	"github.com/KhaledSaeed18/urljail/internal/policy"
 	"github.com/KhaledSaeed18/urljail/internal/version"
@@ -44,7 +45,8 @@ func run() error {
 	egress := flag.String("egress", "dev", "egress mode: off, dev or live")
 	allow := flag.String("allow", strings.Join(policy.DefaultDevAllowlist, ","), "dev mode allowlist (comma-separated domains)")
 	runsDir := flag.String("runs-dir", filepath.Join(dataDir, "runs"), "where run directories are written")
-	image := flag.String("image", filepath.Join(dataDir, "images", "default"), "guest image directory (vmlinux + rootfs.ext4)")
+	imageDir := flag.String("image", filepath.Join(dataDir, "images", "default"), "guest image directory (from images/*/build.sh)")
+	dns := flag.String("dns", "1.1.1.1", "DNS server for guests (dev mode)")
 	firecracker := flag.String("firecracker", defFC, "firecracker binary")
 	maxVMs := flag.Int("max-vms", 2, "concurrent VMs (RAM is the limit on this laptop)")
 	vcpus := flag.Int("vcpus", 2, "vCPUs per VM")
@@ -73,15 +75,17 @@ func run() error {
 		DefaultTimeout: *defTimeout,
 		MaxTimeout:     *maxTimeout,
 		Firecracker:    *firecracker,
-		Kernel:         filepath.Join(*image, "vmlinux"),
-		Rootfs:         filepath.Join(*image, "rootfs.ext4"),
+		DNS:            *dns,
 		SocketDir:      filepath.Join(filepath.Dir(*socket), "vm"),
 		WorkDir:        filepath.Join(dataDir, "work"),
 		MaxVMs:         *maxVMs,
 		VCPUs:          *vcpus,
 		MemMiB:         *mem,
 	}
-	if err := describe(&cfg); err != nil {
+	if cfg.Image, err = image.Load(*imageDir); err != nil {
+		return err
+	}
+	if err := firecrackerVersion(&cfg); err != nil {
 		return err
 	}
 
@@ -114,14 +118,14 @@ func run() error {
 	}()
 
 	log.Info("urljaild listening", "version", version.String(), "socket", *socket, "egress", mode,
-		"firecracker", cfg.FirecrackerVersion, "kernel", cfg.GuestKernel, "rootfs", cfg.RootfsName)
+		"firecracker", cfg.FirecrackerVersion, "image", cfg.Image.Manifest.Name)
 	err = gs.Serve(l)
 	srv.Wait()
 	return err
 }
 
-// describe checks the VM inputs exist and fills in their versions.
-func describe(cfg *daemon.Config) error {
+// firecrackerVersion checks the firecracker binary runs and records its version.
+func firecrackerVersion(cfg *daemon.Config) error {
 	if cfg.Firecracker == "" {
 		return fmt.Errorf("firecracker not found in PATH; pass -firecracker")
 	}
@@ -130,22 +134,6 @@ func describe(cfg *daemon.Config) error {
 		return fmt.Errorf("%s --version: %w", cfg.Firecracker, err)
 	}
 	cfg.FirecrackerVersion = strings.TrimPrefix(strings.SplitN(string(out), "\n", 2)[0], "Firecracker ")
-
-	kernel, err := filepath.EvalSymlinks(cfg.Kernel)
-	if err != nil {
-		return fmt.Errorf("guest kernel: %w", err)
-	}
-	rootfs, err := filepath.EvalSymlinks(cfg.Rootfs)
-	if err != nil {
-		return fmt.Errorf("guest rootfs: %w", err)
-	}
-	image, err := filepath.EvalSymlinks(filepath.Dir(cfg.Rootfs))
-	if err != nil {
-		return err
-	}
-	cfg.Kernel, cfg.Rootfs = kernel, rootfs
-	cfg.GuestKernel = filepath.Base(kernel)
-	cfg.RootfsName = filepath.Base(image)
 	return nil
 }
 

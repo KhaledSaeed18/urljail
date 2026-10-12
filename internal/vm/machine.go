@@ -24,6 +24,8 @@ type Config struct {
 	TapName  string // empty: no network card
 	GuestMAC string
 
+	VsockUDS string // host side of the guest's vsock device; empty: no vsock
+
 	VCPUs  int
 	MemMiB int
 }
@@ -103,6 +105,12 @@ func (m *Machine) configure(ctx context.Context, fcLog string) error {
 			return c.PutNetworkInterface(ctx, NetworkInterface{IfaceID: "net1", GuestMAC: cfg.GuestMAC, HostDevName: cfg.TapName})
 		},
 		func() error {
+			if cfg.VsockUDS == "" {
+				return nil
+			}
+			return c.PutVsock(ctx, Vsock{GuestCID: GuestCID, UDSPath: cfg.VsockUDS})
+		},
+		func() error {
 			return c.PutMachineConfig(ctx, MachineConfig{VCPUCount: cfg.VCPUs, MemSizeMiB: cfg.MemMiB})
 		},
 		func() error { return c.Action(ctx, "InstanceStart") },
@@ -154,7 +162,7 @@ func (m *Machine) Shutdown(ctx context.Context) error {
 			m.Kill()
 		}
 	}
-	_ = os.Remove(m.cfg.Socket)
+	m.removeSockets()
 	return nil
 }
 
@@ -162,5 +170,12 @@ func (m *Machine) Shutdown(ctx context.Context) error {
 func (m *Machine) Kill() {
 	_ = m.cmd.Process.Kill()
 	<-m.done
+	m.removeSockets()
+}
+
+func (m *Machine) removeSockets() {
 	_ = os.Remove(m.cfg.Socket)
+	if m.cfg.VsockUDS != "" {
+		_ = os.Remove(m.cfg.VsockUDS)
+	}
 }

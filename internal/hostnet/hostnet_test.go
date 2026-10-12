@@ -11,7 +11,7 @@ func TestTapFor(t *testing.T) {
 	if tap := TapFor(11); tap.GuestMAC != "06:00:AC:10:0B:02" || tap.GuestIP != "172.16.11.2" {
 		t.Fatalf("TapFor(11) = %+v", tap)
 	}
-	if got, want := TapFor(1).BootArgs(), "ip=172.16.1.2::172.16.1.1:255.255.255.252::eth0:off"; got != want {
+	if got, want := TapFor(1).BootArgs("1.1.1.1"), "ip=172.16.1.2::172.16.1.1:255.255.255.252::eth0:off:1.1.1.1"; got != want {
 		t.Fatalf("BootArgs = %q, want %q", got, want)
 	}
 }

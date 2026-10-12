@@ -17,6 +17,7 @@ import (
 
 	daemonv1 "github.com/KhaledSaeed18/urljail/gen/urljail/daemon/v1"
 	"github.com/KhaledSaeed18/urljail/internal/hostnet"
+	"github.com/KhaledSaeed18/urljail/internal/image"
 	"github.com/KhaledSaeed18/urljail/internal/policy"
 	"github.com/KhaledSaeed18/urljail/internal/version"
 )
@@ -29,19 +30,17 @@ type Config struct {
 	MaxTimeout     time.Duration
 
 	// VM settings.
-	Firecracker string // binary path
-	Kernel      string
-	Rootfs      string // read-only base image; each run gets a reflinked copy
-	SocketDir   string // Firecracker API sockets (short paths: Unix sockets are limited to 108 bytes)
-	WorkDir     string // per-run scratch (disk clones), deleted at teardown
+	Firecracker string       // binary path
+	Image       *image.Image // read-only base; each run gets a reflinked copy of its rootfs
+	DNS         string       // DNS server handed to the guest (dev mode: a public resolver)
+	SocketDir   string       // Firecracker API sockets (short paths: Unix sockets are limited to 108 bytes)
+	WorkDir     string       // per-run scratch (disk clones), deleted at teardown
 	MaxVMs      int
 	VCPUs       int
 	MemMiB      int
 
 	// Pinned component versions, reported by Version and recorded per run.
 	FirecrackerVersion string
-	GuestKernel        string
-	RootfsName         string
 }
 
 // Server implements daemonv1.DaemonServiceServer.
@@ -66,12 +65,19 @@ func New(cfg Config, egress *hostnet.Egress, log *slog.Logger) *Server {
 	return &Server{cfg: cfg, log: log, egress: egress, slots: newSlots(n)}
 }
 
+func (s *Server) guestKernel() string {
+	if s.cfg.Image == nil {
+		return ""
+	}
+	return s.cfg.Image.Manifest.Kernel.Name
+}
+
 // Version implements DaemonService.Version.
 func (s *Server) Version(context.Context, *daemonv1.VersionRequest) (*daemonv1.VersionResponse, error) {
 	return &daemonv1.VersionResponse{
 		Urljail:     version.String(),
 		Firecracker: s.cfg.FirecrackerVersion,
-		GuestKernel: s.cfg.GuestKernel,
+		GuestKernel: s.guestKernel(),
 		EgressMode:  string(s.cfg.Policy.Mode),
 	}, nil
 }

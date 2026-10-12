@@ -1,0 +1,24 @@
+# Guest rootfs: Debian 13 slim + Google Chrome stable (ADR 0009, ADR 0012).
+# Built by build.sh, which turns the container filesystem into an ext4 image.
+# It is never run as a container.
+ARG BASE
+FROM ${BASE}
+
+COPY chrome.deb /tmp/chrome.deb
+RUN apt-get update \
+ && DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
+      /tmp/chrome.deb \
+      ca-certificates \
+      fonts-liberation fonts-dejavu-core fonts-noto-core fonts-noto-color-emoji \
+ # No self-updates: the image is rebuilt with a new pinned .deb instead (ADR 0012).
+ && rm -f /etc/apt/sources.list.d/google-chrome.list /etc/cron.daily/google-chrome \
+ && rm -f /tmp/chrome.deb \
+ && apt-get clean && rm -rf /var/lib/apt/lists/*
+
+# Unprivileged user for the guest agent and Chrome; Chrome keeps its sandbox
+# (user namespaces are enabled in the guest kernel).
+RUN useradd --uid 1000 --user-group --create-home --shell /usr/sbin/nologin urljail
+
+COPY chrome-policy.json /etc/opt/chrome/policies/managed/urljail.json
+COPY urljail-init /sbin/urljail-init
+COPY urljail-agent /usr/local/bin/urljail-agent

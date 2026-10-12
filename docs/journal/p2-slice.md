@@ -11,8 +11,8 @@
 | - | --------- | ----- |
 | M1 | Go module, protobuf API (buf), `urljaild` + `urljail` over gRPC on a Unix socket, URL policy | done |
 | M2 | Hand-written Firecracker client ([ADR 0011](../decisions/0011-hand-written-firecracker-client.md)), dev host networking, cold boot + guaranteed teardown | done |
-| M3 | Debian 13 rootfs with Chrome stable + guest agent, built rootless | |
-| M4 | gRPC over vsock; guest agent drives Chrome, streams events, screenshot | |
+| M3 | Debian 13 rootfs with Chrome stable, tiny init + guest agent answering `Hello` over vsock, built rootless | done |
+| M4 | Guest agent drives Chrome over CDP, streams events, screenshot | |
 | M5 | `report.json`; exit criterion | |
 
 ## Toolchain
@@ -44,5 +44,21 @@ Go 1.27.2, buf 1.73.0, protoc-gen-go 1.36.12, protoc-gen-go-grpc 1.6.2 (all user
 | Daemon SIGTERM mid-run | Run torn down, then `DOCKER-USER` and masquerade restored |
 
 **Bug found and fixed:** teardown first shared one 15 s deadline. A guest still booting ignores Ctrl-Alt-Del, so the graceful shutdown used up the whole budget and `RemoveTap` then ran on an expired context, leaving the TAP behind. Now the shutdown has a 3 s grace before SIGKILL, and each cleanup step gets its own fresh deadline. Lesson for P4/P5: never let cleanup steps share a deadline.
+
+## M3 notes
+
+Plan change: the Debian image has no SSH, so the "guest is up" check moved onto the agent in M3 (a `Hello` RPC over vsock) instead of waiting for M4.
+
+- **Rootless image build** (`images/debian-chrome/build.sh`, ~4 min cold, ~17 s with podman's layer cache): `podman build` from `debian:trixie-slim` pinned by digest, then inside `podman unshare` the container is `podman mount`ed and `mkfs.ext4 -d` reads it directly, so files keep their in-image owners (root, `urljail` = 1000) with no tar step and no sudo. `/etc/resolv.conf`, `hostname` and `hosts` are set on the mount, because the container runtime manages them during `podman build`.
+- **Pinned and verified:** Chrome `155.0.8059.39-1` `.deb` checked against the SHA-256 in Google's apt `Packages` index, then archived in `~/.local/share/urljail/cache/`. `manifest.json` records base digest, Chrome, kernel, both guest binaries and the rootfs hash. The image is 1.4 GiB (~960 MiB used). Chrome's apt source and cron job are removed.
+- **Tiny init as PID 1** (`cmd/urljail-init`): mounts `/proc`, `/sys`, `/dev`, `/dev/pts`, `/dev/shm` (Chrome needs it), `/run`, `/tmp`; loopback up via ioctl; `CAD_OFF` so Ctrl-Alt-Del arrives as SIGINT; starts the agent as uid 1000; reaps every child itself (no `os/exec` Wait, which would race with PID 1's reaper); shuts down if the agent dies. The agent is the only process that touches page content; init never does.
+- **DNS from the boot line:** `ip=...:eth0:off:1.1.1.1` puts the server in `/proc/net/pnp`, and the image links `/etc/resolv.conf` there. Nothing in the guest configures networking.
+- **Guest kernel supports Chrome's sandbox** (`CONFIG_USER_NS`, `PID_NS`, `NET_NS`, `SECCOMP_FILTER`), so Chrome can run sandboxed as an unprivileged user. Checked in M4.
+- **vsock readiness:** gRPC over the `CONNECT 1024` handshake (unit-tested against a fake Firecracker, including that the handshake doesn't swallow stream bytes). gRPC's default reconnect backoff grows to tens of seconds, so the dialer uses a 50–250 ms backoff while the guest boots.
+- **Timing:** agent `Hello` answered **1.38 s** after VMM start (3 runs, ±5 ms), versus 1.86 s for the CI image's systemd boot to sshd. Kernel reaches init at 0.97 s, so the kernel is now most of the cost.
+
+**Bug found:** the agent exited with `open /dev/vsock: permission denied`. With no udev, devtmpfs device nodes stay root-only. Init now sets `/dev/vsock` to `root:urljail 0660`. The failure path behaved as designed: agent died → init shut down → daemon reported "VM exited before the guest agent answered".
+
+**Follow-up (hardening, not P2):** the agent and Chrome run as the same uid, so a compromised browser process could use vsock as the agent can. The host already treats everything from the guest as guest-attested, so this doesn't change trust, but a separate uid for Chrome would make a browser exploit one step further from the host channel. Revisit with P5's hardening.
 
 **Not recorded yet:** runs refused before a slot is taken (busy, policy) leave no run directory. The report schema has a `refused` status; decide in M5 whether refusals get a record.

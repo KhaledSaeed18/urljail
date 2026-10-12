@@ -1,0 +1,24 @@
+syntax = "proto3";
+
+package urljail.guest.v1;
+
+import "google/protobuf/duration.proto";
+
+// GuestAgentService runs inside the microVM and is reached over vsock (ADR 0007).
+// The host treats everything it returns as guest-attested evidence, never as truth.
+service GuestAgentService {
+  // Hello is the readiness check: the host calls it until the agent answers.
+  rpc Hello(HelloRequest) returns (HelloResponse);
+}
+
+message HelloRequest {}
+
+message HelloResponse {
+  string agent_version = 1;
+  // Installed browser package version, e.g. "155.0.8059.39-1".
+  string browser_version = 2;
+  // Guest kernel release (uname -r).
+  string kernel = 3;
+  // Time since guest boot.
+  google.protobuf.Duration uptime = 4;
+}
