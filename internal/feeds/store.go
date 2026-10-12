@@ -11,15 +11,15 @@ import (
 
 // Item is one URL from a feed and what became of it.
 type Item struct {
-	URL       string    `json:"url"`
-	Domain    string    `json:"domain"`
-	Feed      string    `json:"feed"`
-	FirstSeen time.Time `json:"first_seen"` // when urljail first saw it in the feed
-	Status    string    `json:"status"`     // queued, running, done, failed, refused, expired
-	RunID     string    `json:"run_id,omitempty"` // single-profile runs (before profiles)
-	Runs      map[string]string `json:"runs,omitempty"` // profile → run ID
-	RunAt     time.Time `json:"run_at,omitzero"`
-	Error     string    `json:"error,omitempty"`
+	URL       string            `json:"url"`
+	Domain    string            `json:"domain"`
+	Feed      string            `json:"feed"`
+	FirstSeen time.Time         `json:"first_seen"`       // when urljail first saw it in the feed
+	Status    string            `json:"status"`           // queued, running, done, failed, refused, expired
+	RunID     string            `json:"run_id,omitempty"` // single-profile runs (before profiles)
+	Runs      map[string]string `json:"runs,omitempty"`   // profile → run ID
+	RunAt     time.Time         `json:"run_at,omitzero"`
+	Error     string            `json:"error,omitempty"`
 }
 
 // FetchState is what urljail remembers about a source between fetches.
