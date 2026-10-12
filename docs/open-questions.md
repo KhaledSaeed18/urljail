@@ -27,7 +27,7 @@ Decided in principle; each needs a fact confirmed on the real stack.
 | Q6 | Report schema source of truth | Protobuf; `report.json` via protojson; JSON Schema generated from the proto | [ADR 0008](./decisions/0008-protobuf-report-schema.md) |
 | Q7 | VMGenID on x86_64 with Firecracker v1.17.0 | Exposed (`VMGENCTR:00`, driver bound, P1) and the kernel reseeds on every restore (`crng reseeded due to virtual machine fork`, P4). Userspace RNG state is still cloned (research R2) | [P4 journal](./journal/p4-snapshots.md) |
 | Q8 | Firecracker vsock `CONNECT` handshake semantics | Verified in P2: `CONNECT 1024` / `OK <port>` as documented; unit test against a fake Firecracker plus every real run ([P2 journal](./journal/p2-slice.md)) | [ADR 0007](./decisions/0007-grpc-over-vsock.md) |
-| Q9 | VPN provider for live mode | Mullvad | [ADR 0010](./decisions/0010-mullvad-live-egress.md) |
+| Q9 | VPN provider for live mode | Proton VPN Free (was Mullvad) | [ADR 0017](./decisions/0017-proton-vpn-free.md) |
 | Q10 | Interaction simulation | None in v1; a research variable in P6 | [research/anti-cloaking.md](./research/anti-cloaking.md) |
 | Q11 | Dwell time per run | Network idle, bounded by min/max, plus jitter | [architecture.md](./architecture.md#detonation-lifecycle) |
 | Q12 | Artifact retention | Rotate pcaps after N days (configurable) with a total disk cap; keep reports | [architecture.md](./architecture.md#storage-layout-per-run) |
