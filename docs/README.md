@@ -2,7 +2,7 @@
 
 > Detonate suspicious URLs in disposable Firecracker microVMs and report what they actually do.
 
-**Status:** P0 done; P1 ready to start. No code yet. Last updated 2026-10-12.
+**Status:** P1 done (boot scripts in `scripts/p1/`); P2 next. No code yet. Last updated 2026-10-12.
 
 ## Reading order
 

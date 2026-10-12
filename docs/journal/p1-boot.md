@@ -1,10 +1,10 @@
 # P1: Boot a microVM by hand
 
-- Status: **in progress**
+- Status: **closed**
 - Started: 2026-10-12
-- Closed: _(date)_
+- Closed: 2026-10-12
 - Roadmap: [P1](../roadmap.md#p1-boot-a-microvm-by-hand)
-- Exit: reproducible shell script that boots a VM with networking; this entry filled in with timings and every gotcha.
+- Exit: reproducible shell script that boots a VM with networking; this entry filled in with timings and every gotcha. **Met:** `scripts/p1/boot.sh` + `teardown.sh`, ~2.1 s cold boot to SSH, guest egress working with Docker stopped or running, no SELinux denials.
 
 ## Safety for this phase
 
@@ -53,7 +53,7 @@ CI artifacts come from the dated prefix `firecracker-ci/20261008-40f3a4819490-0/
 - [x] SELinux denials: `sudo ausearch -m avc -ts today` shows none from P1
 - [x] Turn the steps into `scripts/p1/boot.sh` + `teardown.sh`; 5 boot/teardown cycles from a clean state, nothing left over
 - [x] Review all docs against what was learned (carried over from P0); see [Doc review](#doc-review)
-- [ ] Restart Docker; confirm it doesn't break anything here
+- [x] Restart Docker; `boot.sh` still gets the guest online (2010 ms to SSH, example.com HTTP 200), and teardown removes only its tagged rules
 
 ## Timings
 
@@ -96,7 +96,7 @@ _(denial, context, how it was resolved; never `setenforce 0`)_
 
 - **Stopping Docker doesn't remove its rules.** Its `ip filter` table stays loaded with `chain FORWARD { policy drop; }` at priority `filter` (0). firewalld's forward chain (priority `filter + 10`) accepted `tap0 → wlp2s0`, but Docker's chain had already dropped the packets: in netfilter, a drop in any base chain on a hook is final, while an accept only ends that chain.
 - Fix: two rules in Docker's documented `DOCKER-USER` chain (`iifname tap0 accept`, `oifname tap0 ct state established,related accept`), tagged with the comment `urljail-p1` so `teardown.sh` deletes exactly those.
-- So the guide's step 2 ("stop Docker") alone wasn't enough; with Docker running, the same `DOCKER-USER` rules should do the job. Still to check: restart Docker, run `boot.sh`, confirm egress.
+- So the guide's step 2 ("stop Docker") alone wasn't enough. With Docker running, the same `DOCKER-USER` rules do the job (checked): stopping Docker isn't needed for P1 at all.
 - **firewalld** also filters forwarding. `tap0` goes in zone `trusted` (runtime only), and masquerade is enabled on the default zone only if it wasn't already on. `trusted` also lets the guest reach the host and LAN, which is acceptable for P1 only.
 
 ## Doc review

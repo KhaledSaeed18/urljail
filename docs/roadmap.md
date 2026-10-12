@@ -1,6 +1,6 @@
 # Roadmap
 
-Status: **P0 done; P1 ready to start**. Each phase ends with a written note in [`docs/journal/`](./journal/): what worked, what broke, what changed in the design.
+Status: **P0 and P1 done; P2 next**. Each phase ends with a written note in [`docs/journal/`](./journal/): what worked, what broke, what changed in the design.
 
 The order is deliberate: **safety before live URLs, a working end-to-end slice before optimization, the familiar web stack last.**
 
@@ -21,18 +21,18 @@ The order is deliberate: **safety before live URLs, a working end-to-end slice b
 
 **Exit:** docs reviewed; Phase 1 checklist agreed ([journal/p1-boot.md](./journal/p1-boot.md)).
 
-## P1: Boot a microVM by hand (next)
+## P1: Boot a microVM by hand (done 2026-10-12)
 Learn the raw primitives before writing any Go. **No isolation exists yet**: the guest can reach the LAN through host NAT, so CI rootfs and benign URLs only.
 - [done in P0] Install Go; download Firecracker + jailer release binaries; fetch a guest kernel + rootfs from Firecracker's CI artifacts
-- Stop Docker for the phase (its FORWARD policy drops the guest's NAT traffic)
+- ~~Stop Docker for the phase~~: not needed; `DOCKER-USER` accept rules handle its FORWARD drop whether Docker runs or not
 - Create a TAP device by hand, boot a VM through the API socket with `curl --unix-socket`
 - SSH/serial into the guest; give it internet via host NAT (dev only, benign URLs)
 - Check VMGenID: Firecracker CHANGELOG for the chosen release + `dmesg | grep -i vmgenid` in the guest (Q7)
 - Measure cold boot time; note SELinux denials (`ausearch -m avc`) and Docker firewall interactions
 
-**Exit:** reproducible shell script that boots a VM with networking; journal entry with timings and every gotcha.
+**Exit:** reproducible shell script that boots a VM with networking; journal entry with timings and every gotcha. **Met:** [scripts/p1/](../scripts/p1/), [journal](./journal/p1-boot.md).
 
-## P2: Vertical slice: `urljail detonate`
+## P2: Vertical slice: `urljail detonate` (next)
 The whole pipeline, as simple as possible, **cold boot** (no snapshots yet).
 - Go module, `urljaild` + `urljail` skeletons, gRPC over a Unix socket
 - Hand-written Firecracker API client over the Unix socket ([ADR 0011](./decisions/0011-hand-written-firecracker-client.md)); per-run TAP + simple NAT (dev egress), reusing P1's Docker/firewalld handling
