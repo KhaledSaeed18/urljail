@@ -19,7 +19,7 @@ Status: **design draft**. `report.json` is *derived* from raw artifacts (see sto
 {
   "schema": "urljail.report/v0",
   "run": {
-    "id": "01J…",                       // ULID
+    "id": "019…",                       // UUIDv7
     "submitted_url": "https://…",
     "profile": "baseline",
     "egress": { "mode": "live", "exit": "wg:mullvad-de-fra-001" },
@@ -89,6 +89,6 @@ Status: **design draft**. `report.json` is *derived* from raw artifacts (see sto
 
 ## Open schema questions
 
-- JSON Schema file + Go structs generated from one source (protobuf? JSON Schema → Go?), see [open-questions.md](./open-questions.md).
+- ~~Source of truth~~: decided. Protobuf in `api/proto/`, `report.json` via protojson (`UseProtoNames`), JSON Schema generated from the proto ([ADR 0008](./decisions/0008-protobuf-report-schema.md)). This page stays the readable reference.
 - HAR export for interop with existing tools (cheap to add from CDP events).
 - Perceptual hash of screenshot (pHash) for visual similarity / brand matching later.

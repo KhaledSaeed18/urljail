@@ -6,10 +6,10 @@ Status: **design draft**. What runs inside the microVM, and how the snapshot is 
 
 | Piece | Choice (draft) | Notes |
 | ----- | -------------- | ----- |
-| Kernel | Minimal x86_64 config based on Firecracker's recommended guest config | Needs virtio-net, virtio-block, virtio-vsock, `CONFIG_VMGENID` _(verify Firecracker exposes VMGenID on this version)_ |
-| Rootfs | Debian slim (ext4 image), read-only base + per-run writable overlay | Debian packages Chromium and its many deps reliably; Alpine/musl is smaller but Chromium on musl adds risk |
+| Kernel | Minimal x86_64 config based on Firecracker's recommended guest config | Needs virtio-net, virtio-block, virtio-vsock, `CONFIG_VMGENID` _(verify Firecracker exposes VMGenID on this version)_. Firecracker CI kernel for P1–P3, this config from P4 ([ADR 0009](./decisions/0009-debian-guest-ci-kernel.md)) |
+| Rootfs | Debian 13 ("trixie") slim (ext4 image), read-only base + per-run writable overlay | Debian packages Chromium and its many deps reliably; Alpine/musl is smaller but Chromium on musl adds risk |
 | Init | Tiny init (or systemd-free shell init) | Fast boot; no extra listeners |
-| Browser | Chromium (distro package), version pinned and recorded | Rebuild image on every Chromium security release |
+| Browser | Chromium, version pinned and recorded. Distro package vs Google's official build is still open (Q17 in [open-questions.md](./open-questions.md)) | Rebuild image on every Chromium security release |
 | Guest agent | Go, `CGO_ENABLED=0`, static | Talks AF_VSOCK to host; drives Chromium via chromedp |
 | Fonts | A realistic desktop font set | Missing fonts are a fingerprint signal (see [anti-cloaking](./research/anti-cloaking.md)) |
 
@@ -24,7 +24,7 @@ Enterprise policy (`/etc/chromium/policies/managed/urljail.json`) + flags.
 | `EncryptedClientHelloEnabled` policy | false | ECH would hide the real SNI behind the CDN's public name |
 | `DnsOverHttpsMode` policy | off | All DNS must go to our resolver |
 | `SSLKEYLOGFILE` env | `/run/urljail/sslkeys.log` | Offline decryption of host pcap; no MITM |
-| Headless mode | `--headless=new` initially; headful under a virtual display later as an anti-cloaking variable | New headless is the real browser; old headless is trivially detected |
+| Headless mode | `--headless=new`, no display server, through P5; headful under Xvfb or cage added in P6 as an anti-cloaking profile, RAM/boot cost measured then | New headless is the real browser; old headless is trivially detected |
 | Profile | fresh temp profile per snapshot, created before snapshot | No history, cookies, caches from earlier runs |
 | Safe Browsing / telemetry / updates | off | Don't phone home; don't let Google's verdict change page behavior |
 | Downloads | to `/run/urljail/downloads`, `noexec` | Hashed and shipped, never opened |

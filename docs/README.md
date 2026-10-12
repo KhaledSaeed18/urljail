@@ -2,7 +2,7 @@
 
 > Detonate suspicious URLs in disposable Firecracker microVMs and report what they actually do.
 
-**Status:** Phase 0: planning. No code yet. Last updated 2026-10-10.
+**Status:** Phase 0: planning. No code yet. Last updated 2026-10-12.
 
 ## Reading order
 
@@ -16,7 +16,7 @@
 | 6 | [report-schema.md](./report-schema.md) | Draft `report.json` with per-observation sources |
 | 7 | [roadmap.md](./roadmap.md) | Phases P0–P7, exit criteria, the live gate |
 | 8 | [environment.md](./environment.md) | This host's hardware/OS facts and expected friction |
-| 9 | [open-questions.md](./open-questions.md) | Unresolved decisions with current leanings |
+| 9 | [open-questions.md](./open-questions.md) | Remaining open question, verification tasks, and resolved questions with links to where each was recorded |
 
 ## Folders
 

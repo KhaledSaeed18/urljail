@@ -76,16 +76,16 @@ NestJS + Postgres + BullMQ + Next.js dashboard. NestJS is the orchestrator: it e
 2. **RESTORING**: take a clone from the pool; Firecracker loads snapshot (memory file mapped `MAP_PRIVATE`, so clones share unchanged pages) _(verify)_.
 3. **NET_READY**: the clone's netns already exists (clones need identical TAP name/IP/MAC; per-VM netns + NAT gives each a unique outside identity); start eBPF capture + pcap.
 4. **CLOCK_SYNCED**: host → guest `SyncClock`; guest reseeds RNG if VMGenID didn't (see [research/snapshot-entropy.md](./research/snapshot-entropy.md)).
-5. **NAVIGATING / OBSERVING**: guest navigates; observes for a dwell time (profile-dependent, with jitter); optional interaction simulation.
+5. **NAVIGATING / OBSERVING**: guest navigates, then observes until the network goes idle, bounded by a minimum dwell (catches delayed redirects) and a maximum (caps cost), with random jitter so a fixed dwell isn't a scanner fingerprint. No interaction simulation in v1; it becomes a research variable in P6.
 6. **COLLECTING**: guest sends screenshot, DOM, CDP event log, key log; host stops capture, flushes pcap, collects resolver log slice.
 7. **TEARDOWN**: kill VMM, delete netns, delete jail chroot, release cgroup. **Always runs**, including on error and timeout; a leaked VM is a bug.
 8. **DONE**: report builder runs (can also be re-run later from stored artifacts).
 
 ## Host ↔ guest channel (vsock)
 
-Firecracker implements virtio-vsock with a **host-side Unix domain socket**, not host AF_VSOCK: the host connects to the UDS and writes `CONNECT <port>\n`; the guest side is a normal AF_VSOCK socket _(verify)_. Once connected it's just a byte stream (`net.Conn`), so any framing works.
+Firecracker implements virtio-vsock with a **host-side Unix domain socket**, not host AF_VSOCK: the host connects to the UDS and writes `CONNECT <port>\n`; Firecracker answers `OK <host_port>\n`; the guest side is a normal AF_VSOCK socket _(confirm with a test in P2)_. Once connected it's just a byte stream (`net.Conn`), so any framing works.
 
-Leaning: **gRPC over the vsock stream** (typed, streaming events, same toolchain as the CLI API). Alternative: length-prefixed protobuf. Open question in [open-questions.md](./open-questions.md).
+Decision: **gRPC over the vsock stream**, host-initiated, with artifacts sent in chunks ([ADR 0007](./decisions/0007-grpc-over-vsock.md)).
 
 Messages (draft):
 
@@ -114,6 +114,10 @@ runs/<run-id>/
   downloads/<sha256>   # never executed
 ```
 
+`<run-id>` is a UUIDv7 ([ADR 0008](./decisions/0008-protobuf-report-schema.md)).
+
+**Retention:** pcaps are deleted after N days (configurable) and under a total disk cap, oldest first. Reports, metadata and the other small artifacts are kept. The policy is implemented in P7.
+
 ## Planned repo layout (when code starts)
 
 ```
@@ -123,10 +127,10 @@ guest/agent/          # guest agent (GOOS=linux, CGO_ENABLED=0)
 internal/vm/          # firecracker-go-sdk wrapper, jailer config
 internal/pool/
 internal/netns/
-internal/firewall/    # nftables ruleset (google/nftables or nft -f)
+internal/firewall/    # generated nft -f ruleset + hash check
 internal/capture/     # bpf/*.c + bpf2go output
 internal/report/
-api/proto/            # gRPC: CLI↔daemon, host↔guest
+api/proto/            # gRPC: CLI↔daemon, host↔guest; report schema
 images/               # kernel config, rootfs build scripts, Chromium policy
 docs/
 ```

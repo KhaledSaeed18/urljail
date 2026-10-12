@@ -15,7 +15,8 @@ The order is deliberate: **safety before live URLs, a working end-to-end slice b
 - [x] Idea, feedback, constraints
 - [x] Name chosen ([naming/](./naming/))
 - [x] Vision, architecture, network, threat model, guest image, report schema drafts
-- [ ] Review all docs; resolve or park every item in [open-questions.md](./open-questions.md)
+- [x] Resolve or park every item in [open-questions.md](./open-questions.md) (2026-10-12; Q17 and three verification tasks remain, each with a phase)
+- [ ] Review all docs
 
 **Exit:** docs reviewed; Phase 1 checklist agreed.
 
@@ -24,6 +25,7 @@ Learn the raw primitives before writing any Go.
 - Install Go; download Firecracker + jailer release binaries; fetch a guest kernel + rootfs from Firecracker's CI artifacts
 - Create a TAP device by hand, boot a VM through the API socket with `curl --unix-socket`
 - SSH/serial into the guest; give it internet via host NAT (dev only, benign URLs)
+- Check VMGenID: Firecracker CHANGELOG for the chosen release + `dmesg | grep -i vmgenid` in the guest (Q7)
 - Measure cold boot time; note SELinux denials (`ausearch -m avc`) and Docker firewall interactions
 
 **Exit:** reproducible shell script that boots a VM with networking; journal entry with timings and every gotcha.
@@ -32,7 +34,8 @@ Learn the raw primitives before writing any Go.
 The whole pipeline, as simple as possible, **cold boot** (no snapshots yet).
 - Go module, `urljaild` + `urljail` skeletons, gRPC over a Unix socket
 - Firecracker via firecracker-go-sdk; per-run TAP + simple NAT (dev egress)
-- Custom rootfs with Chromium + guest agent; vsock channel (host UDS `CONNECT`)
+- Custom Debian 13 slim rootfs with Chromium + guest agent; decide the browser build (Q17)
+- vsock channel: gRPC over host UDS `CONNECT` ([ADR 0007](./decisions/0007-grpc-over-vsock.md)), with an integration test for the handshake (Q8)
 - Guest agent: navigate, collect CDP events, screenshot, DOM → stream back
 - First `report.json` (navigation + requests + screenshot only)
 
@@ -69,6 +72,8 @@ The whole pipeline, as simple as possible, **cold boot** (no snapshots yet).
 - [ ] WireGuard-in-netns egress working; `live` mode interlock in the daemon
 - [ ] Full isolation test plan passes in `live` mode, including "VPN down ⇒ no egress"
 - [ ] Threat model reviewed against what was actually built
+- [ ] Feed terms of use checked for each source (Q13)
+- [ ] Mullvad subscription; exit server/IP/ASN recorded per run ([ADR 0010](./decisions/0010-mullvad-live-egress.md))
 - [ ] Feed ingestion design (OpenPhish / URLhaus / PhishTank) treating URLs strictly as data
 
 ## P6: Anti-cloaking research
@@ -83,7 +88,7 @@ See [research/anti-cloaking.md](./research/anti-cloaking.md).
 ## P7: Control plane
 - NestJS orchestrator + Postgres + BullMQ queue; gRPC client to `urljaild`
 - Next.js dashboard: submit URL, run list, report view (redirect chain, network graph, screenshot)
-- Artifact storage, retention policy
+- Artifact storage, retention policy (pcaps rotated after N days + disk cap; reports kept)
 
 **Exit:** submit from the dashboard → report rendered; daemon remains the only privileged component.
 

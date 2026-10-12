@@ -59,6 +59,8 @@ Create `wg0` in the host namespace, then move it into `uj-egress`. WireGuard kee
 
 Default **drop** on forward. Order matters: blocklist first, then allowlist.
 
+The daemon generates the ruleset as a single `nft -f` file. It validates it with `nft -c -f`, applies it atomically, and records its hash; preflight refuses runs if the loaded ruleset's hash doesn't match. The file is readable and diffable as an artifact. The google/nftables library is only worth it if incremental per-VM updates become necessary.
+
 ```
 # --- always drop (destination) ---
 10.0.0.0/8, 172.16.0.0/12, 192.168.0.0/16      # RFC1918 (home LAN, Docker, our own nets)
@@ -96,7 +98,7 @@ Docker on this host installs its own iptables-nft rules and sets the FORWARD pol
 
 | Tap point | What | How |
 | --------- | ---- | --- |
-| `tap0` in VM netns | full pcap | AF_PACKET (gopacket/pcapgo) or `tcpdump` subprocess in v1 |
+| `tap0` in VM netns | full pcap | `tcpdump -U -w` subprocess inside the VM netns, with a size cap; in-process AF_PACKET (gopacket/pcapgo) only if needed later. Watch for SELinux denials writing to the artifact directory |
 | `tap0` TCX ingress/egress | flow records: 5-tuple, bytes, packets, first/last seen; TLS ClientHello SNI + ALPN | eBPF (cilium/ebpf, TCX attach; kernel ≥ 6.6), ring buffer → userspace |
 | unbound | DNS queries/answers | log stream |
 | nftables | dropped-packet counters/logs | `log` statements → per-run "blocked attempts" |

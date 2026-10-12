@@ -10,6 +10,10 @@ One file per significant decision. Never edit an accepted ADR's decision. Supers
 | [0004](./0004-sslkeylog-instead-of-mitm.md) | TLS visibility via SSLKEYLOGFILE, not a MITM proxy | Accepted | 2026-10-10 |
 | [0005](./0005-cli-first-control-plane-last.md) | CLI first; NestJS/Next.js control plane last | Accepted | 2026-10-10 |
 | [0006](./0006-name-urljail.md) | Project name: urljail | Accepted | 2026-10-10 |
+| [0007](./0007-grpc-over-vsock.md) | gRPC over the Firecracker vsock stream | Accepted | 2026-10-12 |
+| [0008](./0008-protobuf-report-schema.md) | Protobuf as the report schema source of truth; UUIDv7 run IDs | Accepted | 2026-10-12 |
+| [0009](./0009-debian-guest-ci-kernel.md) | Debian 13 slim guest, CI kernel until P4, new headless as baseline | Accepted | 2026-10-12 |
+| [0010](./0010-mullvad-live-egress.md) | Mullvad as the live-mode WireGuard provider | Accepted | 2026-10-12 |
 
 ## Template
 
