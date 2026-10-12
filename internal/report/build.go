@@ -87,6 +87,14 @@ func Build(runDir string) (*reportv0.Report, error) {
 		if dur, err := time.ParseDuration(d.Dwell); err == nil {
 			n.DwellMs = clampU32(float64(dur.Milliseconds()))
 		}
+		if d.Error != "" {
+			// Guest-controlled text: valid UTF-8, bounded.
+			msg := strings.ToValidUTF8(d.Error, "?")
+			if len(msg) > 300 {
+				msg = msg[:300] + "…"
+			}
+			r.Gaps = append(r.Gaps, "The guest agent reported an error (guest-attested): "+msg)
+		}
 		if d.DroppedEvents > 0 {
 			r.Gaps = append(r.Gaps, fmt.Sprintf("%d CDP events were dropped and are missing from this report", d.DroppedEvents))
 		}
@@ -136,8 +144,8 @@ func readEvents(path string) ([]event, error) {
 
 // done is guest/done.json (the guest's Done message in protojson).
 type done struct {
-	FinalURL, Title, NavigationError, Dwell, DwellReason string
-	DroppedEvents                                        int64
+	FinalURL, Title, NavigationError, Dwell, DwellReason, Error string
+	DroppedEvents                                               int64
 }
 
 func readDone(runDir string) (done, error) {
@@ -154,6 +162,7 @@ func readDone(runDir string) (done, error) {
 	str := func(k string) string { s, _ := loose[k].(string); return s }
 	d.FinalURL, d.Title, d.NavigationError, d.Dwell, d.DwellReason =
 		str("final_url"), str("title"), str("navigation_error"), str("dwell"), str("dwell_reason")
+	d.Error = str("error")
 	switch v := loose["dropped_events"].(type) {
 	case string:
 		fmt.Sscan(v, &d.DroppedEvents)

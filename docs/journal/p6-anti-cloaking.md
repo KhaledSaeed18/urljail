@@ -35,3 +35,16 @@ After the fix, all three reports are consistent.
 - **Verified live** (bot.sannysoft.com and browserleaks.com, all five profiles): User-Agent `HeadlessChrome` only in `baseline` and `stealth-no-ua`; `navigator.webdriver` only in `baseline` and `stealth-no-webdriver`; `timeZone` `America/Chicago` in the profiles with the countermeasure, `UTC` in the others; Client Hints brands are `Google Chrome` in every profile, headless included; WebGL SwiftShader everywhere, as expected.
 - **Found:** the stealth profiles set `en-US` as the only language, so `navigator.languages` was `["en-US"]` instead of Chrome's usual `["en-US","en"]`: the countermeasure made stealth stand out. Fixed: no language override (the default fits a US exit), and a set language now produces `xx-YY,xx`.
 - Launching five detonations at once against three VM slots: the daemon refused the extra two (`all 3 VM slots are busy`), as designed; `feeds run` limits itself to the daemon's slot count.
+
+### First batch under all five profiles (2026-10-13, 3 URLs × 5 profiles, each URL's profiles at once)
+
+| URL host (path omitted) | All five profiles |
+| ----------------------- | ----------------- |
+| `*.cupricclumbers.com` | run timed out in collection: no screenshot, no DOM |
+| `*.pages.dev` | `NXDOMAIN`: taken down |
+| `*.adqwi.com` (Australia Post lure) | "Verify you are human" gate, same for every profile |
+
+No profile changed what a page showed. The gate is itself a cloaking technique (content behind interaction); getting past it needs interaction, which no profile simulates.
+
+**Found: collection without its own limit.** On `*.cupricclumbers.com`, observation ran its full 12 s, then `Page.captureScreenshot` never answered (the page kept its renderer busy; 26 image requests blocked by ORB, no dialog), the run hit its 30 s deadline and every guest artifact was lost. Fixed in the agent: final URL and title first (answered by the browser process), then DOM and screenshot with 5 s each, and the guest's error is now a stated gap in the report (guest-attested, bounded).
+

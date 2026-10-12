@@ -180,23 +180,36 @@ func observe(ctx context.Context, act *activity, start time.Time, req *guestv1.D
 
 func (a *agent) collect(pctx, bctx context.Context, targetID target.ID, out *sender, done *guestv1.Done) error {
 	var errs []error
-	if png, err := page.CaptureScreenshot().Do(pctx); err != nil {
-		errs = append(errs, fmt.Errorf("screenshot: %w", err))
-	} else if err := sendBytes(out, "screenshot.png", png); err != nil {
-		return err
+	// Each step has its own limit: a page that keeps its renderer busy (found in P6 on a
+	// phishing page) blocks the screenshot and the DOM forever, and the run's deadline would
+	// then lose every artifact. Final URL and title come from the browser process, so first.
+	step := func(parent context.Context, d time.Duration) (context.Context, context.CancelFunc) {
+		return context.WithTimeout(parent, d)
 	}
-	// Read the DOM through the protocol, without running script in the page.
-	if root, err := dom.GetDocument().Do(pctx); err != nil {
-		errs = append(errs, fmt.Errorf("dom: %w", err))
-	} else if html, err := dom.GetOuterHTML().WithNodeID(root.NodeID).Do(pctx); err != nil {
-		errs = append(errs, fmt.Errorf("dom: %w", err))
-	} else if err := sendBytes(out, "dom.html", []byte(html)); err != nil {
-		return err
-	}
-	if info, err := target.GetTargetInfo().WithTargetID(targetID).Do(bctx); err != nil {
+	ctx, cancel := step(bctx, 2*time.Second)
+	if info, err := target.GetTargetInfo().WithTargetID(targetID).Do(ctx); err != nil {
 		errs = append(errs, fmt.Errorf("target info: %w", err))
 	} else {
 		done.FinalUrl, done.Title = info.URL, info.Title
+	}
+	cancel()
+	// Read the DOM through the protocol, without running script in the page.
+	ctx, cancel = step(pctx, 5*time.Second)
+	if root, err := dom.GetDocument().Do(ctx); err != nil {
+		errs = append(errs, fmt.Errorf("dom: %w", err))
+	} else if html, err := dom.GetOuterHTML().WithNodeID(root.NodeID).Do(ctx); err != nil {
+		errs = append(errs, fmt.Errorf("dom: %w", err))
+	} else if err := sendBytes(out, "dom.html", []byte(html)); err != nil {
+		cancel()
+		return err
+	}
+	cancel()
+	ctx, cancel = step(pctx, 5*time.Second)
+	defer cancel()
+	if png, err := page.CaptureScreenshot().Do(ctx); err != nil {
+		errs = append(errs, fmt.Errorf("screenshot: %w", err))
+	} else if err := sendBytes(out, "screenshot.png", png); err != nil {
+		return err
 	}
 	return errors.Join(errs...)
 }
