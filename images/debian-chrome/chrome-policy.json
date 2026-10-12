@@ -3,6 +3,7 @@
   "DnsOverHttpsMode": "off",
   "QuicAllowed": false,
   "SafeBrowsingProtectionLevel": 0,
+  "ComponentUpdatesEnabled": false,
   "MetricsReportingEnabled": false,
   "UrlKeyedAnonymizedDataCollectionEnabled": false,
   "SpellCheckServiceEnabled": false,

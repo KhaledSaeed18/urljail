@@ -2,12 +2,14 @@ package daemon
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"net"
 	"net/url"
 	"os"
 	"path/filepath"
+	"sync"
 	"time"
 
 	"google.golang.org/grpc"
@@ -17,7 +19,7 @@ import (
 	daemonv1 "github.com/KhaledSaeed18/urljail/gen/urljail/daemon/v1"
 	guestv1 "github.com/KhaledSaeed18/urljail/gen/urljail/guest/v1"
 	"github.com/KhaledSaeed18/urljail/internal/guestinfo"
-	"github.com/KhaledSaeed18/urljail/internal/hostnet"
+	"github.com/KhaledSaeed18/urljail/internal/netns"
 	"github.com/KhaledSaeed18/urljail/internal/report"
 	"github.com/KhaledSaeed18/urljail/internal/version"
 	"github.com/KhaledSaeed18/urljail/internal/vm"
@@ -42,11 +44,16 @@ func (s *Server) detonate(ctx context.Context, r *run, u *url.URL, profile strin
 	}
 	defer s.slots.release(slot)
 
+	// Fail closed: the egress ruleset must be exactly what was loaded and the resolver running.
+	if err := s.net.Verify(ctx, slot); err != nil {
+		return fmt.Errorf("preflight: %w", err)
+	}
+
 	ctx, cancel := context.WithTimeout(ctx, timeout)
 	defer cancel()
 
 	runDir := filepath.Join(s.cfg.RunsDir, r.id)
-	if err := os.MkdirAll(filepath.Join(runDir, "host"), 0o700); err != nil {
+	if err := s.cfg.Operator.MkdirAll(filepath.Join(runDir, "host"), 0o700); err != nil {
 		return err
 	}
 	m := report.Meta{
@@ -80,7 +87,7 @@ func (s *Server) detonate(ctx context.Context, r *run, u *url.URL, profile strin
 	// must still leave nothing behind. Each step gets its own fresh deadline.
 	var cleanups []func(context.Context)
 	defer func() {
-		_ = r.send(daemonv1.RunState_RUN_STATE_TEARDOWN, "stopping VM, removing tap and disk")
+		_ = r.send(daemonv1.RunState_RUN_STATE_TEARDOWN, "stopping VM, removing its namespace and disk")
 		base := context.WithoutCancel(ctx)
 		for i := len(cleanups) - 1; i >= 0; i-- {
 			sctx, scancel := context.WithTimeout(base, cleanupStepTimeout)
@@ -93,8 +100,9 @@ func (s *Server) detonate(ctx context.Context, r *run, u *url.URL, profile strin
 		return err
 	}
 
+	op := s.cfg.Operator
 	workDir := filepath.Join(s.cfg.WorkDir, r.id)
-	if err := os.MkdirAll(workDir, 0o700); err != nil {
+	if err := op.MkdirAll(workDir, 0o700); err != nil {
 		return err
 	}
 	cleanups = append(cleanups, func(context.Context) { os.RemoveAll(workDir) })
@@ -102,12 +110,30 @@ func (s *Server) detonate(ctx context.Context, r *run, u *url.URL, profile strin
 	if err := vm.CloneFile(img.Rootfs, rootfs); err != nil {
 		return fmt.Errorf("cloning rootfs: %w", err)
 	}
-
-	tap := hostnet.TapFor(slot)
-	if err := s.egress.AddTap(ctx, tap); err != nil {
+	if err := op.Chown(rootfs); err != nil { // Firecracker opens it as the operator
 		return err
 	}
-	cleanups = append(cleanups, func(ctx context.Context) { s.egress.RemoveTap(ctx, tap.Name) })
+
+	netVM, err := s.net.AddVM(ctx, slot, op.UID, op.GID)
+	if err != nil {
+		return err
+	}
+	cleanups = append(cleanups, func(ctx context.Context) { s.net.RemoveVM(ctx, netVM) })
+	if err := s.net.VerifyVM(ctx, netVM); err != nil {
+		return fmt.Errorf("preflight: %w", err)
+	}
+
+	// Host-attested DNS: every reply the resolver sends this VM.
+	dns, err := newDNSLog(filepath.Join(runDir, "host", "dns.jsonl"))
+	if err != nil {
+		return err
+	}
+	client := netns.VMOutsideIP(slot)
+	s.net.Resolver().Attach(client, dns.write)
+	cleanups = append(cleanups, func(context.Context) {
+		s.net.Resolver().Detach(client)
+		dns.close()
+	})
 
 	vsockUDS := filepath.Join(s.cfg.SocketDir, r.id+".vsock")
 	t0 := time.Now()
@@ -116,10 +142,12 @@ func (s *Server) detonate(ctx context.Context, r *run, u *url.URL, profile strin
 		Socket:      filepath.Join(s.cfg.SocketDir, r.id+".sock"),
 		LogDir:      filepath.Join(runDir, "host"),
 		Kernel:      img.Kernel,
-		BootArgs:    "console=ttyS0 reboot=k panic=1 init=" + img.Manifest.Init + " " + tap.BootArgs(s.cfg.DNS),
+		BootArgs:    "console=ttyS0 reboot=k panic=1 init=" + img.Manifest.Init + " " + netns.GuestBootArgs(),
 		Rootfs:      rootfs,
-		TapName:     tap.Name,
-		GuestMAC:    tap.GuestMAC,
+		NetNS:       netVM.NS,
+		RunAs:       &vm.Credential{UID: op.UID, GID: op.GID},
+		TapName:     netns.TapName,
+		GuestMAC:    netns.GuestMAC,
 		VsockUDS:    vsockUDS,
 		VCPUs:       s.cfg.VCPUs,
 		MemMiB:      s.cfg.MemMiB,
@@ -132,7 +160,7 @@ func (s *Server) detonate(ctx context.Context, r *run, u *url.URL, profile strin
 		defer gcancel()
 		_ = machine.Shutdown(gctx)
 	})
-	r.log.Info("vm started", "pid", machine.PID(), "tap", tap.Name, "guest", tap.GuestIP)
+	r.log.Info("vm started", "pid", machine.PID(), "netns", netVM.NS, "outside", client)
 
 	agent, err := dialAgent(vsockUDS)
 	if err != nil {
@@ -224,4 +252,36 @@ func waitAgent(ctx context.Context, m *vm.Machine, c guestv1.GuestAgentServiceCl
 	default:
 	}
 	return nil, fmt.Errorf("guest agent not reachable: %w", err)
+}
+
+// dnsLog writes host/dns.jsonl: the resolver's replies to one VM, host-attested.
+type dnsLog struct {
+	mu  sync.Mutex
+	f   *os.File
+	enc *json.Encoder
+}
+
+func newDNSLog(path string) (*dnsLog, error) {
+	f, err := os.OpenFile(path, os.O_CREATE|os.O_WRONLY|os.O_TRUNC, 0o600)
+	if err != nil {
+		return nil, err
+	}
+	return &dnsLog{f: f, enc: json.NewEncoder(f)}, nil
+}
+
+func (d *dnsLog) write(q netns.Query) {
+	d.mu.Lock()
+	defer d.mu.Unlock()
+	if d.f != nil {
+		_ = d.enc.Encode(q)
+	}
+}
+
+func (d *dnsLog) close() {
+	d.mu.Lock()
+	defer d.mu.Unlock()
+	if d.f != nil {
+		d.f.Close()
+		d.f = nil
+	}
 }

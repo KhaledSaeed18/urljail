@@ -1,5 +1,7 @@
-// Command urljaild is urljail's host agent: it owns every privileged operation and serves the
-// gRPC API on a Unix socket.
+// Command urljaild is urljail's host agent: the only privileged component (ADR 0005, ADR 0014).
+// It runs as root, builds the network namespaces, and starts each Firecracker VMM inside its
+// VM's namespace as the operator. The gRPC socket belongs to the operator, so the CLI needs no
+// privileges.
 package main
 
 import (
@@ -19,8 +21,9 @@ import (
 
 	daemonv1 "github.com/KhaledSaeed18/urljail/gen/urljail/daemon/v1"
 	"github.com/KhaledSaeed18/urljail/internal/daemon"
-	"github.com/KhaledSaeed18/urljail/internal/hostnet"
 	"github.com/KhaledSaeed18/urljail/internal/image"
+	"github.com/KhaledSaeed18/urljail/internal/netns"
+	"github.com/KhaledSaeed18/urljail/internal/operator"
 	"github.com/KhaledSaeed18/urljail/internal/paths"
 	"github.com/KhaledSaeed18/urljail/internal/policy"
 	"github.com/KhaledSaeed18/urljail/internal/version"
@@ -34,20 +37,14 @@ func main() {
 }
 
 func run() error {
-	defSock, _ := paths.Socket()
-	dataDir, err := paths.DataDir()
-	if err != nil {
-		return err
-	}
-	defFC, _ := exec.LookPath("firecracker")
-
-	socket := flag.String("socket", defSock, "gRPC Unix socket path")
+	opName := flag.String("operator", "", "user to work for (default: the user who ran sudo)")
+	socket := flag.String("socket", paths.Socket(), "gRPC Unix socket path")
 	egress := flag.String("egress", "dev", "egress mode: off, dev or live")
 	allow := flag.String("allow", strings.Join(policy.DefaultDevAllowlist, ","), "dev mode allowlist (comma-separated domains)")
-	runsDir := flag.String("runs-dir", filepath.Join(dataDir, "runs"), "where run directories are written")
-	imageDir := flag.String("image", filepath.Join(dataDir, "images", "default"), "guest image directory (from images/*/build.sh)")
-	dns := flag.String("dns", "1.1.1.1", "DNS server for guests (dev mode)")
-	firecracker := flag.String("firecracker", defFC, "firecracker binary")
+	upstreams := flag.String("dns-upstream", "1.1.1.1,9.9.9.9", "DNS servers the resolver forwards to, through the exit")
+	runsDir := flag.String("runs-dir", "", "where run directories are written (default ~operator/.local/share/urljail/runs)")
+	imageDir := flag.String("image", "", "guest image directory (default ~operator/.local/share/urljail/images/default)")
+	firecracker := flag.String("firecracker", "", "firecracker binary (default ~operator/.local/bin/firecracker)")
 	maxVMs := flag.Int("max-vms", 2, "concurrent VMs (RAM is the limit on this laptop)")
 	vcpus := flag.Int("vcpus", 2, "vCPUs per VM")
 	mem := flag.Int("mem", 1024, "guest memory per VM, MiB")
@@ -60,16 +57,43 @@ func run() error {
 
 	log := slog.New(slog.NewTextHandler(os.Stderr, nil))
 
-	if *socket == "" {
-		return fmt.Errorf("no socket path: set XDG_RUNTIME_DIR or pass -socket")
+	if os.Geteuid() != 0 {
+		return fmt.Errorf("must run as root (sudo); the CLI doesn't need to")
 	}
+	op, err := operatorFrom(*opName)
+	if err != nil {
+		return err
+	}
+	dataDir := paths.DataDir(op.Home)
+	orDefault := func(v *string, def string) {
+		if *v == "" {
+			*v = def
+		}
+	}
+	orDefault(runsDir, filepath.Join(dataDir, "runs"))
+	orDefault(imageDir, filepath.Join(dataDir, "images", "default"))
+	orDefault(firecracker, filepath.Join(op.Home, ".local", "bin", "firecracker"))
+
 	mode, err := policy.ParseEgressMode(*egress)
 	if err != nil {
 		return err
 	}
 	if mode == policy.EgressLive {
-		// The interlock: live egress needs the WireGuard netns and the live gate (docs/roadmap.md).
+		// The interlock: live egress needs WireGuard in the egress netns and the live gate.
 		return fmt.Errorf("egress mode live is not available before the live gate")
+	}
+
+	// /run/urljail is root's; the VM socket directory is the operator's, because Firecracker
+	// runs as the operator and creates its sockets there.
+	if err := os.MkdirAll(paths.RunDir, 0o755); err != nil {
+		return err
+	}
+	socketDir := filepath.Join(paths.RunDir, "vm")
+	if err := os.MkdirAll(socketDir, 0o700); err != nil {
+		return err
+	}
+	if err := op.Chown(socketDir); err != nil {
+		return err
 	}
 
 	cfg := daemon.Config{
@@ -81,8 +105,8 @@ func run() error {
 		MaxDwell:       *maxDwell,
 		DwellJitter:    *jitter,
 		Firecracker:    *firecracker,
-		DNS:            *dns,
-		SocketDir:      filepath.Join(filepath.Dir(*socket), "vm"),
+		Operator:       op,
+		SocketDir:      socketDir,
 		WorkDir:        filepath.Join(dataDir, "work"),
 		MaxVMs:         *maxVMs,
 		VCPUs:          *vcpus,
@@ -94,18 +118,24 @@ func run() error {
 	if err := firecrackerVersion(&cfg); err != nil {
 		return err
 	}
+	if err := op.MkdirAll(cfg.RunsDir, 0o700); err != nil {
+		return err
+	}
 
 	ctx, stop := signal.NotifyContext(context.Background(), syscall.SIGINT, syscall.SIGTERM)
 	defer stop()
 
-	var eg *hostnet.Egress
+	daemon.Reap(ctx, cfg, log)
+	var eg *netns.Egress
 	if mode == policy.EgressDev {
-		if eg, err = hostnet.Up(ctx, log); err != nil {
-			return fmt.Errorf("dev egress: %w", err)
+		if eg, err = netns.Up(ctx, netns.EgressConfig{
+			Upstreams: splitList(*upstreams),
+			StateDir:  filepath.Join(paths.RunDir, "unbound"),
+		}, log); err != nil {
+			return fmt.Errorf("egress: %w", err)
 		}
 		defer eg.Close(context.Background())
 	}
-	daemon.Reap(ctx, cfg, eg, log)
 
 	srv := daemon.New(cfg, eg, log)
 	l, err := daemon.Listen(*socket)
@@ -113,6 +143,9 @@ func run() error {
 		return err
 	}
 	defer os.Remove(*socket)
+	if err := op.Chown(*socket); err != nil {
+		return err
+	}
 
 	gs := grpc.NewServer()
 	daemonv1.RegisterDaemonServiceServer(gs, srv)
@@ -124,17 +157,21 @@ func run() error {
 	}()
 
 	log.Info("urljaild listening", "version", version.String(), "socket", *socket, "egress", mode,
-		"firecracker", cfg.FirecrackerVersion, "image", cfg.Image.Manifest.Name)
+		"operator", op.Name, "firecracker", cfg.FirecrackerVersion, "image", cfg.Image.Manifest.Name)
 	err = gs.Serve(l)
 	srv.Wait()
 	return err
 }
 
+func operatorFrom(name string) (operator.Operator, error) {
+	if name != "" {
+		return operator.Lookup(name)
+	}
+	return operator.FromSudo()
+}
+
 // firecrackerVersion checks the firecracker binary runs and records its version.
 func firecrackerVersion(cfg *daemon.Config) error {
-	if cfg.Firecracker == "" {
-		return fmt.Errorf("firecracker not found in PATH; pass -firecracker")
-	}
 	out, err := exec.Command(cfg.Firecracker, "--version").Output()
 	if err != nil {
 		return fmt.Errorf("%s --version: %w", cfg.Firecracker, err)

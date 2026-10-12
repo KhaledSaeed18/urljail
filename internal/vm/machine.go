@@ -7,6 +7,7 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
+	"strconv"
 	"syscall"
 	"time"
 )
@@ -26,9 +27,15 @@ type Config struct {
 
 	VsockUDS string // host side of the guest's vsock device; empty: no vsock
 
+	NetNS string      // run the VMM inside this network namespace (needs root)
+	RunAs *Credential // drop to this user before exec'ing Firecracker (needs root)
+
 	VCPUs  int
 	MemMiB int
 }
+
+// Credential is a user to run the VMM as.
+type Credential struct{ UID, GID int }
 
 // Machine is a running Firecracker process.
 type Machine struct {
@@ -61,12 +68,27 @@ func Start(ctx context.Context, cfg Config) (*Machine, error) {
 		return nil, err
 	}
 
-	cmd := exec.Command(cfg.Firecracker, "--api-sock", cfg.Socket, "--enable-pci")
+	fcArgs := []string{"--api-sock", cfg.Socket, "--enable-pci"}
+	cmd := exec.Command(cfg.Firecracker, fcArgs...)
+	if cfg.NetNS != "" {
+		// `ip netns exec` and `setpriv` both exec in place, so the process started here becomes
+		// Firecracker: same PID (and pidfd), running unprivileged inside the VM's namespace.
+		argv := []string{"netns", "exec", cfg.NetNS}
+		if c := cfg.RunAs; c != nil {
+			if err := os.Chown(fcLog, c.UID, c.GID); err != nil {
+				return nil, err
+			}
+			argv = append(argv, "setpriv", "--reuid="+strconv.Itoa(c.UID), "--regid="+strconv.Itoa(c.GID),
+				"--clear-groups", "--no-new-privs", "--")
+		}
+		cmd = exec.Command("ip", append(append(argv, cfg.Firecracker), fcArgs...)...)
+	}
 	cmd.Stdout, cmd.Stderr = serial, serial // the guest's serial console
 	cmd.SysProcAttr = &syscall.SysProcAttr{
 		Setsid: true, // signals to the daemon's terminal don't reach the VMM; the daemon decides
 		// If the daemon dies, its VMMs die with it. Linux ties this to the forking OS thread,
-		// not the process, so it's a first line only; Reap at daemon start is the backstop.
+		// and clears it when setpriv changes the uid, so it's a first line only; Reap at daemon
+		// start is the backstop.
 		Pdeathsig: syscall.SIGKILL,
 	}
 	if err := cmd.Start(); err != nil {

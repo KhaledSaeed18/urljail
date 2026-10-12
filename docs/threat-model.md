@@ -48,7 +48,7 @@ urljail deliberately loads hostile content. The question isn't *whether* the gue
 | Credentials typed into phishing page | A5 | Detonation never types real credentials; form interaction (if ever) uses generated canary values only | — |
 | Malicious download executed | A1 | Downloads hashed and stored, never executed; stored outside any exec path, `noexec` mount | — |
 | Leaked VM keeps running | A5 | Teardown always runs; daemon reaps orphan netns/VMMs at startup; `doctor` lists leftovers. P1 showed a PID file alone isn't enough (wrong PID after `setsid`): track VMMs by pidfd/cgroup | — |
-| Any process running as the operator gains root through the dev sudo rule | A5 | `/etc/sudoers.d/urljail-dev` grants NOPASSWD `ip`, `firewall-cmd`, `nft`, `sysctl` for development; `ip netns exec` makes it root-equivalent. Remove it before the live gate; `urljaild` becomes the single privileged component instead | Accepted for P1–P5 on this laptop only |
+| Any process running as the operator gains root through the dev sudo rule | A5 | `/etc/sudoers.d/urljail-dev` grants NOPASSWD `ip`, `firewall-cmd`, `nft`, `sysctl` and (from P3) the user-writable `bin/urljaild` for development; each is root-equivalent. Remove it before the live gate; `urljaild` becomes the single privileged component instead | Accepted for P1–P5 on this laptop only |
 
 ## Explicitly out of scope (v1)
 

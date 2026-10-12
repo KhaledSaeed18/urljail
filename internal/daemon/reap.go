@@ -8,13 +8,12 @@ import (
 	"path/filepath"
 	"strconv"
 	"syscall"
-
-	"github.com/KhaledSaeed18/urljail/internal/hostnet"
 )
 
 // Reap removes what a crashed daemon may have left behind: Firecracker processes on our
-// socket directory, urljaild TAPs, and per-run scratch directories. Call it before serving.
-func Reap(ctx context.Context, cfg Config, egress *hostnet.Egress, log *slog.Logger) {
+// socket directory and per-run scratch directories. Call it before serving; netns.Up removes
+// leftover namespaces itself.
+func Reap(ctx context.Context, cfg Config, log *slog.Logger) {
 	procs, _ := filepath.Glob("/proc/[0-9]*/cmdline")
 	for _, p := range procs {
 		b, err := os.ReadFile(p)
@@ -31,17 +30,6 @@ func Reap(ctx context.Context, cfg Config, egress *hostnet.Egress, log *slog.Log
 				log.Warn("reaping orphaned firecracker", "pid", pid, "socket", string(args[i+1]))
 				_ = syscall.Kill(pid, syscall.SIGKILL)
 			}
-		}
-	}
-
-	if egress != nil {
-		taps, err := hostnet.LeftoverTaps(ctx)
-		if err != nil {
-			log.Warn("listing taps", "err", err)
-		}
-		for _, t := range taps {
-			log.Warn("reaping leftover tap", "tap", t)
-			egress.RemoveTap(ctx, t)
 		}
 	}
 

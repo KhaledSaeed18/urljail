@@ -45,6 +45,17 @@ Create `wg0` in the host namespace, then move it into `uj-egress`. WireGuard kee
 
 **Fail-closed property:** if the tunnel is down, `uj-egress` has no route to the internet at all. There is no fallback path to the home IP, not as a firewall rule that could be forgotten but as an absence of routing.
 
+## As built (P3)
+
+The topology above is implemented in `internal/netns` ([ADR 0014](./decisions/0014-root-daemon-unprivileged-vmm.md): the daemon is root, each Firecracker runs as the operator inside its VM namespace).
+
+- **VM namespace `uj-vm-<n>`:** `tap0 172.16.0.1/30` (guest `172.16.0.2`, MAC `06:00:AC:10:00:02`, identical for every VM), `veth-vm 10.200.<n>.2/30`. Ruleset (`table ip urljail`): DNAT any TCP/UDP 53 from `tap0` to the resolver at `10.200.<n>.1`, masquerade out `veth-vm`, input drop (the guest can't reach the namespace itself), forward only `tap0 → veth-vm`. IPv6 disabled by sysctl.
+- **Egress namespace `uj-egress`:** `veth-eg-<n> 10.200.<n>.1/30` per VM; dev exit `eg-host 10.199.0.2/30` to the host's `uj-host 10.199.0.1/30`, the only default route. Ruleset (`table inet urljail`): forward drop by default; established first; `@private4` dropped and logged; UDP 443 dropped and logged; TCP 80/443 to the exit accepted; everything else logged and dropped. Input accepts only DNS from `10.200.0.0/16`. Output allows the resolver's upstream (53/853) to the exit and nothing private. Drops log to NFLOG group 2.
+- **Resolver:** unbound (Fedora 1.26.1) in `uj-egress`, forwarding to `1.1.1.1`/`9.9.9.9` through the exit, rebind protection via `private-address`, `log-replies` on stderr; the daemon routes each reply to the run whose VM asked (`10.200.<n>.2`) into `host/dns.jsonl`. No DNSSEC validation yet (`module-config: iterator`); answers aren't logged (only name, type, rcode).
+- **Load and verify:** each ruleset is checked with `nft -c -f -`, loaded with `nft -f -`, then hashed from `nft -s list ruleset`. Every run re-hashes both and checks the resolver is alive; any difference refuses the run (tested by flushing the egress ruleset by hand: refused in 4 ms, no VM, no run directory).
+- **Dev exit on the host:** `uj-host` in firewalld's `trusted` zone, masquerade on the default zone, and two tagged `DOCKER-USER` accepts. The host only ever receives what the egress namespace already allowed.
+- **Teardown:** deleting a VM namespace destroys its TAP and both veth ends; daemon shutdown deletes `uj-egress` (and with it `uj-host`) and removes the host-side rules. Leftover namespaces from a crashed daemon are deleted at start.
+
 ## Egress modes
 
 | Mode | Route out | Allowed URL sources | Purpose |

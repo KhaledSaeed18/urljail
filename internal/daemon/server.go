@@ -17,8 +17,9 @@ import (
 	"google.golang.org/protobuf/types/known/timestamppb"
 
 	daemonv1 "github.com/KhaledSaeed18/urljail/gen/urljail/daemon/v1"
-	"github.com/KhaledSaeed18/urljail/internal/hostnet"
 	"github.com/KhaledSaeed18/urljail/internal/image"
+	"github.com/KhaledSaeed18/urljail/internal/netns"
+	"github.com/KhaledSaeed18/urljail/internal/operator"
 	"github.com/KhaledSaeed18/urljail/internal/policy"
 	"github.com/KhaledSaeed18/urljail/internal/report"
 	"github.com/KhaledSaeed18/urljail/internal/version"
@@ -38,11 +39,11 @@ type Config struct {
 	DwellJitter time.Duration
 
 	// VM settings.
-	Firecracker string       // binary path
-	Image       *image.Image // read-only base; each run gets a reflinked copy of its rootfs
-	DNS         string       // DNS server handed to the guest (dev mode: a public resolver)
-	SocketDir   string       // Firecracker API sockets (short paths: Unix sockets are limited to 108 bytes)
-	WorkDir     string       // per-run scratch (disk clones), deleted at teardown
+	Firecracker string            // binary path
+	Image       *image.Image      // read-only base; each run gets a reflinked copy of its rootfs
+	Operator    operator.Operator // owns run directories and runs the VMMs
+	SocketDir   string            // Firecracker API sockets (short paths: Unix sockets are limited to 108 bytes)
+	WorkDir     string            // per-run scratch (disk clones), deleted at teardown
 	MaxVMs      int
 	VCPUs       int
 	MemMiB      int
@@ -56,7 +57,7 @@ type Server struct {
 	daemonv1.UnimplementedDaemonServiceServer
 	cfg    Config
 	log    *slog.Logger
-	egress *hostnet.Egress // nil: no VM lifecycle (tests of the API only)
+	net    *netns.Egress // nil: no VM lifecycle (tests of the API only)
 	slots  *slots
 	active sync.WaitGroup // running detonations, so shutdown can wait for their teardown
 }
@@ -65,12 +66,12 @@ type Server struct {
 func (s *Server) Wait() { s.active.Wait() }
 
 // New returns a Server. With a nil egress, Detonate stops after preflight.
-func New(cfg Config, egress *hostnet.Egress, log *slog.Logger) *Server {
+func New(cfg Config, egress *netns.Egress, log *slog.Logger) *Server {
 	n := cfg.MaxVMs
 	if n < 1 {
 		n = 1
 	}
-	return &Server{cfg: cfg, log: log, egress: egress, slots: newSlots(n)}
+	return &Server{cfg: cfg, log: log, net: egress, slots: newSlots(n)}
 }
 
 func (s *Server) guestKernel() string {
@@ -115,7 +116,7 @@ func (s *Server) Detonate(req *daemonv1.DetonateRequest, stream daemonv1.DaemonS
 	if err != nil {
 		return r.fail(err)
 	}
-	if s.egress == nil {
+	if s.net == nil {
 		return r.fail(errors.New("daemon has no VM backend configured"))
 	}
 
@@ -126,6 +127,9 @@ func (s *Server) Detonate(req *daemonv1.DetonateRequest, stream daemonv1.DaemonS
 	if _, statErr := os.Stat(filepath.Join(runDir, "meta.json")); statErr == nil {
 		if _, rerr := report.Write(runDir); rerr != nil {
 			r.log.Warn("writing report", "err", rerr)
+		}
+		if cerr := s.cfg.Operator.ChownTree(runDir); cerr != nil {
+			r.log.Warn("giving the run directory to the operator", "err", cerr)
 		}
 	} else {
 		runDir = ""

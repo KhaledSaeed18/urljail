@@ -46,8 +46,7 @@ type exitError int
 func (e exitError) Error() string { return fmt.Sprintf("exit %d", int(e)) }
 
 func run() error {
-	defSock, _ := paths.Socket()
-	socket := flag.String("socket", defSock, "urljaild gRPC socket")
+	socket := flag.String("socket", paths.Socket(), "urljaild gRPC socket")
 	flag.Usage = func() { fmt.Fprint(os.Stderr, usage) }
 	flag.Parse()
 	if flag.NArg() == 0 {
