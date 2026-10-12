@@ -1,0 +1,64 @@
+syntax = "proto3";
+
+package urljail.daemon.v1;
+
+import "google/protobuf/duration.proto";
+import "google/protobuf/timestamp.proto";
+
+// DaemonService is urljaild's API. The CLI is its client now; the P7 control plane later.
+service DaemonService {
+  // Version reports the daemon build and the pinned component versions it runs.
+  rpc Version(VersionRequest) returns (VersionResponse);
+  // Detonate opens one URL in one fresh microVM and streams the run's progress.
+  // The stream ends after a RUN_STATE_DONE or RUN_STATE_FAILED message.
+  rpc Detonate(DetonateRequest) returns (stream DetonateResponse);
+}
+
+message VersionRequest {}
+
+message VersionResponse {
+  string urljail = 1;
+  string firecracker = 2;
+  string guest_kernel = 3;
+  // Egress mode the daemon runs in: "off", "dev" or "live".
+  string egress_mode = 4;
+}
+
+message DetonateRequest {
+  string url = 1;
+  // Snapshot profile (experimental condition). Empty means the default profile.
+  string profile = 2;
+  // Wall-clock limit for the whole run. Unset means the daemon default.
+  google.protobuf.Duration timeout = 3;
+}
+
+// Detonation lifecycle, see docs/architecture.md#detonation-lifecycle.
+enum RunState {
+  RUN_STATE_UNSPECIFIED = 0;
+  RUN_STATE_REQUESTED = 1;
+  RUN_STATE_PREFLIGHT = 2;
+  // Cold boot (P2). Replaced by RUN_STATE_RESTORING once snapshots exist (P4).
+  RUN_STATE_BOOTING = 3;
+  RUN_STATE_RESTORING = 4;
+  RUN_STATE_NET_READY = 5;
+  RUN_STATE_CLOCK_SYNCED = 6;
+  RUN_STATE_NAVIGATING = 7;
+  RUN_STATE_OBSERVING = 8;
+  RUN_STATE_COLLECTING = 9;
+  RUN_STATE_TEARDOWN = 10;
+  RUN_STATE_DONE = 11;
+  RUN_STATE_FAILED = 12;
+}
+
+message DetonateResponse {
+  // UUIDv7, also the name of the run's directory.
+  string run_id = 1;
+  RunState state = 2;
+  google.protobuf.Timestamp time = 3;
+  // Human-readable detail for this step.
+  string message = 4;
+  // Set with RUN_STATE_DONE: path of the run directory on the daemon host.
+  string run_dir = 5;
+  // Set with RUN_STATE_FAILED.
+  string error = 6;
+}

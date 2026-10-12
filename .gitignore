@@ -21,3 +21,6 @@ id_ed25519*
 # Local work dirs
 scripts/*/work/
 runs/
+
+# Go build output
+bin/
