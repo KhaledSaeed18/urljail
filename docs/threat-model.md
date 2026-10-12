@@ -86,7 +86,7 @@ Each threat above, against what exists after P1–P5 and the live-gate work. *Ve
 | Credentials typed into a page | holds | No interaction is simulated at all |
 | Malicious download executed | holds | `noexec` in the guest, destroyed with the VM (claim above corrected: not collected) |
 | Leaked VM keeps running | built, one gap | Teardown bounded per step; startup reaping kills everything in urljail namespaces and cgroups. **Gap:** if the daemon *crashes* in live mode, its VMMs keep running (parent-death signal is cleared when they drop privileges) and keep browsing until the daemon restarts |
-| Dev sudo rule | pending removal | Service install replaces it; live mode refuses to start while it exists |
+| Dev sudo rule | removed (2026-10-12) | urljaild runs as a systemd service from root-owned binaries; live mode would refuse to start if the rule came back |
 
 ### New threats found while building
 
@@ -94,7 +94,7 @@ Each threat above, against what exists after P1–P5 and the live-gate work. *Ve
 | ------ | --------- | ------------------ | -------------- |
 | **The root daemon parses guest-controlled data**: the gRPC/HTTP2 stream over vsock, CDP event JSON, artifacts, ClientHello and HTTP bytes from eBPF, and the report built from all of it | A3 | Go (memory-safe); artifact name allowlist; size, count and record caps; tolerant parsers that skip bad input; **fuzzed** (`make fuzz`: ClientHello, HTTP Host, reassembly, report builder over guest and host records, unbound log, NFLOG packets, nft counters). Fuzzing found that guest-supplied hostnames could carry junk into reports (lowercasing invalid UTF-8 grows it); hostnames are now restricted to DNS characters, anything else recorded as `invalid:<hex>` | **Later:** build reports in an unprivileged helper process instead of the root daemon |
 | **unbound parses attacker-controlled DNS answers** (a phishing domain's own nameservers) | A1 | Runs as user `unbound` in the egress namespace, forwarding only | **Should:** confine it in SELinux (it runs as `unconfined_t` when the daemon starts it, not `named_t`) |
-| **Root executing operator-writable binaries** (`bin/urljaild`, `~/.local/bin/{jailer,firecracker}`) | A5 | Only in dev | **Before live:** the service install (root-owned copies) |
+| **Root executing operator-writable binaries** (`bin/urljaild`, `~/.local/bin/{jailer,firecracker}`) | A5 | Resolved: the service runs root-owned copies only | — |
 | **Daemon crash leaves live VMs browsing** | A5 | Restart reaps them; the systemd unit restarts on failure after 5 s | **Should:** put VM cgroups under the service's delegated cgroup so systemd kills them with the daemon |
 | **Agent and Chrome share a uid in the guest** | A2 | Host treats all guest output as guest-attested | **Later:** separate uid for Chrome |
 | **live-test exits from the home IP** | A5 | URL policy stays the dev allowlist in live-test | — |
@@ -103,7 +103,7 @@ Each threat above, against what exists after P1–P5 and the live-gate work. *Ve
 
 ### Before enabling live mode
 
-1. Install the daemon as a service from root-owned binaries, then delete `/etc/sudoers.d/urljail-dev` (the daemon enforces the second).
+1. ~~Install the daemon as a service from root-owned binaries, then delete `/etc/sudoers.d/urljail-dev`~~ done.
 2. A real VPN config; the self-test's exit-IP check must pass (the daemon enforces this at start).
 3. ~~Fuzz the parsers that run as root on guest data~~ done (`make fuzz`); rerun after parser changes.
 4. Feed terms decided (Q13) and ingestion designed with URLs strictly as data.

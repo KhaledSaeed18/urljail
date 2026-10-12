@@ -75,7 +75,7 @@ The whole pipeline, as simple as possible, **cold boot** (no snapshots yet).
 - [~] WireGuard-in-netns egress working; `live` mode interlock in the daemon (done against a local test peer, `-egress live-test`; needs a run with the real VPN) ([journal](./journal/live-gate.md))
 - [~] Full isolation test plan passes in `live` mode, including "VPN down ⇒ no egress" (passes in live-test; the exit-IP check needs the real VPN)
 - [ ] Threat model reviewed against what was actually built
-- [ ] Dev sudo rule removed (`/etc/sudoers.d/urljail-dev`)
+- [x] Dev sudo rule removed (`/etc/sudoers.d/urljail-dev`); urljaild runs as a systemd service from root-owned binaries
 - [ ] Feed terms of use checked for each source (Q13)
 - [ ] Mullvad subscription; exit server/IP/ASN recorded per run ([ADR 0010](./decisions/0010-mullvad-live-egress.md))
 - [ ] Feed ingestion design (OpenPhish / URLhaus / PhishTank) treating URLs strictly as data

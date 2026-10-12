@@ -48,7 +48,7 @@ Go native fuzz targets for every parser the root daemon runs on guest-controlled
 | ---- | ----- |
 | WireGuard-in-netns egress working; `live` mode interlock in the daemon | done with the test peer; needs a run with the real VPN config |
 | Full isolation test plan in `live` mode, incl. "VPN down ⇒ no egress" | passes in live-test; the exit-IP check needs the real VPN |
-| Dev sudo rule removed | service installed and verified; pending: `sudo rm /etc/sudoers.d/urljail-dev` (operator) |
+| Dev sudo rule removed | done 2026-10-12: `sudo -n` now asks for a password; `doctor` reports it gone; the service keeps working |
 | Threat model reviewed against what was built | draft done ([review](../threat-model.md#review-against-the-built-system-2026-10-12)): one false claim corrected (downloads), diagram fixed, 8 new threats; adds "fuzz the root parsers" before live |
 | Feed terms of use checked (Q13) | researched ([feeds.md](../research/feeds.md)); choosing a source is the operator's decision |
 | Feed ingestion design, URLs strictly as data | pending |
