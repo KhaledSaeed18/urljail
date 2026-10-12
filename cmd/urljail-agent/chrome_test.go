@@ -18,10 +18,10 @@ func TestChromeArgsProfile(t *testing.T) {
 	if base[len(base)-1] != "about:blank" {
 		t.Errorf("last arg %q", base[len(base)-1])
 	}
-	st := chromeArgs("/tmp/p", &guestv1.BrowserProfile{DesktopUserAgent: true, HideWebdriver: true, Language: "en-US"}, "155.0.8059.39-1")
+	st := chromeArgs("/tmp/p", &guestv1.BrowserProfile{DesktopUserAgent: true, HideWebdriver: true, Language: "de-DE"}, "155.0.8059.39-1")
 	for _, want := range []string{
 		"--user-agent=Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/155.0.0.0 Safari/537.36",
-		"--disable-blink-features=AutomationControlled", "--lang=en-US", "--accept-lang=en-US",
+		"--disable-blink-features=AutomationControlled", "--lang=de-DE", "--accept-lang=de-DE,de",
 	} {
 		if !slices.Contains(st, want) {
 			t.Errorf("stealth args miss %q", want)

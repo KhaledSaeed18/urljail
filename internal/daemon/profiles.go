@@ -21,7 +21,9 @@ type browserProfile struct {
 // no timezone countermeasure and no ablation for it.
 func profiles(exitTimezone string) []browserProfile {
 	stealth := func(ua, webdriver, tz bool) *guestv1.BrowserProfile {
-		p := &guestv1.BrowserProfile{DesktopUserAgent: ua, HideWebdriver: webdriver, Language: "en-US"}
+		// No language override: Chrome's default (en-US,en) already fits the US exit, and
+		// overriding it made navigator.languages differ from baseline (P6 M2).
+		p := &guestv1.BrowserProfile{DesktopUserAgent: ua, HideWebdriver: webdriver}
 		if tz {
 			p.Timezone = exitTimezone
 		}

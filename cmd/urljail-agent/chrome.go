@@ -49,7 +49,13 @@ func chromeArgs(profile string, bp *guestv1.BrowserProfile, browserVersion strin
 		args = append(args, "--disable-blink-features=AutomationControlled")
 	}
 	if l := bp.GetLanguage(); validLanguage.MatchString(l) {
-		args = append(args, "--lang="+l, "--accept-lang="+l)
+		// Like a real install: the regional language, then the base one ("en-US,en"). A
+		// single entry is rarer than headless itself (found in P6 M2).
+		accept := l
+		if base, _, ok := strings.Cut(l, "-"); ok {
+			accept += "," + base
+		}
+		args = append(args, "--lang="+l, "--accept-lang="+accept)
 	}
 	return append(args, "about:blank")
 }
