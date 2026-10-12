@@ -1,6 +1,6 @@
 # Development environment
 
-Snapshot of the host as of **2026-10-10**. Update when hardware or OS changes.
+Snapshot of the host as of **2026-10-12**. Update when hardware or OS changes.
 
 ## Host
 
@@ -20,19 +20,21 @@ Snapshot of the host as of **2026-10-10**. Update when hardware or OS changes.
 
 | Tool | Status | Needed for |
 | ---- | ------ | ---------- |
-| Go | **missing**, install in P1 | host agent, guest agent, CLI |
+| Go | 1.27.2, user-local in `~/.local/go` | host agent, guest agent, CLI |
 | Rust (`rustc`) | installed (`~/.cargo`) | optional side quests |
 | clang | installed | compiling eBPF C programs |
 | bpftool | installed | inspecting loaded programs/maps |
 | nft | installed | firewall |
 | Docker, Podman | installed | rootfs builds (podman, rootless); **Docker modifies host firewall**, see network.md |
 | Node (nvm, v24) | installed | P7 control plane |
-| Firecracker + jailer | **missing**, download release binaries in P1 | VMM |
-| unbound, WireGuard tools | check in P3 | resolver, egress |
+| Firecracker + jailer | v1.17.0 in `~/.local/share/urljail/firecracker/`, symlinked in `~/.local/bin` | VMM |
+| unbound, WireGuard tools | missing; install in P3 | resolver, egress |
+| squashfs-tools | **missing**; `sudo dnf install squashfs-tools` at P1 start | unpacking the CI rootfs |
+| tcpdump | installed | pcap (P3) |
 
 ## Known friction to expect
 
 - **SELinux + jailer**: denials when the jailer chroots/mknods; fix with labels/policy, never by disabling SELinux.
-- **Docker's nftables/iptables rules**: FORWARD policy DROP in host netns; our design sidesteps by living in dedicated namespaces.
+- **Docker's nftables/iptables rules**: FORWARD policy DROP in host netns; our design sidesteps by living in dedicated namespaces. Docker runs by default on this host; P1's plain host NAT needs it stopped.
 - **RAM pressure**: close heavy desktop apps when running several VMs; consider zram tuning.
 - **Laptop sleep/suspend**: kills long runs and VPN handshakes; disable during experiments.

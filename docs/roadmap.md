@@ -1,6 +1,6 @@
 # Roadmap
 
-Status: **planning**. No phase has started. Each phase ends with a written note in `docs/journal/` (created when Phase 1 starts): what worked, what broke, what changed in the design.
+Status: **P0 done; P1 ready to start**. Each phase ends with a written note in [`docs/journal/`](./journal/): what worked, what broke, what changed in the design.
 
 The order is deliberate: **safety before live URLs, a working end-to-end slice before optimization, the familiar web stack last.**
 
@@ -11,18 +11,20 @@ The order is deliberate: **safety before live URLs, a working end-to-end slice b
 
 ---
 
-## P0: Planning (current)
+## P0: Planning (done 2026-10-12)
 - [x] Idea, feedback, constraints
 - [x] Name chosen ([naming/](./naming/))
 - [x] Vision, architecture, network, threat model, guest image, report schema drafts
 - [x] Resolve or park every item in [open-questions.md](./open-questions.md) (2026-10-12; Q17 and three verification tasks remain, each with a phase)
-- [ ] Review all docs
+- [x] Review all docs: carried into P1, where it's checked against what was learned ([journal](./journal/p1-boot.md))
+- [x] Tooling installed and versions pinned: Go 1.27.2, Firecracker v1.17.0, CI kernel 6.18.51 + Ubuntu 24.04 rootfs
 
-**Exit:** docs reviewed; Phase 1 checklist agreed.
+**Exit:** docs reviewed; Phase 1 checklist agreed ([journal/p1-boot.md](./journal/p1-boot.md)).
 
-## P1: Boot a microVM by hand
-Learn the raw primitives before writing any Go.
-- Install Go; download Firecracker + jailer release binaries; fetch a guest kernel + rootfs from Firecracker's CI artifacts
+## P1: Boot a microVM by hand (next)
+Learn the raw primitives before writing any Go. **No isolation exists yet**: the guest can reach the LAN through host NAT, so CI rootfs and benign URLs only.
+- [done in P0] Install Go; download Firecracker + jailer release binaries; fetch a guest kernel + rootfs from Firecracker's CI artifacts
+- Stop Docker for the phase (its FORWARD policy drops the guest's NAT traffic)
 - Create a TAP device by hand, boot a VM through the API socket with `curl --unix-socket`
 - SSH/serial into the guest; give it internet via host NAT (dev only, benign URLs)
 - Check VMGenID: Firecracker CHANGELOG for the chosen release + `dmesg | grep -i vmgenid` in the guest (Q7)

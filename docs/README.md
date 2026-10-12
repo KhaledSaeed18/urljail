@@ -2,7 +2,7 @@
 
 > Detonate suspicious URLs in disposable Firecracker microVMs and report what they actually do.
 
-**Status:** Phase 0: planning. No code yet. Last updated 2026-10-12.
+**Status:** P0 done; P1 ready to start. No code yet. Last updated 2026-10-12.
 
 ## Reading order
 
@@ -25,12 +25,13 @@
 | [decisions/](./decisions/) | Architecture Decision Records (ADRs) |
 | [research/](./research/) | Research tracks: [anti-cloaking](./research/anti-cloaking.md), [snapshot entropy](./research/snapshot-entropy.md), [related work](./research/related-work.md) |
 | [naming/](./naming/) | Name-check reports that led to "urljail" |
+| [journal/](./journal/) | One entry per phase: what worked, what broke, what changed |
 
 ## Conventions
 
 - Items marked _(verify)_ are believed true but must be confirmed against the actual Firecracker/kernel versions in Phase 1–2.
 - Decisions go in `decisions/` as ADRs; questions go in `open-questions.md` until decided.
-- A `journal/` folder starts with Phase 1: one entry per phase with what worked, what broke, and what changed.
+- [`journal/`](./journal/) has one entry per phase with what worked, what broke, and what changed.
 
 ## Glossary
 

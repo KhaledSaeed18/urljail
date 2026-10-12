@@ -2,7 +2,7 @@
 
 **Detonate suspicious URLs in disposable Firecracker microVMs and report what they actually do.**
 
-> **Status: planning (Phase 0).** Design docs only; no code yet. See the [roadmap](docs/roadmap.md).
+> **Status: Phase 1 next.** Design docs only; no code yet. See the [roadmap](docs/roadmap.md).
 
 ## What it does
 

@@ -1,0 +1,23 @@
+# VM artifacts never belong in git (kernels, rootfs images, snapshots)
+vmlinux*
+*.squashfs
+*.squashfs.upstream
+*.ext4
+*.snap
+*.mem
+squashfs-root/
+
+# Runtime files
+*.socket
+*.sock
+*.log
+*.pcap
+*.pcapng
+
+# Throwaway SSH keys for dev guests
+id_rsa*
+id_ed25519*
+
+# Local work dirs
+scripts/*/work/
+runs/
