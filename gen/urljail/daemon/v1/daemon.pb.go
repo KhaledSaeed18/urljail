@@ -146,7 +146,11 @@ type VersionResponse struct {
 	Firecracker string                 `protobuf:"bytes,2,opt,name=firecracker,proto3" json:"firecracker,omitempty"`
 	GuestKernel string                 `protobuf:"bytes,3,opt,name=guest_kernel,json=guestKernel,proto3" json:"guest_kernel,omitempty"`
 	// Egress mode the daemon runs in: "off", "dev" or "live".
-	EgressMode    string `protobuf:"bytes,4,opt,name=egress_mode,json=egressMode,proto3" json:"egress_mode,omitempty"`
+	EgressMode string `protobuf:"bytes,4,opt,name=egress_mode,json=egressMode,proto3" json:"egress_mode,omitempty"`
+	// Browser profiles the daemon has snapshots for (Detonate's profile), default first.
+	Profiles []string `protobuf:"bytes,5,rep,name=profiles,proto3" json:"profiles,omitempty"`
+	// Concurrent VM slots.
+	MaxVms        int32 `protobuf:"varint,6,opt,name=max_vms,json=maxVms,proto3" json:"max_vms,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -207,6 +211,20 @@ func (x *VersionResponse) GetEgressMode() string {
 		return x.EgressMode
 	}
 	return ""
+}
+
+func (x *VersionResponse) GetProfiles() []string {
+	if x != nil {
+		return x.Profiles
+	}
+	return nil
+}
+
+func (x *VersionResponse) GetMaxVms() int32 {
+	if x != nil {
+		return x.MaxVms
+	}
+	return 0
 }
 
 type DetonateRequest struct {
@@ -640,13 +658,15 @@ var File_urljail_daemon_v1_daemon_proto protoreflect.FileDescriptor
 const file_urljail_daemon_v1_daemon_proto_rawDesc = "" +
 	"\n" +
 	"\x1eurljail/daemon/v1/daemon.proto\x12\x11urljail.daemon.v1\x1a\x1egoogle/protobuf/duration.proto\x1a\x1fgoogle/protobuf/timestamp.proto\"\x10\n" +
-	"\x0eVersionRequest\"\x91\x01\n" +
+	"\x0eVersionRequest\"\xc6\x01\n" +
 	"\x0fVersionResponse\x12\x18\n" +
 	"\aurljail\x18\x01 \x01(\tR\aurljail\x12 \n" +
 	"\vfirecracker\x18\x02 \x01(\tR\vfirecracker\x12!\n" +
 	"\fguest_kernel\x18\x03 \x01(\tR\vguestKernel\x12\x1f\n" +
 	"\vegress_mode\x18\x04 \x01(\tR\n" +
-	"egressMode\"r\n" +
+	"egressMode\x12\x1a\n" +
+	"\bprofiles\x18\x05 \x03(\tR\bprofiles\x12\x17\n" +
+	"\amax_vms\x18\x06 \x01(\x05R\x06maxVms\"r\n" +
 	"\x0fDetonateRequest\x12\x10\n" +
 	"\x03url\x18\x01 \x01(\tR\x03url\x12\x18\n" +
 	"\aprofile\x18\x02 \x01(\tR\aprofile\x123\n" +

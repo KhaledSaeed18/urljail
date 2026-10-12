@@ -47,7 +47,7 @@ const (
 )
 
 // detonate runs the VM part of a detonation. It always tears down what it started.
-func (s *Server) detonate(ctx context.Context, r *run, u *url.URL, profile string, timeout time.Duration) (err error) {
+func (s *Server) detonate(ctx context.Context, r *run, u *url.URL, timeout time.Duration) (err error) {
 	img := s.cfg.Image
 	slot, ok := s.slots.acquire()
 	if !ok {
@@ -68,7 +68,7 @@ func (s *Server) detonate(ctx context.Context, r *run, u *url.URL, profile strin
 		return err
 	}
 	m := report.Meta{
-		RunID: r.id, URL: u.String(), Profile: profile, Egress: string(s.cfg.Policy.Mode),
+		RunID: r.id, URL: u.String(), Profile: r.profile, Egress: string(s.cfg.Policy.Mode),
 		Timeout: timeout.String(), StartedAt: time.Now().UTC(),
 		Versions: map[string]string{
 			"urljail":      version.String(),
@@ -115,8 +115,8 @@ func (s *Server) detonate(ctx context.Context, r *run, u *url.URL, profile strin
 	}()
 
 	r.mark("preflight")
-	if s.snap != nil {
-		err = r.send(daemonv1.RunState_RUN_STATE_RESTORING, "restoring "+s.snap.manifest.Name)
+	if r.snap != nil {
+		err = r.send(daemonv1.RunState_RUN_STATE_RESTORING, "restoring "+r.snap.manifest.Name)
 	} else {
 		err = r.send(daemonv1.RunState_RUN_STATE_BOOTING, "cold boot (no snapshot)")
 	}
@@ -161,8 +161,8 @@ func (s *Server) bootVM(ctx context.Context, r *run, slot int, runDir string, ad
 	addCleanup(func(context.Context) { _ = jail.Remove() }) // also if the VMM never started
 	const rootfs, vsock = "rootfs.ext4", "v.sock"           // paths inside the jail
 	base := img.Rootfs
-	if s.snap != nil {
-		base = s.snap.rootfs // the disk the snapshot's page cache expects
+	if r.snap != nil {
+		base = r.snap.rootfs // the disk the snapshot's page cache expects
 	}
 	if err := vm.CloneFile(base, jail.Path(rootfs)); err != nil {
 		return nil, nil, fmt.Errorf("cloning rootfs: %w", err)
@@ -253,8 +253,8 @@ func (s *Server) bootVM(ctx context.Context, r *run, slot int, runDir string, ad
 	}
 	t0 := time.Now()
 	var machine *vm.Machine
-	if s.snap != nil {
-		machine, err = vm.Restore(ctx, vmCfg, s.snap.files)
+	if r.snap != nil {
+		machine, err = vm.Restore(ctx, vmCfg, r.snap.files)
 	} else {
 		machine, err = vm.Start(ctx, vmCfg)
 	}
@@ -305,8 +305,8 @@ func (s *Server) bootVM(ctx context.Context, r *run, slot int, runDir string, ad
 	}
 	how := "cold boot"
 	var clone *report.Clone
-	if s.snap != nil {
-		how = "restored " + s.snap.manifest.Name
+	if r.snap != nil {
+		how = "restored " + r.snap.manifest.Name
 		if !hello.GetPrepared() {
 			r.log.Warn("restored guest has no prepared browser; it will launch one")
 		}
@@ -318,8 +318,8 @@ func (s *Server) bootVM(ctx context.Context, r *run, slot int, runDir string, ad
 	if skew > 2*time.Second {
 		r.log.Warn("guest clock is off after start", "skew", skew)
 	}
-	if s.snap != nil {
-		clone = &report.Clone{Snapshot: s.snap.manifest.Name, GuestClockSkewMs: skew.Milliseconds(),
+	if r.snap != nil {
+		clone = &report.Clone{Snapshot: r.snap.manifest.Name, GuestClockSkewMs: skew.Milliseconds(),
 			GuestRandom: hex.EncodeToString(hello.GetRandom())}
 	}
 	if err := r.send(daemonv1.RunState_RUN_STATE_NET_READY,

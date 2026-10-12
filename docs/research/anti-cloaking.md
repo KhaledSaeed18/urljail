@@ -43,6 +43,21 @@ Guest-level hypervisor masking is therefore **low priority**; browser and networ
 
 **Metric:** cloaking rate = share of URLs where at least one condition got phishing content and another didn't; per-factor effect via ablation (turn one countermeasure off at a time).
 
+## As built: profiles (P6 M2, [ADR 0018](../decisions/0018-profiles-as-snapshots.md))
+
+What a page saw from the baseline browser, measured live on a public bot-detection page (bot.sannysoft.com, 2026-10-12):
+
+| Signal | Baseline | Countermeasure |
+| ------ | -------- | -------------- |
+| User-Agent | `HeadlessChrome/155.0.0.0` | `--user-agent` with the desktop string (`Chrome/155.0.0.0`) |
+| `navigator.webdriver` | `true` | `--disable-blink-features=AutomationControlled` |
+| Time zone | UTC, while the exit IP is in Chicago | `TZ` set to the exit's zone (`-exit-timezone`) |
+| WebGL renderer | SwiftShader | none (no GPU in Firecracker): constant across profiles |
+| Exit network | datacenter ASN (Datacamp, Proton free) | none with one free exit |
+| Plugins, languages, `window.chrome`, permissions, window size | passed | — |
+
+Profiles: `baseline`, `stealth` (UA + webdriver + time zone, language `en-US`), and ablations `stealth-no-ua`, `stealth-no-webdriver`, `stealth-no-tz`. `urljail feeds run` opens each URL under every profile at once.
+
 ## Data sources
 
 - Terms and freshness of each feed: [feeds.md](./feeds.md). In short: OpenPhish Community is 12 h stale, URLhaus is malware, PhishTank registration is closed; fresh phishing needs OpenPhish Academic or paid, or own discovery from CT logs.

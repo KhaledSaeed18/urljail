@@ -26,8 +26,8 @@ type browserSession struct {
 }
 
 // startBrowser launches Chrome and sets it up for a detonation.
-func startBrowser(ctx context.Context) (*browserSession, error) {
-	ch, err := launchChrome()
+func startBrowser(ctx context.Context, bp *guestv1.BrowserProfile, browserVersion string) (*browserSession, error) {
+	ch, err := launchChrome(bp, browserVersion)
 	if err != nil {
 		return nil, err
 	}
@@ -86,14 +86,14 @@ func (b *browserSession) discardQueued() {
 }
 
 // Prepare implements GuestAgentService.Prepare.
-func (a *agent) Prepare(ctx context.Context, _ *guestv1.PrepareRequest) (*guestv1.PrepareResponse, error) {
+func (a *agent) Prepare(ctx context.Context, req *guestv1.PrepareRequest) (*guestv1.PrepareResponse, error) {
 	a.mu.Lock()
 	defer a.mu.Unlock()
 	if a.prepared != nil {
 		return nil, status.Error(codes.FailedPrecondition, "a browser is already prepared")
 	}
 	start := time.Now()
-	b, err := startBrowser(ctx)
+	b, err := startBrowser(ctx, req.GetProfile(), a.browser)
 	if err != nil {
 		return nil, err
 	}

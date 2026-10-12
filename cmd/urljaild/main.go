@@ -60,6 +60,7 @@ func run() error {
 	jailer := flag.String("jailer", "", "jailer binary (default ~operator/.local/bin/jailer)")
 	selinuxModule := flag.String("selinux-module", "", "SELinux policy module (default: selinux/urljail.pp next to bin/)")
 	maxVMs := flag.Int("max-vms", 3, "concurrent VMs (snapshot clones share memory: ~125 MiB each here)")
+	exitTZ := flag.String("exit-timezone", "", "IANA time zone of the VPN exit (e.g. America/Chicago), used by the stealth profiles")
 	vcpus := flag.Int("vcpus", 2, "vCPUs per VM")
 	mem := flag.Int("mem", 1024, "guest memory per VM, MiB")
 	defTimeout := flag.Duration("timeout", 30*time.Second, "default wall-clock limit per run")
@@ -71,6 +72,11 @@ func run() error {
 	flag.Parse()
 
 	log := slog.New(slog.NewTextHandler(os.Stderr, nil))
+	if *exitTZ != "" {
+		if _, err := time.LoadLocation(*exitTZ); err != nil || strings.ContainsAny(*exitTZ, " .") {
+			return fmt.Errorf("-exit-timezone %q: not an IANA time zone", *exitTZ)
+		}
+	}
 
 	if os.Geteuid() != 0 {
 		return fmt.Errorf("must run as root (sudo); the CLI doesn't need to")
@@ -158,6 +164,7 @@ func run() error {
 		WorkDir:        filepath.Join(dataDir, "work"),
 		SnapshotsDir:   filepath.Join(dataDir, "snapshots"),
 		MaxVMs:         *maxVMs,
+		ExitTimezone:   *exitTZ,
 		VCPUs:          *vcpus,
 		MemMiB:         *mem,
 	}
@@ -235,7 +242,7 @@ func run() error {
 		if err := op.MkdirAll(cfg.SnapshotsDir, 0o700); err != nil {
 			return err
 		}
-		if err := srv.EnsureSnapshot(ctx); err != nil {
+		if err := srv.EnsureSnapshots(ctx); err != nil {
 			return err
 		}
 	}

@@ -9,7 +9,10 @@ import (
 	"net/http"
 	"os"
 	"path/filepath"
+	"slices"
 	"sort"
+	"strings"
+	"sync"
 	"time"
 
 	daemonv1 "github.com/KhaledSaeed18/urljail/gen/urljail/daemon/v1"
@@ -22,7 +25,9 @@ const feedsUsage = `usage: urljail feeds <command>
 
   fetch          fetch due feeds into the queue (no detonation)
   status         queue and source summary
-  run [-n N]     fetch, then detonate up to N queued URLs, one at a time (default 3; live mode only)
+  run [-n N] [-profiles all|p1,p2]
+                 fetch, then detonate up to N queued URLs (default 3; live mode only), each
+                 under every profile at once (default: all the daemon has)
   pause|resume   stop or allow submissions (fetching continues)
 `
 
@@ -53,10 +58,11 @@ func cmdFeeds(ctx context.Context, c daemonv1.DaemonServiceClient, args []string
 	case "run":
 		fs := flag.NewFlagSet("feeds run", flag.ContinueOnError)
 		n := fs.Int("n", 3, "maximum URLs to detonate")
+		profs := fs.String("profiles", "all", `browser profiles per URL: "all" or a comma-separated list`)
 		if err := fs.Parse(args[1:]); err != nil || *n < 1 {
 			return exitError(2)
 		}
-		return runFeeds(ctx, c, st, *n)
+		return runFeeds(ctx, c, st, *n, *profs)
 	case "pause", "resume":
 		st.Paused = args[0] == "pause"
 		fmt.Printf("submissions %sd\n", args[0])
@@ -103,7 +109,7 @@ func printFeedStatus(st *feeds.Store) {
 	fmt.Printf("queue: %d queued, %d done, %d failed, %d refused, %d expired\n", c["queued"], c["done"], c["failed"], c["refused"], c["expired"])
 }
 
-func runFeeds(ctx context.Context, c daemonv1.DaemonServiceClient, st *feeds.Store, n int) error {
+func runFeeds(ctx context.Context, c daemonv1.DaemonServiceClient, st *feeds.Store, n int, profileList string) error {
 	if st.Paused {
 		return errors.New("submissions are paused (urljail feeds resume)")
 	}
@@ -116,6 +122,11 @@ func runFeeds(ctx context.Context, c daemonv1.DaemonServiceClient, st *feeds.Sto
 	if v.GetEgressMode() != "live" {
 		return fmt.Errorf("the daemon is in %q mode: feed URLs are only detonated in live mode", v.GetEgressMode())
 	}
+	profs, err := pickProfiles(profileList, v.GetProfiles())
+	if err != nil {
+		return err
+	}
+	parallel := max(1, min(int(v.GetMaxVms()), len(profs)))
 	if err := fetchFeeds(ctx, st); err != nil {
 		fmt.Fprintln(os.Stderr, "fetch:", err) // the queue may still hold fresh URLs
 	}
@@ -136,32 +147,98 @@ func runFeeds(ctx context.Context, c daemonv1.DaemonServiceClient, st *feeds.Sto
 		if err := st.Save(); err != nil {
 			return err
 		}
-		runDir, err := detonateQuiet(ctx, c, it.URL)
-		it.RunID = filepath.Base(runDir)
-		switch {
-		case runDir == "":
-			it.Status, it.Error = "refused", errString(err)
-		case err != nil:
-			it.Status, it.Error = "failed", errString(err)
-		default:
-			it.Status = "done"
-		}
-		if runDir != "" {
-			if werr := report.WriteFeed(runDir, report.FeedMeta{Name: it.Feed, FirstSeen: it.FirstSeen}); werr == nil {
-				report.Write(runDir) // rebuild with run.feed
+		results := detonateProfiles(ctx, c, it.URL, profs, parallel)
+		it.Runs = map[string]string{}
+		ran, errs := 0, []string{}
+		for _, res := range results {
+			if res.runDir == "" {
+				errs = append(errs, res.profile+": "+errString(res.err))
+				continue
+			}
+			ran++
+			it.Runs[res.profile] = filepath.Base(res.runDir)
+			if werr := report.WriteFeed(res.runDir, report.FeedMeta{Name: it.Feed, FirstSeen: it.FirstSeen}); werr == nil {
+				report.Write(res.runDir) // rebuild with run.feed
 			}
 		}
-		if err != nil {
-			fmt.Printf("  %s: %v\n", it.Status, err)
+		switch {
+		case ran == 0:
+			it.Status, it.Error = "refused", strings.Join(errs, "; ")
+		case ran < len(profs):
+			it.Status, it.Error = "done", strings.Join(errs, "; ")
+		default:
+			it.Status, it.Error = "done", ""
 		}
-		if runDir != "" {
-			printSummary(runDir)
-		}
+		printProfileTable(results)
 		if err := st.Save(); err != nil {
 			return err
 		}
 	}
 	return nil
+}
+
+// pickProfiles resolves -profiles against what the daemon has.
+func pickProfiles(list string, have []string) ([]string, error) {
+	if list == "all" {
+		if len(have) == 0 {
+			return []string{""}, nil // older daemon: its default profile only
+		}
+		return have, nil
+	}
+	var out []string
+	for _, p := range strings.Split(list, ",") {
+		if p = strings.TrimSpace(p); p == "" {
+			continue
+		}
+		if !slices.Contains(have, p) {
+			return nil, fmt.Errorf("the daemon has no profile %q (have: %s)", p, strings.Join(have, ", "))
+		}
+		out = append(out, p)
+	}
+	if len(out) == 0 {
+		return nil, errors.New("no profiles given")
+	}
+	return out, nil
+}
+
+type profileResult struct {
+	profile string
+	runDir  string
+	err     error
+}
+
+// detonateProfiles runs url under each profile, at most parallel at a time, so every
+// condition sees the page within seconds of the others (kits rotate and die fast).
+func detonateProfiles(ctx context.Context, c daemonv1.DaemonServiceClient, url string, profs []string, parallel int) []profileResult {
+	results := make([]profileResult, len(profs))
+	sem := make(chan struct{}, parallel)
+	var wg sync.WaitGroup
+	for i, p := range profs {
+		wg.Add(1)
+		go func() {
+			defer wg.Done()
+			sem <- struct{}{}
+			defer func() { <-sem }()
+			dir, err := detonateQuiet(ctx, c, url, p)
+			results[i] = profileResult{profile: p, runDir: dir, err: err}
+		}()
+	}
+	wg.Wait()
+	return results
+}
+
+func printProfileTable(results []profileResult) {
+	for _, res := range results {
+		name := res.profile
+		if name == "" {
+			name = "default"
+		}
+		if res.runDir == "" {
+			fmt.Printf("  %-22s REFUSED %v\n", name, res.err)
+			continue
+		}
+		fmt.Printf("  %-22s %s\n", name, oneLine(res.runDir, res.err))
+	}
 }
 
 func errString(err error) string {
@@ -172,8 +249,8 @@ func errString(err error) string {
 }
 
 // detonateQuiet runs one URL and returns its run directory (empty if the daemon refused it).
-func detonateQuiet(ctx context.Context, c daemonv1.DaemonServiceClient, url string) (string, error) {
-	stream, err := c.Detonate(ctx, &daemonv1.DetonateRequest{Url: url})
+func detonateQuiet(ctx context.Context, c daemonv1.DaemonServiceClient, url, profile string) (string, error) {
+	stream, err := c.Detonate(ctx, &daemonv1.DetonateRequest{Url: url, Profile: profile})
 	if err != nil {
 		return "", err
 	}

@@ -8,6 +8,7 @@ import (
 	"log/slog"
 	"os"
 	"path/filepath"
+	"strings"
 	"sync"
 	"time"
 
@@ -17,6 +18,7 @@ import (
 	"google.golang.org/protobuf/types/known/timestamppb"
 
 	daemonv1 "github.com/KhaledSaeed18/urljail/gen/urljail/daemon/v1"
+	guestv1 "github.com/KhaledSaeed18/urljail/gen/urljail/guest/v1"
 	"github.com/KhaledSaeed18/urljail/internal/image"
 	"github.com/KhaledSaeed18/urljail/internal/netns"
 	"github.com/KhaledSaeed18/urljail/internal/operator"
@@ -53,6 +55,7 @@ type Config struct {
 	MaxVMs        int
 	VCPUs         int
 	MemMiB        int
+	ExitTimezone  string // the VPN exit's IANA zone, for the stealth profiles' timezone
 
 	// Pinned component versions, reported by Version and recorded per run.
 	FirecrackerVersion string
@@ -61,12 +64,13 @@ type Config struct {
 // Server implements daemonv1.DaemonServiceServer.
 type Server struct {
 	daemonv1.UnimplementedDaemonServiceServer
-	cfg    Config
-	log    *slog.Logger
-	net    *netns.Egress // nil: no VM lifecycle (tests of the API only)
-	snap   *snapshot     // nil: cold boot
-	slots  *slots
-	active sync.WaitGroup // running detonations, so shutdown can wait for their teardown
+	cfg      Config
+	log      *slog.Logger
+	net      *netns.Egress        // nil: no VM lifecycle (tests of the API only)
+	profiles []browserProfile     // DefaultProfile first
+	snaps    map[string]*snapshot // by profile; nil: cold boot
+	slots    *slots
+	active   sync.WaitGroup // running detonations, so shutdown can wait for their teardown
 }
 
 // Wait blocks until every running detonation has finished its teardown, or timeout passes.
@@ -91,7 +95,7 @@ func New(cfg Config, egress *netns.Egress, log *slog.Logger) *Server {
 	if n < 1 {
 		n = 1
 	}
-	return &Server{cfg: cfg, log: log, net: egress, slots: newSlots(n)}
+	return &Server{cfg: cfg, log: log, net: egress, slots: newSlots(n), profiles: profiles(cfg.ExitTimezone)}
 }
 
 func (s *Server) guestKernel() string {
@@ -108,7 +112,32 @@ func (s *Server) Version(context.Context, *daemonv1.VersionRequest) (*daemonv1.V
 		Firecracker: s.cfg.FirecrackerVersion,
 		GuestKernel: s.guestKernel(),
 		EgressMode:  string(s.cfg.Policy.Mode),
+		Profiles:    s.profileNames(),
+		MaxVms:      int32(s.slots.size()),
 	}, nil
+}
+
+func (s *Server) profileNames() []string {
+	names := make([]string, len(s.profiles))
+	for i, p := range s.profiles {
+		names[i] = p.name
+	}
+	return names
+}
+
+// useProfile sets the run's browser profile and the snapshot it restores from (none when
+// snapshots are off: the agent then launches Chrome with the profile itself).
+func (s *Server) useProfile(r *run, name string) error {
+	if name == "" {
+		name = DefaultProfile
+	}
+	for _, p := range s.profiles {
+		if p.name == name {
+			r.profile, r.browser, r.snap = p.name, p.browser, s.snaps[p.name]
+			return nil
+		}
+	}
+	return fmt.Errorf("unknown profile %q (have: %s)", name, strings.Join(s.profileNames(), ", "))
 }
 
 // Detonate implements DaemonService.Detonate.
@@ -132,6 +161,9 @@ func (s *Server) Detonate(req *daemonv1.DetonateRequest, stream daemonv1.DaemonS
 	if err != nil {
 		return r.fail(err)
 	}
+	if err := s.useProfile(r, req.GetProfile()); err != nil {
+		return r.fail(err)
+	}
 	timeout, err := s.timeout(req)
 	if err != nil {
 		return r.fail(err)
@@ -141,7 +173,7 @@ func (s *Server) Detonate(req *daemonv1.DetonateRequest, stream daemonv1.DaemonS
 	}
 
 	runDir := filepath.Join(s.cfg.RunsDir, r.id)
-	err = s.detonate(stream.Context(), r, u, req.GetProfile(), timeout)
+	err = s.detonate(stream.Context(), r, u, timeout)
 	// Every run that got a run directory gets a report, failed ones included: its gaps
 	// say what couldn't be observed.
 	if _, statErr := os.Stat(filepath.Join(runDir, "meta.json")); statErr == nil {
@@ -183,6 +215,10 @@ type run struct {
 	gaps  []string         // host-side limits hit during the run, for the report
 
 	confinement string // what the VMM was verified to run with
+
+	profile string                  // browser profile name
+	browser *guestv1.BrowserProfile // its settings
+	snap    *snapshot               // restored from; nil: cold boot
 }
 
 // gap records something the host couldn't observe in this run.

@@ -27,3 +27,8 @@ Expected for this feed: OpenPhish Community lists URLs hours after detection, an
 2. **Network Error Logging.** Cloudflare's `Report-To`/`NEL` headers make Chrome post reports to `a.nel.cloudflare.com` without a request the Network domain shows. The report builder now reads `Report-To` and `Reporting-Endpoints` from response headers (https endpoints only, capped, fuzzed) and labels that traffic `page-report`.
 
 After the fix, all three reports are consistent.
+
+## M2: browser profiles as conditions
+
+- Baseline measured live on bot.sannysoft.com: `HeadlessChrome` in the User-Agent, `navigator.webdriver` true, SwiftShader WebGL; everything else passed. The exit (Proton `US-FREE#61`, `149.88.25.131`) is in Chicago on a datacenter ASN, while the guest's clock zone is UTC.
+- Built: `BrowserProfile` in the guest API (launch flags and `TZ` only, values validated in the agent so nothing can smuggle a flag), one snapshot per profile ([ADR 0018](../decisions/0018-profiles-as-snapshots.md)), `Detonate` refuses unknown profiles, `Version` lists them, `urljail feeds run` runs every profile at once and prints one line per profile (final host, title or error, password field, host≠guest).

@@ -49,6 +49,7 @@ func (s *Server) runGuest(ctx context.Context, r *run, c guestv1.GuestAgentServi
 		MinDwell: durationpb.New(d.min),
 		MaxDwell: durationpb.New(d.max),
 		Jitter:   durationpb.New(d.jitter),
+		Profile:  r.browser,
 	})
 	if err != nil {
 		return nil, fmt.Errorf("guest agent: %w", err)

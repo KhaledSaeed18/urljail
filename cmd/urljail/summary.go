@@ -2,8 +2,10 @@ package main
 
 import (
 	"fmt"
+	"net/url"
 	"os"
 	"path/filepath"
+	"regexp"
 	"strings"
 
 	"google.golang.org/protobuf/encoding/protojson"
@@ -106,4 +108,47 @@ func printSummary(runDir string) {
 	}
 	row("report", filepath.Join(runDir, "report.json"))
 	row("gaps", fmt.Sprintf("%d stated in the report", len(r.GetGaps())))
+}
+
+var passwordInput = regexp.MustCompile(`(?i)<input[^>]+type=["']?password`)
+
+// oneLine summarizes a run in one line for side-by-side profile comparison.
+func oneLine(runDir string, runErr error) string {
+	b, err := os.ReadFile(filepath.Join(runDir, "report.json"))
+	if err != nil {
+		return fmt.Sprintf("no report (%v)", runErr)
+	}
+	var r reportv0.Report
+	if err := (protojson.UnmarshalOptions{DiscardUnknown: true}).Unmarshal(b, &r); err != nil {
+		return "unreadable report"
+	}
+	n := r.GetNavigation()
+	final := n.GetFinalUrl()
+	if u, err := url.Parse(final); err == nil && u.Host != "" {
+		final = u.Host
+	}
+	var parts []string
+	parts = append(parts, fmt.Sprintf("%-40.40s", final))
+	if n.GetError() != "" {
+		parts = append(parts, n.GetError())
+	} else {
+		parts = append(parts, fmt.Sprintf("%q", truncate(n.GetTitle(), 40)))
+	}
+	if dom, err := os.ReadFile(filepath.Join(runDir, "guest", "dom.html")); err == nil && passwordInput.Match(dom) {
+		parts = append(parts, "PASSWORD FIELD")
+	}
+	if rec := r.GetReconciliation(); rec != nil && !rec.GetConsistent() {
+		parts = append(parts, "host≠guest")
+	}
+	if runErr != nil {
+		parts = append(parts, "error: "+runErr.Error())
+	}
+	return strings.Join(parts, "  ") + "  " + filepath.Base(runDir)
+}
+
+func truncate(s string, n int) string {
+	if r := []rune(s); len(r) > n {
+		return string(r[:n-1]) + "…"
+	}
+	return s
 }

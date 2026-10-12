@@ -23,6 +23,7 @@ const snapshotSettle = 2 * time.Second
 type snapshotManifest struct {
 	Name              string    `json:"name"`
 	Profile           string    `json:"profile"`
+	Browser           string    `json:"browser"` // describe() of the profile
 	Image             string    `json:"image"`
 	ImageRootfsSHA256 string    `json:"image_rootfs_sha256"`
 	Firecracker       string    `json:"firecracker"`
@@ -46,39 +47,42 @@ type snapshot struct {
 	manifest snapshotManifest
 }
 
-const snapshotProfile = "baseline"
-
 // snapshotLayout versions how snapshots are built and laid out; a mismatch means a rebuild.
 // "jail-v1": built inside the jailer, files group-readable by jailGID (P5).
 // "jail-v2": also with network and disk rate limits, which clones inherit.
 const snapshotLayout = "jail-v2"
 
-func (s *Server) snapshotDir() string {
-	return filepath.Join(s.cfg.SnapshotsDir, s.cfg.Image.Manifest.Name+"-"+snapshotProfile)
+func (s *Server) snapshotDir(p browserProfile) string {
+	return filepath.Join(s.cfg.SnapshotsDir, s.cfg.Image.Manifest.Name+"-"+p.name)
 }
 
-// EnsureSnapshot loads the snapshot for the current image, building it if it's missing or
-// was made from a different image, Firecracker or VM size.
-func (s *Server) EnsureSnapshot(ctx context.Context) error {
-	dir := s.snapshotDir()
-	if snap, err := loadSnapshot(dir); err == nil && s.snapshotFresh(snap.manifest) {
-		s.snap = snap
-		s.log.Info("snapshot ready", "name", snap.manifest.Name, "created", snap.manifest.Created)
-		return nil
-	} else if err == nil {
-		s.log.Info("snapshot is stale; rebuilding", "name", snap.manifest.Name)
+// EnsureSnapshots loads a snapshot for every browser profile, building those that are missing
+// or were made from a different image, Firecracker, VM size or profile.
+func (s *Server) EnsureSnapshots(ctx context.Context) error {
+	snaps := map[string]*snapshot{}
+	for _, p := range s.profiles {
+		dir := s.snapshotDir(p)
+		if snap, err := loadSnapshot(dir); err == nil && s.snapshotFresh(snap.manifest, p) {
+			snaps[p.name] = snap
+			s.log.Info("snapshot ready", "name", snap.manifest.Name, "created", snap.manifest.Created)
+			continue
+		} else if err == nil {
+			s.log.Info("snapshot is stale; rebuilding", "name", snap.manifest.Name)
+		}
+		snap, err := s.buildSnapshot(ctx, p)
+		if err != nil {
+			return fmt.Errorf("building snapshot %s: %w", p.name, err)
+		}
+		snaps[p.name] = snap
 	}
-	snap, err := s.buildSnapshot(ctx)
-	if err != nil {
-		return fmt.Errorf("building snapshot: %w", err)
-	}
-	s.snap = snap
+	s.snaps = snaps
 	return nil
 }
 
-func (s *Server) snapshotFresh(m snapshotManifest) bool {
+func (s *Server) snapshotFresh(m snapshotManifest, p browserProfile) bool {
 	img := s.cfg.Image.Manifest
-	return m.Image == img.Name && m.ImageRootfsSHA256 == img.RootfsSHA256 &&
+	return m.Profile == p.name && m.Browser == describe(p.browser) &&
+		m.Image == img.Name && m.ImageRootfsSHA256 == img.RootfsSHA256 &&
 		m.Firecracker == s.cfg.FirecrackerVersion && m.VCPUs == s.cfg.VCPUs && m.MemMiB == s.cfg.MemMiB &&
 		m.BootArgs == s.bootArgs() && m.Layout == snapshotLayout
 }
@@ -104,10 +108,10 @@ func loadSnapshot(dir string) (*snapshot, error) {
 // buildSnapshot boots the image in an isolated namespace, has the agent prepare Chrome, waits
 // for it to settle, then pauses the VM and takes a full snapshot
 // (docs/guest-image.md#snapshot-procedure-phase-4).
-func (s *Server) buildSnapshot(ctx context.Context) (*snapshot, error) {
+func (s *Server) buildSnapshot(ctx context.Context, p browserProfile) (*snapshot, error) {
 	start := time.Now()
 	op, img := s.cfg.Operator, s.cfg.Image
-	final := s.snapshotDir()
+	final := s.snapshotDir(p)
 	tmp := final + ".build"
 	_ = os.RemoveAll(tmp)
 	if err := op.MkdirAll(tmp, 0o700); err != nil {
@@ -119,7 +123,7 @@ func (s *Server) buildSnapshot(ctx context.Context) (*snapshot, error) {
 			_ = os.RemoveAll(tmp)
 		}
 	}()
-	s.log.Info("building snapshot", "image", img.Manifest.Name, "dir", final)
+	s.log.Info("building snapshot", "image", img.Manifest.Name, "profile", p.name, "dir", final)
 
 	// The builder is jailed like every VMM. Relative paths: the snapshot records them, and
 	// each clone's jail has its own root where they resolve to its own disk and socket.
@@ -182,7 +186,7 @@ func (s *Server) buildSnapshot(ctx context.Context) (*snapshot, error) {
 	if _, err := waitAgent(ctx, m, agent); err != nil {
 		return nil, err
 	}
-	prep, err := agent.Prepare(ctx, &guestv1.PrepareRequest{})
+	prep, err := agent.Prepare(ctx, &guestv1.PrepareRequest{Profile: p.browser})
 	if err != nil {
 		return nil, fmt.Errorf("preparing the browser: %w", err)
 	}
@@ -205,7 +209,7 @@ func (s *Server) buildSnapshot(ctx context.Context) (*snapshot, error) {
 	files := vm.Snapshot{VMState: filepath.Join(tmp, "vmstate"), Mem: filepath.Join(tmp, "mem")}
 
 	man := snapshotManifest{
-		Name: filepath.Base(final), Profile: snapshotProfile,
+		Name: filepath.Base(final), Profile: p.name, Browser: describe(p.browser),
 		Image: img.Manifest.Name, ImageRootfsSHA256: img.Manifest.RootfsSHA256,
 		Firecracker: s.cfg.FirecrackerVersion, VCPUs: s.cfg.VCPUs, MemMiB: s.cfg.MemMiB, BootArgs: s.bootArgs(),
 		Layout: snapshotLayout, Created: time.Now().UTC(), BuildTook: time.Since(start).Round(time.Millisecond).String(),

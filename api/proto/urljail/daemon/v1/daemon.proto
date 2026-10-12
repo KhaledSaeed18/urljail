@@ -28,6 +28,10 @@ message VersionResponse {
   string guest_kernel = 3;
   // Egress mode the daemon runs in: "off", "dev" or "live".
   string egress_mode = 4;
+  // Browser profiles the daemon has snapshots for (Detonate's profile), default first.
+  repeated string profiles = 5;
+  // Concurrent VM slots.
+  int32 max_vms = 6;
 }
 
 message DetonateRequest {

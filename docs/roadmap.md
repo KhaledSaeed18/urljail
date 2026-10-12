@@ -82,7 +82,7 @@ The whole pipeline, as simple as possible, **cold boot** (no snapshots yet).
 
 ## P6: Anti-cloaking research (in progress)
 See [research/anti-cloaking.md](./research/anti-cloaking.md).
-- Snapshot profiles as experimental conditions (baseline vs stealth variants)
+- [~] Snapshot profiles as experimental conditions (baseline vs stealth variants): built ([ADR 0018](./decisions/0018-profiles-as-snapshots.md)); verification needs a daemon reinstall
 - [~] Fresh-feed ingestion; detonate within minutes of publication (phishing URLs die in hours): `urljail feeds` built with OpenPhish Community ([feed-ingestion.md](./feed-ingestion.md)); URLhaus pending an Auth-Key
 - Cloaking measurement: same URL, multiple profiles/exits, content diff
 - Write-up with results

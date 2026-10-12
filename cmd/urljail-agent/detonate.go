@@ -67,7 +67,7 @@ func (a *agent) detonate(ctx context.Context, req *guestv1.DetonateRequest, out 
 	b := a.takePrepared()
 	if b == nil {
 		var err error
-		if b, err = startBrowser(ctx); err != nil {
+		if b, err = startBrowser(ctx, req.GetProfile(), a.browser); err != nil {
 			return done, err
 		}
 	} else {

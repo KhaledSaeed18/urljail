@@ -10,6 +10,7 @@ import (
 	"os"
 	"os/signal"
 	"path/filepath"
+	"strings"
 	"syscall"
 	"time"
 
@@ -95,8 +96,8 @@ func cmdVersion(ctx context.Context, c daemonv1.DaemonServiceClient) error {
 	if err != nil {
 		return fmt.Errorf("daemon: %w", err)
 	}
-	fmt.Printf("urljaild %s\n  firecracker  %s\n  guest kernel %s\n  egress mode  %s\n",
-		v.GetUrljail(), v.GetFirecracker(), v.GetGuestKernel(), v.GetEgressMode())
+	fmt.Printf("urljaild %s\n  firecracker  %s\n  guest kernel %s\n  egress mode  %s\n  profiles     %s\n  max VMs      %d\n",
+		v.GetUrljail(), v.GetFirecracker(), v.GetGuestKernel(), v.GetEgressMode(), strings.Join(v.GetProfiles(), ", "), v.GetMaxVms())
 	return nil
 }
 

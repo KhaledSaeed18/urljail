@@ -22,7 +22,22 @@ service GuestAgentService {
   rpc Prepare(PrepareRequest) returns (PrepareResponse);
 }
 
-message PrepareRequest {}
+message PrepareRequest {
+  BrowserProfile profile = 1;
+}
+
+// BrowserProfile is how Chrome presents itself: the experimental condition of a run (P6,
+// docs/research/anti-cloaking.md). Unset fields keep Chrome's own behavior.
+message BrowserProfile {
+  // Report the desktop User-Agent instead of headless Chrome's "HeadlessChrome/...".
+  bool desktop_user_agent = 1;
+  // Don't expose navigator.webdriver (--disable-blink-features=AutomationControlled).
+  bool hide_webdriver = 2;
+  // IANA time zone for the browser, e.g. "America/Chicago"; empty: the guest's (UTC).
+  string timezone = 3;
+  // UI and Accept-Language, e.g. "en-US"; empty: Chrome's default.
+  string language = 4;
+}
 
 message PrepareResponse {
   google.protobuf.Duration took = 1;
@@ -53,6 +68,9 @@ message DetonateRequest {
   google.protobuf.Duration min_dwell = 2;
   google.protobuf.Duration max_dwell = 3;
   google.protobuf.Duration jitter = 4;
+  // Used when the agent has to launch Chrome itself (cold boot); a prepared browser already
+  // runs with its snapshot's profile.
+  BrowserProfile profile = 5;
 }
 
 message DetonateResponse {
