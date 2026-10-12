@@ -6,6 +6,7 @@ package main
 
 import (
 	"context"
+	"errors"
 	"flag"
 	"fmt"
 	"log/slog"
@@ -29,9 +30,19 @@ import (
 	"github.com/KhaledSaeed18/urljail/internal/version"
 )
 
+// exitInterlock is the exit status when the live interlock refuses to serve. The systemd unit
+// doesn't restart on it: retrying a failed safety check every few seconds helps nobody.
+const exitInterlock = 3
+
+type interlockError struct{ error }
+
 func main() {
 	if err := run(); err != nil {
 		fmt.Fprintln(os.Stderr, "urljaild:", err)
+		var ie interlockError
+		if errors.As(err, &ie) {
+			os.Exit(exitInterlock)
+		}
 		os.Exit(1)
 	}
 }
@@ -101,7 +112,7 @@ func run() error {
 	var wg *netns.WGConfig
 	if mode == policy.EgressLive {
 		if _, err := os.Stat(daemon.DevSudoersRule); err == nil {
-			return fmt.Errorf("live mode refused: %s still exists (the live gate requires removing it)", daemon.DevSudoersRule)
+			return interlockError{fmt.Errorf("live mode refused: %s still exists (the live gate requires removing it)", daemon.DevSudoersRule)}
 		}
 		if *wgConfig == "" {
 			return fmt.Errorf("live mode needs -wg-config")
@@ -189,7 +200,7 @@ func run() error {
 			err := eg.WaitHandshake(hctx, time.Time{})
 			cancel()
 			if err != nil {
-				return fmt.Errorf("live interlock: %w", err)
+				return interlockError{fmt.Errorf("live interlock: %w", err)}
 			}
 			log.Info("WireGuard tunnel up")
 		}
@@ -231,13 +242,13 @@ func run() error {
 	if eg != nil && eg.Live() {
 		res, err := srv.SelfTest(ctx, &daemonv1.SelfTestRequest{})
 		if err != nil {
-			return fmt.Errorf("live interlock: self-test: %w", err)
+			return interlockError{fmt.Errorf("live interlock: self-test: %w", err)}
 		}
 		for _, c := range res.GetChecks() {
 			log.Info("self-test", "check", c.GetName(), "result", c.GetResult(), "observed", c.GetObserved())
 		}
 		if !res.GetPassed() && !(mode == policy.EgressLiveTest && !hasFail(res)) {
-			return fmt.Errorf("live interlock: the isolation self-test failed (details in %s)", filepath.Join(res.GetRunDir(), "selftest.json"))
+			return interlockError{fmt.Errorf("live interlock: the isolation self-test failed (details in %s)", filepath.Join(res.GetRunDir(), "selftest.json"))}
 		}
 		log.Info("live interlock passed", "mode", mode)
 	}

@@ -253,14 +253,7 @@ func (s *Server) isolationPlan(runID string) []isolationCheck {
 			probe: dns("rebind-private", "192.168.1.1.nip.io"), outcomes: []string{"no answer"}, internet: true},
 		{name: "Rebind to loopback refused", expected: "no answer",
 			probe: dns("rebind-loopback", "127.0.0.1.nip.io"), outcomes: []string{"no answer"}, internet: true},
-		{name: "Dev mode refuses a non-allowlisted URL", expected: "refused by policy",
-			host: func() (bool, string) {
-				_, err := s.cfg.Policy.Check("https://phish.test/login")
-				if err == nil {
-					return false, "host: allowed"
-				}
-				return true, "host: " + err.Error()
-			}},
+		s.policyCheck(),
 	}
 	// The host's own LAN: default gateway, host addresses, Docker's bridge.
 	for _, a := range hostLANTargets() {
@@ -388,7 +381,7 @@ const ipEcho = "https://api.ipify.org"
 func (s *Server) liveChecks(ctx context.Context, agent guestv1.GuestAgentServiceClient) []*daemonv1.Check {
 	var out []*daemonv1.Check
 	probe := func(p *guestv1.ProbeSpec) *guestv1.ProbeResult {
-		resp, err := agent.Probe(ctx, &guestv1.ProbeRequest{Probes: []*guestv1.ProbeSpec{p}, Timeout: durationpb.New(4 * time.Second)})
+		resp, err := agent.Probe(ctx, &guestv1.ProbeRequest{Probes: []*guestv1.ProbeSpec{p}, Timeout: durationpb.New(10 * time.Second)})
 		if err != nil || len(resp.GetResults()) != 1 {
 			return &guestv1.ProbeResult{Outcome: "error", Detail: []string{fmt.Sprint(err)}}
 		}
@@ -397,7 +390,13 @@ func (s *Server) liveChecks(ctx context.Context, agent guestv1.GuestAgentService
 
 	// The exit IP: what the guest sees as its public address must not be the host's.
 	row := &daemonv1.Check{Name: "Public IP seen by the guest is the VPN exit", Expected: "differs from the host's public IP"}
-	guest := probe(&guestv1.ProbeSpec{Id: "exit-ip", Kind: &guestv1.ProbeSpec_HttpGet{HttpGet: ipEcho}})
+	// Free VPN servers are sometimes slow: up to three tries before calling it a failure.
+	var guest *guestv1.ProbeResult
+	for try := 0; try < 3; try++ {
+		if guest = probe(&guestv1.ProbeSpec{Id: "exit-ip", Kind: &guestv1.ProbeSpec_HttpGet{HttpGet: ipEcho}}); guest.GetOutcome() == "http 200" {
+			break
+		}
+	}
 	hostIP, herr := hostPublicIP(ctx)
 	guestIP := strings.Join(guest.GetDetail(), "")
 	row.Observed = fmt.Sprintf("guest: %s %s; host: %s %v", guest.GetOutcome(), guestIP, hostIP, herr)
@@ -451,4 +450,29 @@ func hostPublicIP(ctx context.Context) (string, error) {
 	defer resp.Body.Close()
 	b, _ := io.ReadAll(io.LimitReader(resp.Body, 64))
 	return strings.TrimSpace(string(b)), nil
+}
+
+// policyCheck tests the URL policy for the current mode: dev and live-test must refuse a
+// non-allowlisted URL; live allows any public http(s) URL by design, but must still refuse
+// other schemes and ports.
+func (s *Server) policyCheck() isolationCheck {
+	if s.cfg.Policy.Mode == policy.EgressLive {
+		return isolationCheck{name: "Live mode refuses non-web schemes and ports", expected: "file:, javascript: and port 22 refused",
+			host: func() (bool, string) {
+				for _, u := range []string{"file:///etc/passwd", "javascript:alert(1)", "https://phish.test:22/"} {
+					if _, err := s.cfg.Policy.Check(u); err == nil {
+						return false, "host: allowed " + u
+					}
+				}
+				return true, "host: all refused"
+			}}
+	}
+	return isolationCheck{name: "Dev mode refuses a non-allowlisted URL", expected: "refused by policy",
+		host: func() (bool, string) {
+			_, err := s.cfg.Policy.Check("https://phish.test/login")
+			if err == nil {
+				return false, "host: allowed"
+			}
+			return true, "host: " + err.Error()
+		}}
 }

@@ -18,6 +18,9 @@ KillMode=mixed
 TimeoutStopSec=60
 Restart=on-failure
 RestartSec=5
+# Exit status 3: the live interlock refused to serve (a failed safety check). Stay stopped and
+# let the operator read the journal instead of retrying.
+RestartPreventExitStatus=3
 
 [Install]
 WantedBy=multi-user.target

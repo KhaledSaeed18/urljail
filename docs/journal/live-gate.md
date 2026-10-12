@@ -42,6 +42,13 @@ Go native fuzz targets for every parser the root daemon runs on guest-controlled
 
 **Found:** `parseHTTPHost` lowercased the guest's `Host:` header after checking its length; `strings.ToLower` turns each invalid UTF-8 byte into U+FFFD (3 bytes), so junk passed and grew. Guest-supplied hostnames (Host and SNI) now pass only as DNS characters; anything else becomes `invalid:<hex of the first 32 bytes>`, kept as evidence. The crashing input stays in `testdata/fuzz/` as a regression test.
 
+## First start in live mode (Proton VPN Free, US-FREE#61)
+
+- The tunnel came up and the real exit checks passed: **guest public IP `149.88.25.131` (Proton) vs home `185.160.227.25`**; **VPN down ⇒ `network is unreachable`**. 20 of 21 self-test checks passed.
+- **Bug, mine:** the check "Dev mode refuses a non-allowlisted URL" also ran in live mode, where allowing any public URL is the point, so live mode could never pass its interlock. The check is now mode-aware: in live mode it verifies that `file:`, `javascript:` and non-web ports are still refused.
+- **Flaky free server:** one start's IP-echo request timed out. The exit-IP probe now waits 10 s and tries up to 3 times.
+- **Crash loop:** each failed interlock exited 1 and systemd restarted it every 5 s (6 times in a minute), re-running the whole self-test each time. An interlock failure now exits with status 3 and the unit has `RestartPreventExitStatus=3`: it stays stopped and the journal says why.
+
 ## Checklist
 
 | Item | State |
