@@ -3,9 +3,11 @@ package netns
 import (
 	"bufio"
 	"errors"
+	"os"
 	"os/exec"
 	"strconv"
 	"strings"
+	"sync/atomic"
 	"syscall"
 	"time"
 )
@@ -14,13 +16,18 @@ import (
 // tcpdump first, in-process capture later if needed). It writes raw packets only (-w), so it
 // never dissects hostile traffic, and it drops to the operator before opening the file.
 type Capture struct {
-	cmd     *exec.Cmd
-	done    chan struct{}
-	summary []string // tcpdump's closing lines ("N packets captured", "M packets dropped by kernel")
+	cmd       *exec.Cmd
+	done      chan struct{}
+	summary   []string // tcpdump's closing lines ("N packets captured", "M packets dropped by kernel")
+	truncated atomic.Bool
 }
 
-// StartCapture starts tcpdump on vm's TAP and returns once it is listening.
-func StartCapture(vm *VM, path, user string, maxPackets int) (*Capture, error) {
+// Truncated reports whether the capture was stopped at its size cap.
+func (c *Capture) Truncated() bool { return c.truncated.Load() }
+
+// StartCapture starts tcpdump on vm's TAP and returns once it is listening. The capture stops
+// at maxPackets packets or maxBytes bytes, whichever comes first.
+func StartCapture(vm *VM, path, user string, maxPackets int, maxBytes int64) (*Capture, error) {
 	c := &Capture{done: make(chan struct{})}
 	c.cmd = exec.Command("ip", "netns", "exec", vm.NS, "tcpdump",
 		"-i", TapName, "-n", "-s", "0", "-U", "--immediate-mode",
@@ -51,6 +58,7 @@ func StartCapture(vm *VM, path, user string, maxPackets int) (*Capture, error) {
 	}()
 	select {
 	case <-listening:
+		go c.watchSize(path, maxBytes)
 		return c, nil
 	case <-c.done:
 		return nil, errors.New("tcpdump exited at start: " + strings.Join(c.summary, "; "))
@@ -74,4 +82,23 @@ func (c *Capture) Stop() []string {
 		}
 	}
 	return c.summary
+}
+
+// watchSize stops tcpdump once the file passes maxBytes (tcpdump can rotate files, but has no
+// "stop after N bytes").
+func (c *Capture) watchSize(path string, maxBytes int64) {
+	t := time.NewTicker(250 * time.Millisecond)
+	defer t.Stop()
+	for {
+		select {
+		case <-c.done:
+			return
+		case <-t.C:
+			if fi, err := os.Stat(path); err == nil && fi.Size() >= maxBytes {
+				c.truncated.Store(true)
+				_ = c.cmd.Process.Signal(syscall.SIGINT)
+				return
+			}
+		}
+	}
 }

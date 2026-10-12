@@ -25,6 +25,8 @@ type Meta struct {
 	// Lifecycle steps, cumulative ms since the request: preflight, disk, netns, ebpf, capture,
 	// vmm, agent, navigate (restore-to-navigation), done.
 	TimingsMs map[string]int64 `json:"timings_ms,omitempty"`
+	// Host-side limits hit during the run (e.g. a capped packet capture).
+	HostGaps []string `json:"host_gaps,omitempty"`
 }
 
 // Clone records how a VM restored from a snapshot started (P4 clone safety).

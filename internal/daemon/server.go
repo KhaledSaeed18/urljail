@@ -177,6 +177,20 @@ type run struct {
 	start time.Time
 	mu    sync.Mutex
 	marks map[string]int64 // step → ms since start
+	gaps  []string         // host-side limits hit during the run, for the report
+}
+
+// gap records something the host couldn't observe in this run.
+func (r *run) gap(g string) {
+	r.mu.Lock()
+	r.gaps = append(r.gaps, g)
+	r.mu.Unlock()
+}
+
+func (r *run) gapList() []string {
+	r.mu.Lock()
+	defer r.mu.Unlock()
+	return append([]string(nil), r.gaps...)
 }
 
 // mark records that a lifecycle step finished (cumulative ms since the request).

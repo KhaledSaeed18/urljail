@@ -50,7 +50,8 @@ const snapshotProfile = "baseline"
 
 // snapshotLayout versions how snapshots are built and laid out; a mismatch means a rebuild.
 // "jail-v1": built inside the jailer, files group-readable by jailGID (P5).
-const snapshotLayout = "jail-v1"
+// "jail-v2": also with network and disk rate limits, which clones inherit.
+const snapshotLayout = "jail-v2"
 
 func (s *Server) snapshotDir() string {
 	return filepath.Join(s.cfg.SnapshotsDir, s.cfg.Image.Manifest.Name+"-"+snapshotProfile)
@@ -153,6 +154,9 @@ func (s *Server) buildSnapshot(ctx context.Context) (*snapshot, error) {
 		VsockUDS: vsock,
 		VCPUs:    s.cfg.VCPUs,
 		MemMiB:   s.cfg.MemMiB,
+		NetRx:    netRxLimit,
+		NetTx:    netTxLimit,
+		Disk:     diskLimit,
 	})
 	if err != nil {
 		return nil, err

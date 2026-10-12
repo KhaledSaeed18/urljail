@@ -86,19 +86,59 @@ type BootSource struct {
 	BootArgs        string `json:"boot_args,omitempty"`
 }
 
-// Drive is PUT /drives/{drive_id}.
-type Drive struct {
-	DriveID      string `json:"drive_id"`
-	PathOnHost   string `json:"path_on_host"`
-	IsRootDevice bool   `json:"is_root_device"`
-	IsReadOnly   bool   `json:"is_read_only"`
+// TokenBucket refills Size tokens every RefillTime milliseconds.
+type TokenBucket struct {
+	Size       int64 `json:"size"`
+	RefillTime int64 `json:"refill_time"`
 }
 
-// NetworkInterface is PUT /network-interfaces/{iface_id}.
+// RateLimiter bounds a device's bytes/s (Bandwidth) and operations/s (Ops).
+type RateLimiter struct {
+	Bandwidth *TokenBucket `json:"bandwidth,omitempty"`
+	Ops       *TokenBucket `json:"ops,omitempty"`
+}
+
+// Drive is PUT /drives/{drive_id}.
+type Drive struct {
+	DriveID      string       `json:"drive_id"`
+	PathOnHost   string       `json:"path_on_host"`
+	IsRootDevice bool         `json:"is_root_device"`
+	IsReadOnly   bool         `json:"is_read_only"`
+	RateLimiter  *RateLimiter `json:"rate_limiter,omitempty"`
+}
+
+// NetworkInterface is PUT /network-interfaces/{iface_id}. Rx is what the guest receives,
+// Tx what it sends.
 type NetworkInterface struct {
-	IfaceID     string `json:"iface_id"`
-	GuestMAC    string `json:"guest_mac,omitempty"`
-	HostDevName string `json:"host_dev_name"`
+	IfaceID       string       `json:"iface_id"`
+	GuestMAC      string       `json:"guest_mac,omitempty"`
+	HostDevName   string       `json:"host_dev_name"`
+	RxRateLimiter *RateLimiter `json:"rx_rate_limiter,omitempty"`
+	TxRateLimiter *RateLimiter `json:"tx_rate_limiter,omitempty"`
+}
+
+// VMConfig is the part of GET /vm/config urljail checks.
+type VMConfig struct {
+	Drives            []Drive            `json:"drives"`
+	NetworkInterfaces []NetworkInterface `json:"network-interfaces"`
+}
+
+// GetVMConfig is GET /vm/config: the configuration the VMM is actually running with.
+func (c *Client) GetVMConfig(ctx context.Context) (VMConfig, error) {
+	var cfg VMConfig
+	req, err := http.NewRequestWithContext(ctx, http.MethodGet, "http://localhost/vm/config", nil)
+	if err != nil {
+		return cfg, err
+	}
+	resp, err := c.http.Do(req)
+	if err != nil {
+		return cfg, err
+	}
+	defer resp.Body.Close()
+	if resp.StatusCode != http.StatusOK {
+		return cfg, fmt.Errorf("firecracker GET /vm/config: %d", resp.StatusCode)
+	}
+	return cfg, json.NewDecoder(io.LimitReader(resp.Body, 1<<20)).Decode(&cfg)
 }
 
 // MachineConfig is PUT /machine-config.

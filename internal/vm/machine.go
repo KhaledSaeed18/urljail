@@ -42,6 +42,9 @@ type Config struct {
 
 	VCPUs  int
 	MemMiB int
+
+	// Rate limits (nil: none). Snapshot clones inherit the limits the snapshot was built with.
+	NetRx, NetTx, Disk *RateLimiter
 }
 
 // Credential is a user to run the VMM as.
@@ -202,13 +205,14 @@ func (m *Machine) configure(ctx context.Context, fcLog string) error {
 			return c.PutBootSource(ctx, BootSource{KernelImagePath: cfg.Kernel, BootArgs: cfg.BootArgs})
 		},
 		func() error {
-			return c.PutDrive(ctx, Drive{DriveID: "rootfs", PathOnHost: cfg.Rootfs, IsRootDevice: true})
+			return c.PutDrive(ctx, Drive{DriveID: "rootfs", PathOnHost: cfg.Rootfs, IsRootDevice: true, RateLimiter: cfg.Disk})
 		},
 		func() error {
 			if cfg.TapName == "" {
 				return nil
 			}
-			return c.PutNetworkInterface(ctx, NetworkInterface{IfaceID: "net1", GuestMAC: cfg.GuestMAC, HostDevName: cfg.TapName})
+			return c.PutNetworkInterface(ctx, NetworkInterface{IfaceID: "net1", GuestMAC: cfg.GuestMAC, HostDevName: cfg.TapName,
+				RxRateLimiter: cfg.NetRx, TxRateLimiter: cfg.NetTx})
 		},
 		func() error {
 			if cfg.VsockUDS == "" {
@@ -340,4 +344,33 @@ func launchJailed(cfg Config) (*Machine, string, error) {
 		close(m.done)
 	}()
 	return m, fcLog, nil
+}
+
+// VerifyLimits reads the running VMM's configuration back and checks every device carries the
+// rate limits in cfg (for clones: the limits the snapshot was built with).
+func (m *Machine) VerifyLimits(ctx context.Context) error {
+	got, err := m.client.GetVMConfig(ctx)
+	if err != nil {
+		return err
+	}
+	same := func(a, b *RateLimiter) bool {
+		eq := func(x, y *TokenBucket) bool {
+			return (x == nil) == (y == nil) && (x == nil || *x == *y)
+		}
+		return (a == nil) == (b == nil) && (a == nil || eq(a.Bandwidth, b.Bandwidth) && eq(a.Ops, b.Ops))
+	}
+	if len(got.NetworkInterfaces) == 0 || len(got.Drives) == 0 {
+		return errors.New("VMM reports no network interface or drive")
+	}
+	for _, n := range got.NetworkInterfaces {
+		if !same(n.RxRateLimiter, m.cfg.NetRx) || !same(n.TxRateLimiter, m.cfg.NetTx) {
+			return fmt.Errorf("network interface %s runs without the expected rate limits", n.IfaceID)
+		}
+	}
+	for _, d := range got.Drives {
+		if !same(d.RateLimiter, m.cfg.Disk) {
+			return fmt.Errorf("drive %s runs without the expected rate limit", d.DriveID)
+		}
+	}
+	return nil
 }

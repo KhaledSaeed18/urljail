@@ -32,8 +32,10 @@ import (
 const (
 	// maxHostRecords caps each host log (DNS replies, blocked packets) per run.
 	maxHostRecords = 20000
-	// maxPackets caps the packet capture per run.
-	maxPackets = 500000
+	// maxPackets and maxPcapBytes cap the packet capture per run. Packets alone don't bound
+	// size: with GSO one packet can be 64 KiB.
+	maxPackets   = 500000
+	maxPcapBytes = 256 << 20
 
 	// shutdownGrace is how long the guest gets to shut down after Ctrl-Alt-Del before the VMM
 	// is killed. A guest still booting ignores Ctrl-Alt-Del, and evidence is collected before
@@ -81,6 +83,7 @@ func (s *Server) detonate(ctx context.Context, r *run, u *url.URL, profile strin
 		m.EndedAt = time.Now().UTC()
 		r.mark("done")
 		m.TimingsMs = r.timings()
+		m.HostGaps = r.gapList()
 		if m.Clone != nil { // teardown has run, so the serial log is complete
 			b, _ := os.ReadFile(filepath.Join(runDir, "host", "serial.log"))
 			m.Clone.VMGenIDReseed = bytes.Contains(b, []byte("crng reseeded due to virtual machine fork"))
@@ -220,13 +223,16 @@ func (s *Server) bootVM(ctx context.Context, r *run, slot int, runDir string, ad
 	if err := op.Chown(filepath.Join(runDir, "host")); err != nil {
 		return nil, nil, err
 	}
-	capture, err := netns.StartCapture(netVM, pcap, op.Name, maxPackets)
+	capture, err := netns.StartCapture(netVM, pcap, op.Name, maxPackets, maxPcapBytes)
 	if err != nil {
 		return nil, nil, fmt.Errorf("packet capture: %w", err)
 	}
 	r.mark("capture")
 	addCleanup(func(context.Context) {
 		r.log.Info("capture stopped", "tcpdump", strings.Join(capture.Stop(), "; "))
+		if capture.Truncated() {
+			r.gap(fmt.Sprintf("The packet capture was stopped at its %d MiB cap: later traffic isn't in host/capture.pcap (flows, DNS and blocked records still cover it)", maxPcapBytes>>20))
+		}
 		_ = os.Chmod(pcap, 0o600) // tcpdump creates it 0644; runs are private
 	})
 
@@ -241,6 +247,9 @@ func (s *Server) bootVM(ctx context.Context, r *run, slot int, runDir string, ad
 		VsockUDS: vsock,
 		VCPUs:    s.cfg.VCPUs,
 		MemMiB:   s.cfg.MemMiB,
+		NetRx:    netRxLimit,
+		NetTx:    netTxLimit,
+		Disk:     diskLimit,
 	}
 	t0 := time.Now()
 	var machine *vm.Machine
@@ -251,6 +260,12 @@ func (s *Server) bootVM(ctx context.Context, r *run, slot int, runDir string, ad
 	}
 	if err != nil {
 		return nil, nil, err
+	}
+	// Fail closed: the VMM must actually run with the rate limits (clones inherit them from
+	// the snapshot, so a snapshot built without them would show here).
+	if err := machine.VerifyLimits(ctx); err != nil {
+		machine.Kill()
+		return nil, nil, fmt.Errorf("preflight: %w", err)
 	}
 	r.mark("vmm")
 	addCleanup(func(ctx context.Context) {

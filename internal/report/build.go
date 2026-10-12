@@ -75,6 +75,7 @@ func Build(runDir string) (*reportv0.Report, error) {
 			r.Gaps = append(r.Gaps, "The guest kernel didn't log a VMGenID reseed: this clone may share kernel RNG state with others from the same snapshot")
 		}
 	}
+	r.Gaps = append(r.Gaps, meta.HostGaps...)
 	if meta.Status != "completed" {
 		r.Gaps = append(r.Gaps, fmt.Sprintf("Run ended with status %q: observations may be incomplete", meta.Status))
 	}

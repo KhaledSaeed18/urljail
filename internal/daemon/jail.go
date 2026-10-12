@@ -103,3 +103,20 @@ func SetupJails(cfg Config) error {
 	}
 	return nil
 }
+
+// Rate limits for every VM (P5): generous for loading pages, but a hostile guest can't
+// saturate the host's network or disk. Token buckets refill every 100 ms.
+var (
+	netTxLimit = &vm.RateLimiter{ // guest → out: 20 MiB/s, 20k packets/s
+		Bandwidth: &vm.TokenBucket{Size: 2 << 20, RefillTime: 100},
+		Ops:       &vm.TokenBucket{Size: 2000, RefillTime: 100},
+	}
+	netRxLimit = &vm.RateLimiter{ // → guest: 40 MiB/s, 40k packets/s
+		Bandwidth: &vm.TokenBucket{Size: 4 << 20, RefillTime: 100},
+		Ops:       &vm.TokenBucket{Size: 4000, RefillTime: 100},
+	}
+	diskLimit = &vm.RateLimiter{ // 100 MiB/s, 10k IOPS
+		Bandwidth: &vm.TokenBucket{Size: 10 << 20, RefillTime: 100},
+		Ops:       &vm.TokenBucket{Size: 1000, RefillTime: 100},
+	}
+)
