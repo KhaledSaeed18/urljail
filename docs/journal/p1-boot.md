@@ -50,9 +50,9 @@ CI artifacts come from the dated prefix `firecracker-ci/20261008-40f3a4819490-0/
 - [x] Host NAT for the guest (dev only); `curl https://example.com` from the guest → HTTP 200. Guest's public IP = home IP, as expected in dev mode
 - [x] Q7: device `VMGENCTR:00` present, bound to the `vmgenid` platform driver. Reseed-on-restore is tested in P4
 - [x] Measure cold boot time (API `InstanceStart` → SSH ready), 5 runs
-- [ ] SELinux denials: journal has none, but auditd keeps them in `audit.log`; confirm with `sudo ausearch -m avc -ts today` (needs your terminal)
+- [x] SELinux denials: `sudo ausearch -m avc -ts today` shows none from P1
 - [x] Turn the steps into `scripts/p1/boot.sh` + `teardown.sh`; 5 boot/teardown cycles from a clean state, nothing left over
-- [ ] Review all docs against what was learned (carried over from P0)
+- [x] Review all docs against what was learned (carried over from P0); see [Doc review](#doc-review)
 - [ ] Restart Docker; confirm it doesn't break anything here
 
 ## Timings
@@ -90,7 +90,7 @@ _(one bullet per surprise: symptom → cause → fix)_
 
 _(denial, context, how it was resolved; never `setenforce 0`)_
 
-- None seen in the journal. Not conclusive: auditd is active, so AVCs go to `audit.log`. Firecracker runs as `unconfined_t` from a `data_home_t` binary in P1, so few denials are expected; the real SELinux work is P5 (jailer as root, chroot, mknod).
+- **None from P1.** `ausearch -m avc -ts today` listed four denials, all `geoclue_t` searching `/proc/<pid>` of `spc_t` (container) processes between 00:58 and 13:10, before P1 started; unrelated to urljail. Note that auditd is active, so AVCs go to `audit.log`, not the journal. Firecracker runs as `unconfined_t` from a `data_home_t` binary in P1, so few denials are expected; the real SELinux work is P5 (jailer as root, chroot, mknod).
 
 ## Docker interaction
 
@@ -98,6 +98,18 @@ _(denial, context, how it was resolved; never `setenforce 0`)_
 - Fix: two rules in Docker's documented `DOCKER-USER` chain (`iifname tap0 accept`, `oifname tap0 ct state established,related accept`), tagged with the comment `urljail-p1` so `teardown.sh` deletes exactly those.
 - So the guide's step 2 ("stop Docker") alone wasn't enough; with Docker running, the same `DOCKER-USER` rules should do the job. Still to check: restart Docker, run `boot.sh`, confirm egress.
 - **firewalld** also filters forwarding. `tap0` goes in zone `trusted` (runtime only), and masquerade is enabled on the default zone only if it wasn't already on. `trusted` also lets the guest reach the host and LAN, which is acceptable for P1 only.
+
+## Doc review
+
+Done 2026-10-12, against P1's findings and Firecracker v1.17.0's own docs.
+
+- **Settled _(verify)_ items:** vsock handshake (`CONNECT`/`OK`, guest-initiated via `<uds_path>_<port>`) matches ADR 0007; snapshot memory is `MAP_PRIVATE` copy-on-write; per-clone netns + NAT is Firecracker's documented clone pattern; the entropy doc is `snapshotting/random-for-clones.md`.
+- **New from Firecracker docs:** VMClock (since 1.15) gives userspace a restore counter, but needs a Linux ≥ 7.0 guest; `LoadSnapshot` has `clock_realtime` as a possible alternative to `SyncClock`. Recorded in architecture, guest-image, snapshot-entropy and the P4 roadmap.
+- **Q18 decided:** firecracker-go-sdk targets API 1.4.1 and hasn't released since 2022, so urljail uses a hand-written client ([ADR 0011](../decisions/0011-hand-written-firecracker-client.md), amending ADR 0002).
+- **Network design:** `dev` mode egress through the host meets Docker's leftover FORWARD drop and firewalld, as P1 did; `live` mode (WireGuard UDP via OUTPUT) doesn't. IPv6 must be disabled in the guest image.
+- **Threat model:** added the dev sudo rule as a risk (root-equivalent through `ip netns exec`) and a rule to remove it before the live gate. Leak handling notes that PID files alone aren't reliable.
+- **Fixes:** vision's CLI example now uses `urljail detonate`; environment adds firewalld, auditd, sudo, subuid; related-work lists exact Firecracker doc paths.
+- **ADRs:** accepted decisions unchanged; ADR 0002's status line links to the amendment.
 
 ## Design changes
 

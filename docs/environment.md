@@ -14,7 +14,11 @@ Snapshot of the host as of **2026-10-12**. Update when hardware or OS changes.
 | cgroups | v2 (`cgroup2fs`) | Required by jailer config |
 | SELinux | **Enforcing** | Jailer chroot paths need correct contexts; plan a policy module |
 | BTF | `/sys/kernel/btf/vmlinux` present | CO-RE eBPF works without kernel headers |
-| Network | Wi-Fi on a home LAN | Must never be reachable from guests; live egress via VPN only |
+| Network | Wi-Fi on a home LAN (`wlp2s0`) | Must never be reachable from guests; live egress via VPN only |
+| firewalld | running, default zone `FedoraWorkstation` | Filters host forwarding too; P1 puts `tap0` in `trusted` (runtime only) |
+| auditd | active | SELinux denials go to `/var/log/audit/audit.log` (root only), not the journal |
+| sudo | password; plus a dev-only NOPASSWD rule for `ip`, `firewall-cmd`, `nft`, `sysctl` | See [threat model](./threat-model.md); remove before the live gate |
+| subuid/subgid | `524288:65536` | Rootless rootfs builds with `podman unshare` |
 
 ## Tooling
 
@@ -35,6 +39,7 @@ Snapshot of the host as of **2026-10-12**. Update when hardware or OS changes.
 ## Known friction to expect
 
 - **SELinux + jailer**: denials when the jailer chroots/mknods; fix with labels/policy, never by disabling SELinux.
-- **Docker's nftables/iptables rules**: FORWARD policy DROP in host netns; our design sidesteps by living in dedicated namespaces. Docker runs by default on this host; P1's plain host NAT needs it stopped.
+- **Docker's nftables/iptables rules**: FORWARD policy DROP in the host netns, and the rules **stay loaded after `systemctl stop docker`**. P1 needed accept rules in `DOCKER-USER`. The netns design avoids this for VM↔egress traffic, but `dev` mode egress through the host still meets it ([network.md](./network.md#nftables-policy-egress-netns)).
+- **sudo needs a TTY**: Claude Code's `!` commands can't prompt for a password, and Fedora caches sudo credentials per TTY.
 - **RAM pressure**: close heavy desktop apps when running several VMs; consider zram tuning.
 - **Laptop sleep/suspend**: kills long runs and VPN handshakes; disable during experiments.

@@ -1,6 +1,6 @@
 # 0002: Go for host agent, guest agent and CLI
 
-- Status: Accepted
+- Status: Accepted; library list amended by [0011](./0011-hand-written-firecracker-client.md) (no firecracker-go-sdk)
 - Date: 2026-10-10
 
 ## Context

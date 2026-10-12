@@ -47,7 +47,8 @@ urljail deliberately loads hostile content. The question isn't *whether* the gue
 | Cross-run contamination | A1–A3 | Fresh clone per run; separate netns; snapshot taken pre-network (no shared cookies/caches) | Identical RNG state across clones: see [research/snapshot-entropy.md](./research/snapshot-entropy.md) |
 | Credentials typed into phishing page | A5 | Detonation never types real credentials; form interaction (if ever) uses generated canary values only | — |
 | Malicious download executed | A1 | Downloads hashed and stored, never executed; stored outside any exec path, `noexec` mount | — |
-| Leaked VM keeps running | A5 | Teardown always runs; daemon reaps orphan netns/VMMs at startup; `doctor` lists leftovers | — |
+| Leaked VM keeps running | A5 | Teardown always runs; daemon reaps orphan netns/VMMs at startup; `doctor` lists leftovers. P1 showed a PID file alone isn't enough (wrong PID after `setsid`): track VMMs by pidfd/cgroup | — |
+| Any process running as the operator gains root through the dev sudo rule | A5 | `/etc/sudoers.d/urljail-dev` grants NOPASSWD `ip`, `firewall-cmd`, `nft`, `sysctl` for development; `ip netns exec` makes it root-equivalent. Remove it before the live gate; `urljaild` becomes the single privileged component instead | Accepted for P1–P5 on this laptop only |
 
 ## Explicitly out of scope (v1)
 
@@ -62,3 +63,4 @@ urljail deliberately loads hostile content. The question isn't *whether* the gue
 2. Never detonate on a machine holding something you can't afford to lose without reconsidering layer by layer. (This laptop qualifies only because of the layers above; revisit if any is weakened.)
 3. Feeds are untrusted input: URLs from feeds are data, never shell arguments.
 4. Keep Firecracker, guest kernel and Chromium updated; record versions in every run's `meta.json`.
+5. No passwordless sudo rule survives the live gate: `/etc/sudoers.d/urljail-dev` is a development convenience only.

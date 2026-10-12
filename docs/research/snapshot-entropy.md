@@ -11,7 +11,7 @@ Consequences:
 - **Fingerprinting:** a phishing kit (or CDN) seeing identical values from different IPs could link and flag our scanners.
 - **Research validity:** clones that aren't independent bias measurements.
 
-Firecracker documents this concern (`random-for-clones`) _(verify current doc name)_.
+Firecracker documents this concern in `docs/snapshotting/random-for-clones.md` ("Entropy for Clones") and, for v1.17.0, states it plainly in `snapshot-support.md`: after a VMGenID reseed, "state other than the guest kernel entropy pool, such as unique identifiers, cached random numbers, cryptographic tokens, etc **will** still be replicated".
 
 ## Layers of state
 
@@ -26,7 +26,8 @@ Firecracker documents this concern (`random-for-clones`) _(verify current doc na
 1. **Baseline:** restore N clones *without* VMGenID/reseed; have each make a TLS connection to a test server we control; collect ClientHello random, session ID, key shares (from pcap) and `Math.random()` outputs (from a test page). Count duplicates.
 2. **Kernel fix only:** enable VMGenID + vsock reseed. Repeat. Expect kernel-level values to diverge; measure whether Chromium's values still collide.
 3. **Userspace:** investigate how BoringSSL seeds and reseeds (fork-safety, RDRAND mixing, reseed intervals) and whether V8's PRNG state is reseeded at all. Test mitigations: restart renderer processes after restore; snapshot *before* launching Chromium (trades restore speed for safety); `MADV_WIPEONFORK`-style tricks don't apply to VM clones.
-4. **Cost:** restore latency for each mitigation.
+4. **VMClock:** Firecracker ≥ 1.15 exposes a VMClock device whose `vm_generation_counter` changes on every restore. With a Linux ≥ 7.0 guest, userspace can `mmap()` it or `poll()` the device. Test whether the guest agent can use it to trigger re-randomization (restart renderers, reseed its own state) faster than a vsock message arrives.
+5. **Cost:** restore latency for each mitigation.
 
 ## Deliverable
 

@@ -39,7 +39,7 @@ A Linux-native system that, for each URL:
 
 | Milestone | Criterion |
 | --------- | --------- |
-| Works | `urljail https://example.com` returns a JSON report + screenshot, VM destroyed afterwards |
+| Works | `urljail detonate https://example.com` returns a JSON report + screenshot, VM destroyed afterwards |
 | Fast | p50 restore-to-navigation < 1 s on this laptop |
 | Safe | Documented isolation tests pass: LAN unreachable, metadata IPs unreachable, DNS rebinding refused, no egress when VPN is down |
 | Trustworthy | Host-side and guest-side network views reconciled in every report |

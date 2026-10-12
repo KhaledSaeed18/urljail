@@ -1,6 +1,6 @@
 # Architecture
 
-Status: **design draft**, nothing built. Details marked _(verify)_ must be confirmed against the Firecracker/kernel version used in Phase 1.
+Status: **design draft**. Only the P1 boot scripts exist so far ([journal](./journal/p1-boot.md)). Details marked _(verify)_ must be confirmed against Firecracker v1.17.0 and the guest kernel in use.
 
 ## System overview
 
@@ -73,9 +73,9 @@ NestJS + Postgres + BullMQ + Next.js dashboard. NestJS is the orchestrator: it e
 ```
 
 1. **PREFLIGHT**: egress mode allows this URL source? nftables ruleset hash matches? VPN up (in live mode)? Disk space for artifacts?
-2. **RESTORING**: take a clone from the pool; Firecracker loads snapshot (memory file mapped `MAP_PRIVATE`, so clones share unchanged pages) _(verify)_.
+2. **RESTORING**: take a clone from the pool; Firecracker loads snapshot (memory file mapped `MAP_PRIVATE` with copy-on-write, so clones share unchanged pages through the host page cache; confirmed in Firecracker's `snapshotting/snapshot-support.md`).
 3. **NET_READY**: the clone's netns already exists (clones need identical TAP name/IP/MAC; per-VM netns + NAT gives each a unique outside identity); start eBPF capture + pcap.
-4. **CLOCK_SYNCED**: host → guest `SyncClock`; guest reseeds RNG if VMGenID didn't (see [research/snapshot-entropy.md](./research/snapshot-entropy.md)).
+4. **CLOCK_SYNCED**: host → guest `SyncClock` (alternative to evaluate in P4: `clock_realtime: true` in Firecracker's `LoadSnapshot`, which advances the guest clock at restore with kvm-clock). VMGenID reseeds the guest kernel's RNG on restore; `Reseed` over vsock stays as belt and braces. Userspace RNG state is still cloned (see [research/snapshot-entropy.md](./research/snapshot-entropy.md)).
 5. **NAVIGATING / OBSERVING**: guest navigates, then observes until the network goes idle, bounded by a minimum dwell (catches delayed redirects) and a maximum (caps cost), with random jitter so a fixed dwell isn't a scanner fingerprint. No interaction simulation in v1; it becomes a research variable in P6.
 6. **COLLECTING**: guest sends screenshot, DOM, CDP event log, key log; host stops capture, flushes pcap, collects resolver log slice.
 7. **TEARDOWN**: kill VMM, delete netns, delete jail chroot, release cgroup. **Always runs**, including on error and timeout; a leaked VM is a bug.
@@ -124,7 +124,7 @@ runs/<run-id>/
 cmd/urljail/          # CLI
 cmd/urljaild/         # host agent
 guest/agent/          # guest agent (GOOS=linux, CGO_ENABLED=0)
-internal/vm/          # firecracker-go-sdk wrapper, jailer config
+internal/vm/          # Firecracker API client (hand-written, ADR 0011), process + jailer launch
 internal/pool/
 internal/netns/
 internal/firewall/    # generated nft -f ruleset + hash check

@@ -6,9 +6,11 @@ Status: **design draft**. What runs inside the microVM, and how the snapshot is 
 
 | Piece | Choice (draft) | Notes |
 | ----- | -------------- | ----- |
-| Kernel | Minimal x86_64 config based on Firecracker's recommended guest config | Needs virtio-net, virtio-block, virtio-vsock, `CONFIG_VMGENID` _(verify Firecracker exposes VMGenID on this version)_. Firecracker CI kernel for P1–P3, this config from P4 ([ADR 0009](./decisions/0009-debian-guest-ci-kernel.md)) |
+| Kernel | Minimal x86_64 config based on Firecracker's recommended guest config | Needs virtio-net, virtio-block, virtio-vsock, `CONFIG_VMGENID` (Firecracker v1.17.0 exposes VMGenID; confirmed in P1), `CONFIG_PTP_1588_CLOCK_VMCLOCK`. Firecracker CI kernel for P1–P3, this config from P4 ([ADR 0009](./decisions/0009-debian-guest-ci-kernel.md)). A **Linux ≥ 7.0** base is wanted in P4: VMClock's `vm_generation_counter` and `poll()` for userspace landed in 7.0, and they let the guest agent detect a restore (see [snapshot entropy](./research/snapshot-entropy.md)) |
 | Rootfs | Debian 13 ("trixie") slim (ext4 image), read-only base + per-run writable overlay | Debian packages Chromium and its many deps reliably; Alpine/musl is smaller but Chromium on musl adds risk |
-| Init | Tiny init (or systemd-free shell init) | Fast boot; no extra listeners |
+| Init | Tiny init (or systemd-free shell init) | Fast boot; no extra listeners. For scale: the CI Ubuntu image with systemd took 629 ms of userspace boot in P1 |
+| Transport | VirtIO over PCI (`--enable-pci`), available since Firecracker 1.13 and recommended by its getting-started guide | Used in P1; needs PCI support in the guest kernel (Firecracker `kernel-policy.md`) |
+| IPv6 | disabled in the guest | v1 has no IPv6 egress; the CI image brings up link-local IPv6 by default |
 | Browser | Chromium, version pinned and recorded. Distro package vs Google's official build is still open (Q17 in [open-questions.md](./open-questions.md)) | Rebuild image on every Chromium security release |
 | Guest agent | Go, `CGO_ENABLED=0`, static | Talks AF_VSOCK to host; drives Chromium via chromedp |
 | Fonts | A realistic desktop font set | Missing fonts are a fingerprint signal (see [anti-cloaking](./research/anti-cloaking.md)) |

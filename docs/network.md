@@ -38,7 +38,7 @@ Status: **design draft**. This is the most safety-critical part of urljail. Read
 ```
 
 ### Why every clone is identical inside
-A snapshot captures the guest's network config. Every clone restored from it expects the **same** TAP name, guest IP and MAC. Running each clone in its own netns lets them all be `172.16.0.2` behind `tap0`, while SNAT to a unique `10.200.<n>.2` gives each run a distinct identity outside (this is the pattern in Firecracker's `network-for-clones` doc) _(verify)_.
+A snapshot captures the guest's network config. Every clone restored from it expects the **same** TAP name, guest IP and MAC. Running each clone in its own netns lets them all be `172.16.0.2` behind `tap0`, while SNAT to a unique `10.200.<n>.2` gives each run a distinct identity outside (this is the pattern in Firecracker's `snapshotting/network-for-clones.md`, confirmed for v1.17.0).
 
 ### Why WireGuard lives in a netns
 Create `wg0` in the host namespace, then move it into `uj-egress`. WireGuard keeps its UDP socket in the namespace it was **created** in, so encrypted packets leave via the host's Wi-Fi, while the plaintext interface (and the only default route) exists only inside `uj-egress`.
@@ -69,7 +69,8 @@ The daemon generates the ruleset as a single `nft -f` file. It validates it with
 169.254.0.0/16                                 # link-local, cloud metadata
 224.0.0.0/4, 240.0.0.0/4, 255.255.255.255      # multicast, reserved, broadcast
 ::1, fc00::/7, fe80::/10, ff00::/8             # IPv6 loopback, ULA, link-local, multicast
-# (IPv6: simplest is to give guests no IPv6 at all in v1)
+# (IPv6: give guests no IPv6 at all in v1. In P1 the CI guest brought up an fe80:: link-local address
+#  on eth0 by default, so disable it in the guest image, e.g. net.ipv6.conf.all.disable_ipv6=1)
 
 # --- allow ---
 tcp dport {80, 443}  → out (via wg0 in live mode)
@@ -82,7 +83,12 @@ everything else      # log + drop (counters feed the report: "page attempted X")
 
 Inter-VM traffic: each VM's veth is a separate /30 and forward between `veth-eg-*` interfaces is dropped.
 
-Docker on this host installs its own iptables-nft rules and sets the FORWARD policy to DROP in the **host** namespace. Keeping our policy inside dedicated namespaces avoids fighting it; `urljail doctor` should still detect and report Docker's rules.
+Docker on this host installs its own iptables-nft rules and sets the FORWARD policy to DROP in the **host** namespace, and **those rules stay loaded after Docker is stopped** (found in P1). firewalld also filters host forwarding. Each namespace has its own netfilter hooks, so traffic between the VM netns and `uj-egress` never meets either. Exits differ:
+
+- **`live`:** WireGuard's encrypted UDP comes from a socket in the host namespace, so it crosses the host's **OUTPUT** hook, not FORWARD. Docker's FORWARD drop doesn't apply.
+- **`dev`:** traffic routed out through the host namespace is **forwarded** there, so it meets Docker's FORWARD chain and firewalld exactly as in P1. Needs the same `DOCKER-USER` accept rules (tagged, removed on teardown) or masquerading inside `uj-egress` onto a host-side veth that firewalld trusts.
+
+`urljail doctor` reports Docker's tables (even with the service stopped), firewalld's state and zones, and the effective forward policies.
 
 ## DNS
 

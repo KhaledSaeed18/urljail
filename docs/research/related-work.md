@@ -15,7 +15,7 @@ To read and compare against. Notes get filled in as each one is studied.
 
 | Project | Purpose | What to learn |
 | ------- | ------- | ------------- |
-| Firecracker docs (`snapshotting/`, `network-for-clones`, `random-for-clones`, jailer) | Primary reference | Clone networking, entropy, jailer setup |
+| Firecracker docs: `snapshotting/{snapshot-support,network-for-clones,random-for-clones}.md`, `vsock.md`, `jailer.md`, `prod-host-setup.md`, `kernel-policy.md` | Primary reference (paths as of v1.17.0) | Clone networking, entropy, VMClock, vsock, jailer, host hardening |
 | firecracker-containerd | Containers in microVMs | Lifecycle management patterns |
 | weaveworks ignite (archived) | VM manager with container UX | How they handled images and networking |
 | liquidmetal flintlock | MicroVM management service | gRPC API design for VM lifecycle |

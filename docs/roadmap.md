@@ -35,7 +35,7 @@ Learn the raw primitives before writing any Go. **No isolation exists yet**: the
 ## P2: Vertical slice: `urljail detonate`
 The whole pipeline, as simple as possible, **cold boot** (no snapshots yet).
 - Go module, `urljaild` + `urljail` skeletons, gRPC over a Unix socket
-- Firecracker via firecracker-go-sdk; per-run TAP + simple NAT (dev egress)
+- Hand-written Firecracker API client over the Unix socket ([ADR 0011](./decisions/0011-hand-written-firecracker-client.md)); per-run TAP + simple NAT (dev egress), reusing P1's Docker/firewalld handling
 - Custom Debian 13 slim rootfs with Chromium + guest agent; decide the browser build (Q17)
 - vsock channel: gRPC over host UDS `CONNECT` ([ADR 0007](./decisions/0007-grpc-over-vsock.md)), with an integration test for the handshake (Q8)
 - Guest agent: navigate, collect CDP events, screenshot, DOM → stream back
@@ -56,7 +56,8 @@ The whole pipeline, as simple as possible, **cold boot** (no snapshots yet).
 ## P4: Snapshot pool
 - Snapshot procedure from [guest-image.md](./guest-image.md) (warm Chromium, no network before snapshot)
 - Restore into pre-created netns (identical inner config, unique SNAT)
-- `SyncClock` + `Reseed` on restore; VMGenID check
+- `SyncClock` (or `LoadSnapshot` `clock_realtime`) + `Reseed` on restore; check VMGenID actually reseeds (device + driver confirmed in P1)
+- Own guest kernel on Linux ≥ 7.0 for VMClock restore notifications (see [guest-image.md](./guest-image.md))
 - Pool manager: pre-warm N, replenish, reap orphans at startup
 - Benchmarks: restore latency p50/p95, memory per clone, page-cache sharing
 
@@ -74,6 +75,7 @@ The whole pipeline, as simple as possible, **cold boot** (no snapshots yet).
 - [ ] WireGuard-in-netns egress working; `live` mode interlock in the daemon
 - [ ] Full isolation test plan passes in `live` mode, including "VPN down ⇒ no egress"
 - [ ] Threat model reviewed against what was actually built
+- [ ] Dev sudo rule removed (`/etc/sudoers.d/urljail-dev`)
 - [ ] Feed terms of use checked for each source (Q13)
 - [ ] Mullvad subscription; exit server/IP/ASN recorded per run ([ADR 0010](./decisions/0010-mullvad-live-egress.md))
 - [ ] Feed ingestion design (OpenPhish / URLhaus / PhishTank) treating URLs strictly as data
