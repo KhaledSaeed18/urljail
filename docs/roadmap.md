@@ -80,10 +80,10 @@ The whole pipeline, as simple as possible, **cold boot** (no snapshots yet).
 - [x] Proton VPN Free WireGuard config installed ([ADR 0017](./decisions/0017-proton-vpn-free.md)); live self-test passes with it
 - [x] Feed ingestion design treating URLs strictly as data ([feed-ingestion.md](./feed-ingestion.md))
 
-## P6: Anti-cloaking research (next)
+## P6: Anti-cloaking research (in progress)
 See [research/anti-cloaking.md](./research/anti-cloaking.md).
 - Snapshot profiles as experimental conditions (baseline vs stealth variants)
-- Fresh-feed ingestion; detonate within minutes of publication (phishing URLs die in hours)
+- [~] Fresh-feed ingestion; detonate within minutes of publication (phishing URLs die in hours): `urljail feeds` built with OpenPhish Community ([feed-ingestion.md](./feed-ingestion.md)); URLhaus pending an Auth-Key
 - Cloaking measurement: same URL, multiple profiles/exits, content diff
 - Write-up with results
 

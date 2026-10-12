@@ -21,6 +21,7 @@ func FuzzBuild(f *testing.F) {
 		os.WriteFile(filepath.Join(g, "events.jsonl"), ev, 0o600)
 		os.WriteFile(filepath.Join(g, "done.json"), done, 0o600)
 		os.WriteFile(filepath.Join(g, "dom.html"), dom, 0o600)
+		os.WriteFile(filepath.Join(dir, FeedFile), done, 0o600) // any JSON-ish bytes
 		if _, err := Build(dir); err != nil {
 			t.Fatal(err)
 		}

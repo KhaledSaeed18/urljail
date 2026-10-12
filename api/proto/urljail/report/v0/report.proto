@@ -38,6 +38,17 @@ message Run {
   map<string, string> versions = 9;
   // Set when the VM was restored from a snapshot (P4).
   Clone clone = 10;
+  // Set when the URL came from a feed (urljail feeds, P6).
+  Feed feed = 11;
+}
+
+message Feed {
+  // Source, e.g. "openphish-community".
+  string name = 1;
+  // When urljail first saw the URL in the feed (the feed has no per-URL time).
+  google.protobuf.Timestamp first_seen = 2;
+  // The feed's own time for the URL, when it has one (URLhaus date_added).
+  google.protobuf.Timestamp feed_time = 3;
 }
 
 message Clone {

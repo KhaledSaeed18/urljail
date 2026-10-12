@@ -57,6 +57,7 @@ func Build(runDir string) (*reportv0.Report, error) {
 			Status:       meta.Status,
 			Error:        meta.Error,
 			Versions:     meta.Versions,
+			Feed:         readFeed(runDir),
 		},
 		Navigation: &reportv0.Navigation{},
 		Network:    &reportv0.Network{},

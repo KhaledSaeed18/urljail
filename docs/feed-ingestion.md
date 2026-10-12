@@ -1,6 +1,6 @@
 # Feed ingestion (design, live gate)
 
-Status: **design**, for P6. Source decision (2026-10-12, Q13): **free feeds first**: OpenPhish Community and URLhaus ([research/feeds.md](./research/feeds.md)). Good enough to build ingestion and run live mode end to end; cloaking statistics will need a fresher phishing source later (OpenPhish Academic/paid, or own CT-log discovery).
+Status: **built (P6 M1), OpenPhish Community only**; URLhaus waits for an Auth-Key. Differences from the design are marked *As built*. Source decision (2026-10-12, Q13): **free feeds first**: OpenPhish Community and URLhaus ([research/feeds.md](./research/feeds.md)). Good enough to build ingestion and run live mode end to end; cloaking statistics will need a fresher phishing source later (OpenPhish Academic/paid, or own CT-log discovery).
 
 ## Principles
 
@@ -46,7 +46,11 @@ The Auth-Key lives in `~/.config/urljail/feeds.toml` (`0600`), never in run reco
 - **Concurrency:** no more than the daemon's free slots; the daemon's own busy refusal is the backstop.
 - **Pause:** `urljail feeds pause` stops submissions immediately (the queue keeps filling).
 
+*As built (M1):* state in `~/.local/share/urljail/feeds/state.json` (`0600`, one JSON document, not `queue.jsonl`); one detonation at a time; `urljail feeds run -n N` fetches what's due, then runs at most N. OpenPhish's feed has no per-URL time, so every URL from one fetch shares a first-seen time and "newest first" only separates fetches.
+
 ## Provenance in the run
+
+*As built (M1):* no daemon change yet. `urljail feeds run` writes `feed.json` (feed name, first seen) into the run directory, which the operator owns, and rebuilds the report locally, so `run.feed` is set. `feed.json` is written by the operator's process, never by the guest or the daemon, and the report builder treats it as untrusted bytes (fuzzed). Moving provenance into `Detonate` can come with the next daemon change.
 
 `Detonate` gains an optional provenance message (feed name, feed time, first seen), recorded in `meta.json` and the report (`run.feed`), so P6 can measure *time since first seen*, the dominant variable for cloaking (research/anti-cloaking.md).
 

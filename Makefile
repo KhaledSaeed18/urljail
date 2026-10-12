@@ -40,3 +40,4 @@ fuzz:
 	go test ./internal/netns/ -run '^$$' -fuzz '^FuzzParseReply$$' -fuzztime $(FUZZTIME)
 	go test ./internal/netns/ -run '^$$' -fuzz '^FuzzParseBlocked$$' -fuzztime $(FUZZTIME)
 	go test ./internal/netns/ -run '^$$' -fuzz '^FuzzParseCounters$$' -fuzztime $(FUZZTIME)
+	go test ./internal/feeds/ -run '^$$' -fuzz '^FuzzNormalize$$' -fuzztime $(FUZZTIME)

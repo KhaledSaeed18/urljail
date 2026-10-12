@@ -28,6 +28,7 @@ commands:
   report <run-dir>                           rebuild report.json from a run's artifacts
   selftest                                   run the network isolation test plan in a VM
   doctor                                     check everything a safe run depends on
+  feeds fetch|status|run|pause|resume        phishing feed ingestion (P6)
   version                                    show CLI and daemon versions
 `
 
@@ -78,6 +79,8 @@ func run() error {
 		return cmdSelfTest(ctx, client)
 	case "doctor":
 		return cmdDoctor(ctx, client)
+	case "feeds":
+		return cmdFeeds(ctx, client, args)
 	default:
 		fmt.Fprintf(os.Stderr, "unknown command %q\n\n", cmd)
 		flag.Usage()

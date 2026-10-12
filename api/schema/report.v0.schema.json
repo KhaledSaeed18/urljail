@@ -323,6 +323,37 @@
       "title": "Egress",
       "type": "object"
     },
+    "urljail.report.v0.Feed.schema.json": {
+      "$schema": "https://json-schema.org/draft/2020-12/schema",
+      "additionalProperties": false,
+      "patternProperties": {
+        "^(feedTime)$": {
+          "$ref": "#/$defs/google.protobuf.Timestamp.schema.json",
+          "description": "The feed's own time for the URL, when it has one (URLhaus date_added)."
+        },
+        "^(firstSeen)$": {
+          "$ref": "#/$defs/google.protobuf.Timestamp.schema.json",
+          "description": "When urljail first saw the URL in the feed (the feed has no per-URL time)."
+        }
+      },
+      "properties": {
+        "feed_time": {
+          "$ref": "#/$defs/google.protobuf.Timestamp.schema.json",
+          "description": "The feed's own time for the URL, when it has one (URLhaus date_added)."
+        },
+        "first_seen": {
+          "$ref": "#/$defs/google.protobuf.Timestamp.schema.json",
+          "description": "When urljail first saw the URL in the feed (the feed has no per-URL time)."
+        },
+        "name": {
+          "default": "",
+          "description": "Source, e.g. \"openphish-community\".",
+          "type": "string"
+        }
+      },
+      "title": "Feed",
+      "type": "object"
+    },
     "urljail.report.v0.Flow.schema.json": {
       "$schema": "https://json-schema.org/draft/2020-12/schema",
       "additionalProperties": false,
@@ -984,6 +1015,10 @@
         "error": {
           "default": "",
           "type": "string"
+        },
+        "feed": {
+          "$ref": "#/$defs/urljail.report.v0.Feed.schema.json",
+          "description": "Set when the URL came from a feed (urljail feeds, P6)."
         },
         "id": {
           "default": "",
