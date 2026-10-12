@@ -64,6 +64,14 @@ func run() error {
 	if os.Geteuid() != 0 {
 		return fmt.Errorf("must run as root (sudo); the CLI doesn't need to")
 	}
+	// One daemon per host, decided before anything is touched: setup deletes and rebuilds the
+	// namespaces, so a second daemon that got that far would break the first one's network
+	// (found when the service started next to a dev daemon).
+	unlock, err := singleInstance()
+	if err != nil {
+		return err
+	}
+	defer unlock()
 	op, err := operatorFrom(*opName)
 	if err != nil {
 		return err
@@ -294,4 +302,20 @@ func hasFail(res *daemonv1.SelfTestResponse) bool {
 		}
 	}
 	return false
+}
+
+// singleInstance holds an exclusive lock on /run/urljail/urljaild.lock for the daemon's lifetime.
+func singleInstance() (func(), error) {
+	if err := os.MkdirAll(paths.RunDir, 0o755); err != nil {
+		return nil, err
+	}
+	f, err := os.OpenFile(filepath.Join(paths.RunDir, "urljaild.lock"), os.O_CREATE|os.O_RDWR, 0o600)
+	if err != nil {
+		return nil, err
+	}
+	if err := syscall.Flock(int(f.Fd()), syscall.LOCK_EX|syscall.LOCK_NB); err != nil {
+		f.Close()
+		return nil, fmt.Errorf("another urljaild is running (lock %s held)", f.Name())
+	}
+	return func() { f.Close() }, nil
 }
