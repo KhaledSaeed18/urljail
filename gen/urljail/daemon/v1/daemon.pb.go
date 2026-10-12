@@ -546,6 +546,95 @@ func (x *Check) GetResult() string {
 	return ""
 }
 
+type DoctorRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *DoctorRequest) Reset() {
+	*x = DoctorRequest{}
+	mi := &file_urljail_daemon_v1_daemon_proto_msgTypes[7]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *DoctorRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*DoctorRequest) ProtoMessage() {}
+
+func (x *DoctorRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_urljail_daemon_v1_daemon_proto_msgTypes[7]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use DoctorRequest.ProtoReflect.Descriptor instead.
+func (*DoctorRequest) Descriptor() ([]byte, []int) {
+	return file_urljail_daemon_v1_daemon_proto_rawDescGZIP(), []int{7}
+}
+
+type DoctorResponse struct {
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// Reuses Check; result is "ok", "warn" or "fail".
+	Checks        []*Check `protobuf:"bytes,1,rep,name=checks,proto3" json:"checks,omitempty"`
+	Healthy       bool     `protobuf:"varint,2,opt,name=healthy,proto3" json:"healthy,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *DoctorResponse) Reset() {
+	*x = DoctorResponse{}
+	mi := &file_urljail_daemon_v1_daemon_proto_msgTypes[8]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *DoctorResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*DoctorResponse) ProtoMessage() {}
+
+func (x *DoctorResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_urljail_daemon_v1_daemon_proto_msgTypes[8]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use DoctorResponse.ProtoReflect.Descriptor instead.
+func (*DoctorResponse) Descriptor() ([]byte, []int) {
+	return file_urljail_daemon_v1_daemon_proto_rawDescGZIP(), []int{8}
+}
+
+func (x *DoctorResponse) GetChecks() []*Check {
+	if x != nil {
+		return x.Checks
+	}
+	return nil
+}
+
+func (x *DoctorResponse) GetHealthy() bool {
+	if x != nil {
+		return x.Healthy
+	}
+	return false
+}
+
 var File_urljail_daemon_v1_daemon_proto protoreflect.FileDescriptor
 
 const file_urljail_daemon_v1_daemon_proto_rawDesc = "" +
@@ -581,7 +670,11 @@ const file_urljail_daemon_v1_daemon_proto_rawDesc = "" +
 	"\x04name\x18\x01 \x01(\tR\x04name\x12\x1a\n" +
 	"\bexpected\x18\x02 \x01(\tR\bexpected\x12\x1a\n" +
 	"\bobserved\x18\x03 \x01(\tR\bobserved\x12\x16\n" +
-	"\x06result\x18\x04 \x01(\tR\x06result*\xcb\x02\n" +
+	"\x06result\x18\x04 \x01(\tR\x06result\"\x0f\n" +
+	"\rDoctorRequest\"\\\n" +
+	"\x0eDoctorResponse\x120\n" +
+	"\x06checks\x18\x01 \x03(\v2\x18.urljail.daemon.v1.CheckR\x06checks\x12\x18\n" +
+	"\ahealthy\x18\x02 \x01(\bR\ahealthy*\xcb\x02\n" +
 	"\bRunState\x12\x19\n" +
 	"\x15RUN_STATE_UNSPECIFIED\x10\x00\x12\x17\n" +
 	"\x13RUN_STATE_REQUESTED\x10\x01\x12\x17\n" +
@@ -596,11 +689,12 @@ const file_urljail_daemon_v1_daemon_proto_rawDesc = "" +
 	"\x12RUN_STATE_TEARDOWN\x10\n" +
 	"\x12\x12\n" +
 	"\x0eRUN_STATE_DONE\x10\v\x12\x14\n" +
-	"\x10RUN_STATE_FAILED\x10\f2\x8d\x02\n" +
+	"\x10RUN_STATE_FAILED\x10\f2\xdc\x02\n" +
 	"\rDaemonService\x12P\n" +
 	"\aVersion\x12!.urljail.daemon.v1.VersionRequest\x1a\".urljail.daemon.v1.VersionResponse\x12U\n" +
 	"\bDetonate\x12\".urljail.daemon.v1.DetonateRequest\x1a#.urljail.daemon.v1.DetonateResponse0\x01\x12S\n" +
-	"\bSelfTest\x12\".urljail.daemon.v1.SelfTestRequest\x1a#.urljail.daemon.v1.SelfTestResponseB\xcb\x01\n" +
+	"\bSelfTest\x12\".urljail.daemon.v1.SelfTestRequest\x1a#.urljail.daemon.v1.SelfTestResponse\x12M\n" +
+	"\x06Doctor\x12 .urljail.daemon.v1.DoctorRequest\x1a!.urljail.daemon.v1.DoctorResponseB\xcb\x01\n" +
 	"\x15com.urljail.daemon.v1B\vDaemonProtoP\x01Z?github.com/KhaledSaeed18/urljail/gen/urljail/daemon/v1;daemonv1\xa2\x02\x03UDX\xaa\x02\x11Urljail.Daemon.V1\xca\x02\x11Urljail\\Daemon\\V1\xe2\x02\x1dUrljail\\Daemon\\V1\\GPBMetadata\xea\x02\x13Urljail::Daemon::V1b\x06proto3"
 
 var (
@@ -616,7 +710,7 @@ func file_urljail_daemon_v1_daemon_proto_rawDescGZIP() []byte {
 }
 
 var file_urljail_daemon_v1_daemon_proto_enumTypes = make([]protoimpl.EnumInfo, 1)
-var file_urljail_daemon_v1_daemon_proto_msgTypes = make([]protoimpl.MessageInfo, 7)
+var file_urljail_daemon_v1_daemon_proto_msgTypes = make([]protoimpl.MessageInfo, 9)
 var file_urljail_daemon_v1_daemon_proto_goTypes = []any{
 	(RunState)(0),                 // 0: urljail.daemon.v1.RunState
 	(*VersionRequest)(nil),        // 1: urljail.daemon.v1.VersionRequest
@@ -626,25 +720,30 @@ var file_urljail_daemon_v1_daemon_proto_goTypes = []any{
 	(*SelfTestRequest)(nil),       // 5: urljail.daemon.v1.SelfTestRequest
 	(*SelfTestResponse)(nil),      // 6: urljail.daemon.v1.SelfTestResponse
 	(*Check)(nil),                 // 7: urljail.daemon.v1.Check
-	(*durationpb.Duration)(nil),   // 8: google.protobuf.Duration
-	(*timestamppb.Timestamp)(nil), // 9: google.protobuf.Timestamp
+	(*DoctorRequest)(nil),         // 8: urljail.daemon.v1.DoctorRequest
+	(*DoctorResponse)(nil),        // 9: urljail.daemon.v1.DoctorResponse
+	(*durationpb.Duration)(nil),   // 10: google.protobuf.Duration
+	(*timestamppb.Timestamp)(nil), // 11: google.protobuf.Timestamp
 }
 var file_urljail_daemon_v1_daemon_proto_depIdxs = []int32{
-	8, // 0: urljail.daemon.v1.DetonateRequest.timeout:type_name -> google.protobuf.Duration
-	0, // 1: urljail.daemon.v1.DetonateResponse.state:type_name -> urljail.daemon.v1.RunState
-	9, // 2: urljail.daemon.v1.DetonateResponse.time:type_name -> google.protobuf.Timestamp
-	7, // 3: urljail.daemon.v1.SelfTestResponse.checks:type_name -> urljail.daemon.v1.Check
-	1, // 4: urljail.daemon.v1.DaemonService.Version:input_type -> urljail.daemon.v1.VersionRequest
-	3, // 5: urljail.daemon.v1.DaemonService.Detonate:input_type -> urljail.daemon.v1.DetonateRequest
-	5, // 6: urljail.daemon.v1.DaemonService.SelfTest:input_type -> urljail.daemon.v1.SelfTestRequest
-	2, // 7: urljail.daemon.v1.DaemonService.Version:output_type -> urljail.daemon.v1.VersionResponse
-	4, // 8: urljail.daemon.v1.DaemonService.Detonate:output_type -> urljail.daemon.v1.DetonateResponse
-	6, // 9: urljail.daemon.v1.DaemonService.SelfTest:output_type -> urljail.daemon.v1.SelfTestResponse
-	7, // [7:10] is the sub-list for method output_type
-	4, // [4:7] is the sub-list for method input_type
-	4, // [4:4] is the sub-list for extension type_name
-	4, // [4:4] is the sub-list for extension extendee
-	0, // [0:4] is the sub-list for field type_name
+	10, // 0: urljail.daemon.v1.DetonateRequest.timeout:type_name -> google.protobuf.Duration
+	0,  // 1: urljail.daemon.v1.DetonateResponse.state:type_name -> urljail.daemon.v1.RunState
+	11, // 2: urljail.daemon.v1.DetonateResponse.time:type_name -> google.protobuf.Timestamp
+	7,  // 3: urljail.daemon.v1.SelfTestResponse.checks:type_name -> urljail.daemon.v1.Check
+	7,  // 4: urljail.daemon.v1.DoctorResponse.checks:type_name -> urljail.daemon.v1.Check
+	1,  // 5: urljail.daemon.v1.DaemonService.Version:input_type -> urljail.daemon.v1.VersionRequest
+	3,  // 6: urljail.daemon.v1.DaemonService.Detonate:input_type -> urljail.daemon.v1.DetonateRequest
+	5,  // 7: urljail.daemon.v1.DaemonService.SelfTest:input_type -> urljail.daemon.v1.SelfTestRequest
+	8,  // 8: urljail.daemon.v1.DaemonService.Doctor:input_type -> urljail.daemon.v1.DoctorRequest
+	2,  // 9: urljail.daemon.v1.DaemonService.Version:output_type -> urljail.daemon.v1.VersionResponse
+	4,  // 10: urljail.daemon.v1.DaemonService.Detonate:output_type -> urljail.daemon.v1.DetonateResponse
+	6,  // 11: urljail.daemon.v1.DaemonService.SelfTest:output_type -> urljail.daemon.v1.SelfTestResponse
+	9,  // 12: urljail.daemon.v1.DaemonService.Doctor:output_type -> urljail.daemon.v1.DoctorResponse
+	9,  // [9:13] is the sub-list for method output_type
+	5,  // [5:9] is the sub-list for method input_type
+	5,  // [5:5] is the sub-list for extension type_name
+	5,  // [5:5] is the sub-list for extension extendee
+	0,  // [0:5] is the sub-list for field type_name
 }
 
 func init() { file_urljail_daemon_v1_daemon_proto_init() }
@@ -658,7 +757,7 @@ func file_urljail_daemon_v1_daemon_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_urljail_daemon_v1_daemon_proto_rawDesc), len(file_urljail_daemon_v1_daemon_proto_rawDesc)),
 			NumEnums:      1,
-			NumMessages:   7,
+			NumMessages:   9,
 			NumExtensions: 0,
 			NumServices:   1,
 		},

@@ -78,6 +78,25 @@ func printSummary(runDir string) {
 	if d := r.GetPage().GetDownloads(); len(d) > 0 {
 		row("downloads", fmt.Sprint(len(d)))
 	}
+	host := fmt.Sprintf("%d flows, %d DNS replies, %d blocked destinations", len(net.GetFlows()), len(net.GetDns()), len(net.GetBlocked()))
+	if rec := r.GetReconciliation(); rec != nil {
+		if rec.GetConsistent() {
+			host += "; consistent with the guest"
+		} else {
+			var parts []string
+			for _, f := range rec.GetUnexplainedFlows() {
+				parts = append(parts, "flow "+f)
+			}
+			for _, d := range rec.GetUnexplainedDns() {
+				parts = append(parts, "dns "+d)
+			}
+			for _, g := range rec.GetGuestOnlyRequests() {
+				parts = append(parts, "guest-only "+g)
+			}
+			host += "; NOT consistent: " + strings.Join(parts, ", ")
+		}
+		row("host", host)
+	}
 	if n.GetDwellMs() > 0 {
 		row("dwell", fmt.Sprintf("%d ms (%s)", n.GetDwellMs(), n.GetDwellReason()))
 	}

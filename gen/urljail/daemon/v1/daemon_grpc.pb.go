@@ -22,6 +22,7 @@ const (
 	DaemonService_Version_FullMethodName  = "/urljail.daemon.v1.DaemonService/Version"
 	DaemonService_Detonate_FullMethodName = "/urljail.daemon.v1.DaemonService/Detonate"
 	DaemonService_SelfTest_FullMethodName = "/urljail.daemon.v1.DaemonService/SelfTest"
+	DaemonService_Doctor_FullMethodName   = "/urljail.daemon.v1.DaemonService/Doctor"
 )
 
 // DaemonServiceClient is the client API for DaemonService service.
@@ -39,6 +40,8 @@ type DaemonServiceClient interface {
 	// (docs/network.md#isolation-test-plan-must-pass-before-live-mode-is-enabled).
 	// It needs every VM slot, so it waits for no one and fails if a run is active.
 	SelfTest(ctx context.Context, in *SelfTestRequest, opts ...grpc.CallOption) (*SelfTestResponse, error)
+	// Doctor checks everything a safe run depends on, without starting a VM.
+	Doctor(ctx context.Context, in *DoctorRequest, opts ...grpc.CallOption) (*DoctorResponse, error)
 }
 
 type daemonServiceClient struct {
@@ -88,6 +91,16 @@ func (c *daemonServiceClient) SelfTest(ctx context.Context, in *SelfTestRequest,
 	return out, nil
 }
 
+func (c *daemonServiceClient) Doctor(ctx context.Context, in *DoctorRequest, opts ...grpc.CallOption) (*DoctorResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(DoctorResponse)
+	err := c.cc.Invoke(ctx, DaemonService_Doctor_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // DaemonServiceServer is the server API for DaemonService service.
 // All implementations must embed UnimplementedDaemonServiceServer
 // for forward compatibility.
@@ -103,6 +116,8 @@ type DaemonServiceServer interface {
 	// (docs/network.md#isolation-test-plan-must-pass-before-live-mode-is-enabled).
 	// It needs every VM slot, so it waits for no one and fails if a run is active.
 	SelfTest(context.Context, *SelfTestRequest) (*SelfTestResponse, error)
+	// Doctor checks everything a safe run depends on, without starting a VM.
+	Doctor(context.Context, *DoctorRequest) (*DoctorResponse, error)
 	mustEmbedUnimplementedDaemonServiceServer()
 }
 
@@ -121,6 +136,9 @@ func (UnimplementedDaemonServiceServer) Detonate(*DetonateRequest, grpc.ServerSt
 }
 func (UnimplementedDaemonServiceServer) SelfTest(context.Context, *SelfTestRequest) (*SelfTestResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method SelfTest not implemented")
+}
+func (UnimplementedDaemonServiceServer) Doctor(context.Context, *DoctorRequest) (*DoctorResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method Doctor not implemented")
 }
 func (UnimplementedDaemonServiceServer) mustEmbedUnimplementedDaemonServiceServer() {}
 func (UnimplementedDaemonServiceServer) testEmbeddedByValue()                       {}
@@ -190,6 +208,24 @@ func _DaemonService_SelfTest_Handler(srv interface{}, ctx context.Context, dec f
 	return interceptor(ctx, in, info, handler)
 }
 
+func _DaemonService_Doctor_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(DoctorRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(DaemonServiceServer).Doctor(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: DaemonService_Doctor_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(DaemonServiceServer).Doctor(ctx, req.(*DoctorRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // DaemonService_ServiceDesc is the grpc.ServiceDesc for DaemonService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -204,6 +240,10 @@ var DaemonService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "SelfTest",
 			Handler:    _DaemonService_SelfTest_Handler,
+		},
+		{
+			MethodName: "Doctor",
+			Handler:    _DaemonService_Doctor_Handler,
 		},
 	},
 	Streams: []grpc.StreamDesc{

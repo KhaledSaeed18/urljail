@@ -1,7 +1,8 @@
 # P3: Network layer
 
-- Status: **in progress**
+- Status: **closed**
 - Started: 2026-10-12
+- Closed: 2026-10-12
 - Roadmap: [P3](../roadmap.md#p3-network-layer-next)
 - Exit: isolation test plan passes in `dev` mode; reports contain DNS, flows, SNI, blocked attempts, reconciliation.
 
@@ -13,7 +14,7 @@
 | M2 | Isolation test plan automated: `urljail selftest`, guest `Probe` RPC + host drop counters / DNS log | done |
 | M3 | Blocked attempts from NFLOG (per packet); pcap via tcpdump; self-test requires per-destination evidence | done |
 | M4 | eBPF (TCX) flow records + SNI/ALPN (and HTTP Host); host sections + reconciliation in the report | done |
-| M5 | `urljail doctor`, reconciliation in the CLI summary, exit criterion | |
+| M5 | `urljail doctor`, reconciliation in the CLI summary, exit criterion | done |
 
 ## M1 notes
 
@@ -77,3 +78,24 @@ Adding the `ComponentUpdatesEnabled: false` policy cut it from 11 to 8 names; th
 - **SNI empty at first:** Chrome 155's ClientHello (post-quantum key share) is 1729–1745 bytes and, with TSO/GSO, reaches the TAP as one packet larger than the MTU; the program copied only 1600 bytes. Now 4096 bytes, and the parser reads whatever extensions a truncated hello still has.
 - **Home LAN address leaked to the guest (dev mode):** during an internet outage the host sent ICMP "host unreachable" for forwarded packets, sourced from its LAN address `192.168.0.116`, and the eBPF records showed them reaching the guest. A compromised guest (A3) could learn the home address. Fix: the egress namespace drops anything arriving from the exit with a private source, before the established/related accept (ICMP errors are "related"). Live mode doesn't route through the host, so it's dev-only, but the rule applies in both.
 - **Flaky internet during the session:** the host lost its upstream twice. The self-test then failed only the checks that need the internet (every isolation check still passed). It now reports those as inconclusive when its public control fails (exit code 2), instead of an isolation failure; `doctor` (M5) checks the exit's connectivity directly.
+
+## M5 notes
+
+- **`urljail doctor`** (daemon `Doctor` RPC, no VM): KVM, Firecracker, guest image (rootfs SHA-256 against its manifest), egress ruleset hash and resolver, a real DNS query to the resolver, connectivity through the exit, NFLOG listener, IPv6 off, eBPF (BTF, Linux ≥ 6.6), tcpdump; and as warnings: dev egress mode, Docker's firewall tables (even with Docker stopped), firewalld, SELinux mode, leftover VM namespaces, the dev sudo rule.
+- **Two doctor bugs, both instructive:** Go's resolver dials from its own goroutines, whose OS threads aren't in the namespace the calling thread joined, so a "resolver" check through `net.Resolver` asked the *host's* loopback. The check now builds one DNS query and sends it on a socket created on the locked thread. And a TCP check to `1.1.1.1:443` from the egress namespace timed out because the namespace's own output policy only lets the resolver reach the exit on 53/853: the firewall working as designed. The check uses `1.1.1.1:53`.
+- **CLI summary** now shows the host's view and the reconciliation: `host 37 flows, 19 DNS replies, 1 blocked destinations; consistent with the guest`, or each unexplained flow/name and guest-only request.
+
+## Exit criterion
+
+*Isolation test plan passes in `dev` mode; reports contain DNS, flows, SNI, blocked attempts, reconciliation.* **Met.**
+
+- `urljail selftest`: all checks pass, each with guest and per-destination host evidence (2 live-only checks skipped).
+- `urljail detonate https://example.com/` (9.3 s): `network.dns` 19 replies, `network.flows` 37 (12 with SNI, `example.com` with ALPN `h2,http/1.1`), `network.blocked` GCM `74.125.133.188:5228` (reason `other`), `reconciliation` consistent (3 page flows, 10 browser-background).
+- `urljail doctor`: healthy.
+
+## Follow-ups (not P3)
+
+- DNS answers: unbound logs names, types and rcodes only; the pcap has the answers, so a later report step could extract them (or use dnstap).
+- DNSSEC validation in the resolver (`module-config: iterator` today).
+- Offline TLS decryption of `capture.pcap` with `sslkeys.log` is still unverified on this host (no Wireshark).
+- The browser-background list will need care as Chrome changes; unexplained flows are the signal to update it.

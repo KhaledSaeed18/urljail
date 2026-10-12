@@ -12,6 +12,18 @@ func newSlots(n int) *slots { return &slots{used: make([]bool, n)} }
 
 func (s *slots) size() int { return len(s.used) }
 
+func (s *slots) inUse() int {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	n := 0
+	for _, u := range s.used {
+		if u {
+			n++
+		}
+	}
+	return n
+}
+
 func (s *slots) acquire() (int, bool) {
 	s.mu.Lock()
 	defer s.mu.Unlock()

@@ -27,6 +27,7 @@ commands:
   detonate [-profile p] [-timeout d] <url>   open a URL in a fresh microVM
   report <run-dir>                           rebuild report.json from a run's artifacts
   selftest                                   run the network isolation test plan in a VM
+  doctor                                     check everything a safe run depends on
   version                                    show CLI and daemon versions
 `
 
@@ -75,6 +76,8 @@ func run() error {
 		return cmdReport(args)
 	case "selftest":
 		return cmdSelfTest(ctx, client)
+	case "doctor":
+		return cmdDoctor(ctx, client)
 	default:
 		fmt.Fprintf(os.Stderr, "unknown command %q\n\n", cmd)
 		flag.Usage()
@@ -185,4 +188,23 @@ func hasFail(res *daemonv1.SelfTestResponse) bool {
 		}
 	}
 	return false
+}
+
+func cmdDoctor(ctx context.Context, c daemonv1.DaemonServiceClient) error {
+	ctx, cancel := context.WithTimeout(ctx, time.Minute)
+	defer cancel()
+	res, err := c.Doctor(ctx, &daemonv1.DoctorRequest{})
+	if err != nil {
+		return fmt.Errorf("daemon: %w", err)
+	}
+	for _, ch := range res.GetChecks() {
+		mark := map[string]string{"ok": "ok", "warn": "WARN", "fail": "FAIL"}[ch.GetResult()]
+		fmt.Printf("  %-4s  %-26s %s\n", mark, ch.GetName(), ch.GetObserved())
+	}
+	if !res.GetHealthy() {
+		fmt.Println("\nunhealthy: fix the FAIL lines before detonating")
+		return exitError(1)
+	}
+	fmt.Println("\nhealthy")
+	return nil
 }

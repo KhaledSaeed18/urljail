@@ -39,6 +39,7 @@ urljail deliberately loads hostile content. The question isn't *whether* the gue
 | ------ | --------- | ---------- | ------------- |
 | Page scans/attacks LAN | A1 | nftables blocks all private/link-local destinations; DNS rebind protection | Bug in ruleset → isolation tests + `doctor` hash check |
 | Page attacks guest-local services via DNS rebinding to 127.0.0.1 | A1 | Resolver refuses loopback answers; CDP over pipe, no TCP debug port; no other listeners in guest | Low |
+| Guest learns the home LAN address | A3 | In dev mode the host's ICMP errors for forwarded packets carry its LAN address (found in P3); the egress namespace drops anything from the exit with a private source | Dev mode only; live mode doesn't route through the host |
 | Detonation leaks home IP | A1, A5 | WireGuard-in-netns fails closed; daemon interlock refuses live URLs without healthy tunnel; DNS upstream also via VPN | VPN provider sees traffic (accepted) |
 | Browser exploit → guest compromise | A2 | Disposable VM per URL; nothing persistent; patched Chromium in image | Expected to happen eventually; contained by VM |
 | Guest lies in report | A3 | Host-side capture (pcap, eBPF, resolver) is independent; report marks guest-only claims; host/guest diff flagged | Guest can still fake screenshot/DOM: labeled "guest-attested" |
@@ -47,7 +48,7 @@ urljail deliberately loads hostile content. The question isn't *whether* the gue
 | Cross-run contamination | A1–A3 | Fresh clone per run; separate netns; snapshot taken pre-network (no shared cookies/caches) | Identical RNG state across clones: see [research/snapshot-entropy.md](./research/snapshot-entropy.md) |
 | Credentials typed into phishing page | A5 | Detonation never types real credentials; form interaction (if ever) uses generated canary values only | — |
 | Malicious download executed | A1 | Downloads hashed and stored, never executed; stored outside any exec path, `noexec` mount | — |
-| Leaked VM keeps running | A5 | Teardown always runs; daemon reaps orphan netns/VMMs at startup; `doctor` lists leftovers. P1 showed a PID file alone isn't enough (wrong PID after `setsid`): track VMMs by pidfd/cgroup | — |
+| Leaked VM keeps running | A5 | Teardown always runs (each step with its own deadline; shutdown bounded); daemon reaps orphan VMMs and namespaces at startup, killing every process still inside a urljail namespace first (privilege-dropping children like unbound and tcpdump outlive a killed daemon, found in P3); `doctor` lists leftovers. VMMs are tracked by pidfd | — |
 | Any process running as the operator gains root through the dev sudo rule | A5 | `/etc/sudoers.d/urljail-dev` grants NOPASSWD `ip`, `firewall-cmd`, `nft`, `sysctl` and (from P3) the user-writable `bin/urljaild` for development; each is root-equivalent. Remove it before the live gate; `urljaild` becomes the single privileged component instead | Accepted for P1–P5 on this laptop only |
 
 ## Explicitly out of scope (v1)

@@ -16,6 +16,8 @@ service DaemonService {
   // (docs/network.md#isolation-test-plan-must-pass-before-live-mode-is-enabled).
   // It needs every VM slot, so it waits for no one and fails if a run is active.
   rpc SelfTest(SelfTestRequest) returns (SelfTestResponse);
+  // Doctor checks everything a safe run depends on, without starting a VM.
+  rpc Doctor(DoctorRequest) returns (DoctorResponse);
 }
 
 message VersionRequest {}
@@ -89,4 +91,12 @@ message Check {
   string observed = 3;
   // "pass", "fail" or "skip".
   string result = 4;
+}
+
+message DoctorRequest {}
+
+message DoctorResponse {
+  // Reuses Check; result is "ok", "warn" or "fail".
+  repeated Check checks = 1;
+  bool healthy = 2;
 }

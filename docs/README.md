@@ -2,7 +2,7 @@
 
 > Detonate suspicious URLs in disposable Firecracker microVMs and report what they actually do.
 
-**Status:** P2 done: `urljail detonate` works end to end in dev mode (cold boot, guest-attested report). P3 (network isolation and host-side capture) next. No code yet. Last updated 2026-10-12.
+**Status:** P3 done: per-VM and egress namespaces, fail-closed firewall, resolver, NFLOG, pcap and eBPF capture; reports reconcile host and guest. P4 (snapshot pool) next. No code yet. Last updated 2026-10-12.
 
 ## Reading order
 

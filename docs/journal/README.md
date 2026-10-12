@@ -6,4 +6,4 @@ One entry per phase, written while the phase runs and closed when its exit crite
 | ----- | ----- | ------ |
 | P1 | [p1-boot.md](./p1-boot.md) | Closed 2026-10-12 |
 | P2 | [p2-slice.md](./p2-slice.md) | Closed 2026-10-12 |
-| P3 | [p3-network.md](./p3-network.md) | In progress |
+| P3 | [p3-network.md](./p3-network.md) | Closed 2026-10-12 |

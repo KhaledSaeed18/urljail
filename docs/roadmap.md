@@ -1,6 +1,6 @@
 # Roadmap
 
-Status: **P0–P2 done; P3 next**. Each phase ends with a written note in [`docs/journal/`](./journal/): what worked, what broke, what changed in the design.
+Status: **P0–P3 done; P4 next**. Each phase ends with a written note in [`docs/journal/`](./journal/): what worked, what broke, what changed in the design.
 
 The order is deliberate: **safety before live URLs, a working end-to-end slice before optimization, the familiar web stack last.**
 
@@ -43,7 +43,7 @@ The whole pipeline, as simple as possible, **cold boot** (no snapshots yet).
 
 **Exit:** `urljail detonate https://example.com` → report + screenshot; VM always torn down (including on Ctrl-C and timeout). **Met:** [P2 journal](./journal/p2-slice.md).
 
-## P3: Network layer (next)
+## P3: Network layer (done 2026-10-12)
 - Per-VM netns + egress netns topology from [network.md](./network.md)
 - nftables ruleset (load + verify hash at preflight)
 - unbound in egress netns with logging + rebind protection; DNAT 53
@@ -51,9 +51,9 @@ The whole pipeline, as simple as possible, **cold boot** (no snapshots yet).
 - pcap writer; Chromium key log shipped back; reconciliation section in report
 - `urljail doctor`
 
-**Exit:** isolation test plan passes in `dev` mode; reports contain DNS, flows, SNI, blocked attempts, reconciliation.
+**Exit:** isolation test plan passes in `dev` mode; reports contain DNS, flows, SNI, blocked attempts, reconciliation. **Met:** [P3 journal](./journal/p3-network.md).
 
-## P4: Snapshot pool
+## P4: Snapshot pool (next)
 - Snapshot procedure from [guest-image.md](./guest-image.md) (warm Chromium, no network before snapshot)
 - Restore into pre-created netns (identical inner config, unique SNAT)
 - `SyncClock` (or `LoadSnapshot` `clock_realtime`) + `Reseed` on restore; check VMGenID actually reseeds (device + driver confirmed in P1)
