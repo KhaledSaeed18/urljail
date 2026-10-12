@@ -29,6 +29,7 @@ type snapshotManifest struct {
 	VCPUs             int       `json:"vcpus"`
 	MemMiB            int       `json:"mem_mib"`
 	BootArgs          string    `json:"boot_args"`
+	Layout            string    `json:"layout"`
 	Created           time.Time `json:"created"`
 	BuildTook         string    `json:"build_took"`
 	PrepareTook       string    `json:"prepare_took"`
@@ -46,6 +47,10 @@ type snapshot struct {
 }
 
 const snapshotProfile = "baseline"
+
+// snapshotLayout versions how snapshots are built and laid out; a mismatch means a rebuild.
+// "jail-v1": built inside the jailer, files group-readable by jailGID (P5).
+const snapshotLayout = "jail-v1"
 
 func (s *Server) snapshotDir() string {
 	return filepath.Join(s.cfg.SnapshotsDir, s.cfg.Image.Manifest.Name+"-"+snapshotProfile)
@@ -74,7 +79,7 @@ func (s *Server) snapshotFresh(m snapshotManifest) bool {
 	img := s.cfg.Image.Manifest
 	return m.Image == img.Name && m.ImageRootfsSHA256 == img.RootfsSHA256 &&
 		m.Firecracker == s.cfg.FirecrackerVersion && m.VCPUs == s.cfg.VCPUs && m.MemMiB == s.cfg.MemMiB &&
-		m.BootArgs == s.bootArgs()
+		m.BootArgs == s.bootArgs() && m.Layout == snapshotLayout
 }
 
 func loadSnapshot(dir string) (*snapshot, error) {
@@ -115,16 +120,21 @@ func (s *Server) buildSnapshot(ctx context.Context) (*snapshot, error) {
 	}()
 	s.log.Info("building snapshot", "image", img.Manifest.Name, "dir", final)
 
-	// Relative paths: the snapshot records them, and each clone resolves them in its own
-	// working directory, where its private copy of the disk is.
+	// The builder is jailed like every VMM. Relative paths: the snapshot records them, and
+	// each clone's jail has its own root where they resolve to its own disk and socket.
 	const rootfs, vsock = "rootfs.ext4", "v.sock"
-	if err := vm.CloneFile(img.Rootfs, filepath.Join(tmp, rootfs)); err != nil {
+	jail := s.jailFor("build", buildSlot, netns.BuildNS)
+	if err := jail.Prepare(); err != nil {
 		return nil, err
 	}
-	if err := op.Chown(filepath.Join(tmp, rootfs)); err != nil {
+	defer jail.Remove()
+	if err := vm.CloneFile(img.Rootfs, jail.Path(rootfs)); err != nil {
 		return nil, err
 	}
-	ns, err := netns.AddIsolated(ctx, netns.BuildNS, op.UID, op.GID)
+	if err := os.Chown(jail.Path(rootfs), jail.UID, jail.GID); err != nil {
+		return nil, err
+	}
+	ns, err := netns.AddIsolated(ctx, netns.BuildNS, jail.UID, jail.GID)
 	if err != nil {
 		return nil, err
 	}
@@ -133,27 +143,23 @@ func (s *Server) buildSnapshot(ctx context.Context) (*snapshot, error) {
 	ctx, cancel := context.WithTimeout(ctx, 2*time.Minute)
 	defer cancel()
 	m, err := vm.Start(ctx, vm.Config{
-		Firecracker: s.cfg.Firecracker,
-		Socket:      filepath.Join(s.cfg.SocketDir, "build.sock"),
-		LogDir:      tmp,
-		Dir:         tmp,
-		Kernel:      img.Kernel,
-		BootArgs:    s.bootArgs(),
-		Rootfs:      rootfs,
-		NetNS:       ns.NS,
-		RunAs:       &vm.Credential{UID: op.UID, GID: op.GID},
-		TapName:     netns.TapName,
-		GuestMAC:    netns.GuestMAC,
-		VsockUDS:    vsock,
-		VCPUs:       s.cfg.VCPUs,
-		MemMiB:      s.cfg.MemMiB,
+		Jail:     jail,
+		LogDir:   tmp,
+		Kernel:   img.Kernel,
+		BootArgs: s.bootArgs(),
+		Rootfs:   rootfs,
+		TapName:  netns.TapName,
+		GuestMAC: netns.GuestMAC,
+		VsockUDS: vsock,
+		VCPUs:    s.cfg.VCPUs,
+		MemMiB:   s.cfg.MemMiB,
 	})
 	if err != nil {
 		return nil, err
 	}
 	defer m.Kill()
 
-	conn, err := dialAgent(filepath.Join(tmp, vsock))
+	conn, err := dialAgent(jail.Path(vsock))
 	if err != nil {
 		return nil, err
 	}
@@ -172,17 +178,23 @@ func (s *Server) buildSnapshot(ctx context.Context) (*snapshot, error) {
 	if err := m.Pause(ctx); err != nil {
 		return nil, err
 	}
-	files := vm.Snapshot{VMState: filepath.Join(tmp, "vmstate"), Mem: filepath.Join(tmp, "mem")}
-	if err := m.TakeSnapshot(ctx, files); err != nil {
+	if err := m.TakeSnapshot(ctx, vm.Snapshot{VMState: "vmstate", Mem: "mem"}); err != nil { // inside the jail
 		return nil, err
 	}
+	// Move the snapshot and its disk out before the VMM's exit removes the jail.
+	for _, f := range []string{"vmstate", "mem", rootfs} {
+		if err := os.Rename(jail.Path(f), filepath.Join(tmp, f)); err != nil {
+			return nil, err
+		}
+	}
 	m.Kill()
+	files := vm.Snapshot{VMState: filepath.Join(tmp, "vmstate"), Mem: filepath.Join(tmp, "mem")}
 
 	man := snapshotManifest{
 		Name: filepath.Base(final), Profile: snapshotProfile,
 		Image: img.Manifest.Name, ImageRootfsSHA256: img.Manifest.RootfsSHA256,
 		Firecracker: s.cfg.FirecrackerVersion, VCPUs: s.cfg.VCPUs, MemMiB: s.cfg.MemMiB, BootArgs: s.bootArgs(),
-		Created: time.Now().UTC(), BuildTook: time.Since(start).Round(time.Millisecond).String(),
+		Layout: snapshotLayout, Created: time.Now().UTC(), BuildTook: time.Since(start).Round(time.Millisecond).String(),
 		PrepareTook:             prep.GetTook().AsDuration().Round(time.Millisecond).String(),
 		GuestPacketsDuringBuild: tapRX(ns.NS),
 	}
@@ -193,9 +205,17 @@ func (s *Server) buildSnapshot(ctx context.Context) (*snapshot, error) {
 	if err := op.ChownTree(tmp); err != nil {
 		return nil, err
 	}
-	for _, f := range []string{files.VMState, files.Mem, filepath.Join(tmp, "manifest.json")} {
-		_ = os.Chmod(f, 0o600) // Firecracker writes them 0644; snapshots are the operator's alone
+	// Clones link the snapshot into their jails and run as jail uids in jailGID: they may read
+	// it, not change it. The disk is only ever reflinked, by the daemon.
+	for _, f := range []string{files.VMState, files.Mem, filepath.Join(tmp, rootfs)} {
+		if err := os.Chown(f, op.UID, jailGID); err != nil {
+			return nil, err
+		}
+		if err := os.Chmod(f, 0o640); err != nil {
+			return nil, err
+		}
 	}
+	_ = os.Chmod(filepath.Join(tmp, "manifest.json"), 0o600)
 	if err := os.RemoveAll(final); err != nil && !errors.Is(err, os.ErrNotExist) {
 		return nil, err
 	}

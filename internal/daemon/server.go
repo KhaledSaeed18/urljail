@@ -39,7 +39,9 @@ type Config struct {
 	DwellJitter time.Duration
 
 	// VM settings.
-	Firecracker  string            // binary path
+	Firecracker  string            // binary path (resolved: its file name names jail directories)
+	Jailer       string            // jailer binary
+	JailDir      string            // jail base: root-owned, same filesystem as images and snapshots
 	Image        *image.Image      // read-only base; each run gets a reflinked copy of its rootfs
 	Operator     operator.Operator // owns run directories and runs the VMMs
 	SocketDir    string            // Firecracker API sockets (short paths: Unix sockets are limited to 108 bytes)

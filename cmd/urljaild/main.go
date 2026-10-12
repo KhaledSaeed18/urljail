@@ -45,6 +45,7 @@ func run() error {
 	runsDir := flag.String("runs-dir", "", "where run directories are written (default ~operator/.local/share/urljail/runs)")
 	imageDir := flag.String("image", "", "guest image directory (default ~operator/.local/share/urljail/images/default)")
 	firecracker := flag.String("firecracker", "", "firecracker binary (default ~operator/.local/bin/firecracker)")
+	jailer := flag.String("jailer", "", "jailer binary (default ~operator/.local/bin/jailer)")
 	maxVMs := flag.Int("max-vms", 3, "concurrent VMs (snapshot clones share memory: ~125 MiB each here)")
 	vcpus := flag.Int("vcpus", 2, "vCPUs per VM")
 	mem := flag.Int("mem", 1024, "guest memory per VM, MiB")
@@ -74,6 +75,11 @@ func run() error {
 	orDefault(runsDir, filepath.Join(dataDir, "runs"))
 	orDefault(imageDir, filepath.Join(dataDir, "images", "default"))
 	orDefault(firecracker, filepath.Join(op.Home, ".local", "bin", "firecracker"))
+	orDefault(jailer, filepath.Join(op.Home, ".local", "bin", "jailer"))
+	// The jailer names jail directories after the exec file and copies it in; use the real file.
+	if p, err := filepath.EvalSymlinks(*firecracker); err == nil {
+		*firecracker = p
+	}
 
 	mode, err := policy.ParseEgressMode(*egress)
 	if err != nil {
@@ -106,6 +112,8 @@ func run() error {
 		MaxDwell:       *maxDwell,
 		DwellJitter:    *jitter,
 		Firecracker:    *firecracker,
+		Jailer:         *jailer,
+		JailDir:        filepath.Join(dataDir, "jail"),
 		Operator:       op,
 		SocketDir:      socketDir,
 		WorkDir:        filepath.Join(dataDir, "work"),
@@ -146,6 +154,10 @@ func run() error {
 			return fmt.Errorf("egress: %w", err)
 		}
 		defer eg.Close(context.Background())
+	}
+	// After the namespace cleanup above, which kills whatever was left inside them.
+	if err := daemon.SetupJails(cfg); err != nil {
+		return err
 	}
 
 	srv := daemon.New(cfg, eg, log)

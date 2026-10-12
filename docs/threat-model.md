@@ -44,7 +44,7 @@ urljail deliberately loads hostile content. The question isn't *whether* the gue
 | Browser exploit → guest compromise | A2 | Disposable VM per URL; nothing persistent; patched Chromium in image | Expected to happen eventually; contained by VM |
 | Guest lies in report | A3 | Host-side capture (pcap, eBPF, resolver) is independent; report marks guest-only claims; host/guest diff flagged | Guest can still fake screenshot/DOM: labeled "guest-attested" |
 | Guest floods host (CPU, disk, vsock) | A3 | cgroup v2 CPU/memory/pids limits via jailer; Firecracker rate limiters on net/block; per-run artifact size caps; wall-clock kill | Low |
-| VMM escape | A4 | Firecracker's minimal device model; jailer (chroot, dropped privileges, seccomp filters); SELinux confinement; keep Firecracker updated | Low probability, high impact |
+| VMM escape | A4 | Firecracker's minimal device model; every VMM jailed ([ADR 0016](./decisions/0016-every-vmm-jailed.md)): chroot with only its own files, own mount and PID namespace (PID 1), per-slot uid 64000+ with no capabilities and NoNewPrivs, cgroup memory/pids/cpu limits, seccomp filters; SELinux (see P5); keep Firecracker updated | Low probability, high impact |
 | Cross-run contamination | A1–A3 | Fresh clone per run; separate netns; snapshot taken pre-network (no shared cookies/caches) | Identical RNG state across clones: see [research/snapshot-entropy.md](./research/snapshot-entropy.md) |
 | Credentials typed into phishing page | A5 | Detonation never types real credentials; form interaction (if ever) uses generated canary values only | — |
 | Malicious download executed | A1 | Downloads hashed and stored, never executed; stored outside any exec path, `noexec` mount | — |

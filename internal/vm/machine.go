@@ -35,6 +35,11 @@ type Config struct {
 	NetNS string      // run the VMM inside this network namespace (needs root)
 	RunAs *Credential // drop to this user before exec'ing Firecracker (needs root)
 
+	// Jail runs the VMM under the jailer instead (needs root). Then Kernel is a host path
+	// linked into the chroot, Rootfs and VsockUDS are paths inside the chroot, and Socket,
+	// NetNS, RunAs and Dir are ignored.
+	Jail *Jail
+
 	VCPUs  int
 	MemMiB int
 }
@@ -54,6 +59,12 @@ type Machine struct {
 // Start launches Firecracker, configures the VM over the API and boots it.
 // On error, nothing is left running.
 func Start(ctx context.Context, cfg Config) (*Machine, error) {
+	if j := cfg.Jail; j != nil {
+		if err := j.Link(cfg.Kernel, "vmlinux"); err != nil {
+			return nil, err
+		}
+		cfg.Kernel = "vmlinux"
+	}
 	m, fcLog, err := launch(cfg)
 	if err != nil {
 		return nil, err
@@ -75,6 +86,17 @@ type Snapshot struct {
 // at the relative path it was taken with; cfg.VsockUDS replaces the snapshot's vsock socket.
 // The guest clock is advanced to now (kvmclock, KVM_CLOCK_REALTIME).
 func Restore(ctx context.Context, cfg Config, snap Snapshot) (*Machine, error) {
+	if j := cfg.Jail; j != nil {
+		// Each jail has its own root, so the snapshot's relative paths (rootfs.ext4, v.sock)
+		// resolve per VM without overrides.
+		for src, name := range map[string]string{snap.VMState: "vmstate", snap.Mem: "mem"} {
+			if err := j.Link(src, name); err != nil {
+				return nil, err
+			}
+		}
+		snap = Snapshot{VMState: "vmstate", Mem: "mem"}
+		cfg.VsockUDS = ""
+	}
 	m, fcLog, err := launch(cfg)
 	if err != nil {
 		return nil, err
@@ -112,6 +134,9 @@ func (m *Machine) TakeSnapshot(ctx context.Context, snap Snapshot) error {
 
 // launch starts the Firecracker process and returns it with its log file path.
 func launch(cfg Config) (*Machine, string, error) {
+	if cfg.Jail != nil {
+		return launchJailed(cfg)
+	}
 	if err := os.MkdirAll(cfg.LogDir, 0o700); err != nil {
 		return nil, "", err
 	}
@@ -255,6 +280,14 @@ func (m *Machine) Kill() {
 }
 
 func (m *Machine) removeSockets() {
+	if j := m.cfg.Jail; j != nil {
+		// Keep Firecracker's log, then remove the jail (its sockets, links and per-run disk).
+		if b, err := os.ReadFile(j.Path("firecracker.log")); err == nil {
+			_ = os.WriteFile(filepath.Join(m.cfg.LogDir, "firecracker.log"), b, 0o600)
+		}
+		_ = j.Remove()
+		return
+	}
 	_ = os.Remove(m.cfg.Socket)
 	if v := m.cfg.VsockUDS; v != "" {
 		if !filepath.IsAbs(v) {
@@ -262,4 +295,49 @@ func (m *Machine) removeSockets() {
 		}
 		_ = os.Remove(v)
 	}
+}
+
+// jailSocket is the API socket's path inside a jail.
+const jailSocket = "fc.sock"
+
+// launchJailed starts the jailer in a new PID namespace. The jailer execs Firecracker in place,
+// so the process started here becomes Firecracker (PID 1 of that namespace) and Go's pidfd
+// keeps tracking it. (The jailer's own --new-pid-ns forks, which would lose the pidfd.)
+func launchJailed(cfg Config) (*Machine, string, error) {
+	j := cfg.Jail
+	if err := os.MkdirAll(cfg.LogDir, 0o700); err != nil {
+		return nil, "", err
+	}
+	serial, err := os.OpenFile(filepath.Join(cfg.LogDir, "serial.log"), os.O_CREATE|os.O_WRONLY|os.O_TRUNC, 0o600)
+	if err != nil {
+		return nil, "", err
+	}
+	defer serial.Close()
+	// Firecracker writes its log inside the jail; Kill and Shutdown copy it out.
+	const fcLog = "firecracker.log"
+	if err := os.WriteFile(j.Path(fcLog), nil, 0o600); err != nil {
+		return nil, "", err
+	}
+	if err := os.Chown(j.Path(fcLog), j.UID, j.GID); err != nil {
+		return nil, "", err
+	}
+	cfg.Socket = j.Path(jailSocket)
+	_ = os.Remove(cfg.Socket)
+
+	cmd := exec.Command(j.Jailer, j.args([]string{"--api-sock", "/" + jailSocket, "--enable-pci"})...)
+	cmd.Stdout, cmd.Stderr = serial, serial
+	cmd.SysProcAttr = &syscall.SysProcAttr{
+		Setsid:     true,
+		Pdeathsig:  syscall.SIGKILL, // cleared when the jailer drops privileges; Reap is the backstop
+		Cloneflags: syscall.CLONE_NEWPID,
+	}
+	if err := cmd.Start(); err != nil {
+		return nil, "", fmt.Errorf("starting jailer: %w", err)
+	}
+	m := &Machine{cfg: cfg, cmd: cmd, client: NewClient(cfg.Socket), done: make(chan struct{})}
+	go func() {
+		m.err = cmd.Wait()
+		close(m.done)
+	}()
+	return m, fcLog, nil
 }

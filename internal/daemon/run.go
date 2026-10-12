@@ -150,25 +150,26 @@ func (s *Server) detonate(ctx context.Context, r *run, u *url.URL, profile strin
 func (s *Server) bootVM(ctx context.Context, r *run, slot int, runDir string, addCleanup func(func(context.Context))) (*grpc.ClientConn, *report.Clone, error) {
 	img := s.cfg.Image
 	op := s.cfg.Operator
-	workDir := filepath.Join(s.cfg.WorkDir, r.id)
-	if err := op.MkdirAll(workDir, 0o700); err != nil {
+	// Every VMM runs in a jail (P5); the VM's disk is created inside it.
+	jail := s.jailFor(jailID(slot, r.id), slot, netns.VMNS(slot))
+	if err := jail.Prepare(); err != nil {
 		return nil, nil, err
 	}
-	addCleanup(func(context.Context) { os.RemoveAll(workDir) })
-	rootfs := filepath.Join(workDir, "rootfs.ext4")
+	addCleanup(func(context.Context) { _ = jail.Remove() }) // also if the VMM never started
+	const rootfs, vsock = "rootfs.ext4", "v.sock"           // paths inside the jail
 	base := img.Rootfs
 	if s.snap != nil {
 		base = s.snap.rootfs // the disk the snapshot's page cache expects
 	}
-	if err := vm.CloneFile(base, rootfs); err != nil {
+	if err := vm.CloneFile(base, jail.Path(rootfs)); err != nil {
 		return nil, nil, fmt.Errorf("cloning rootfs: %w", err)
 	}
-	if err := op.Chown(rootfs); err != nil { // Firecracker opens it as the operator
+	if err := os.Chown(jail.Path(rootfs), jail.UID, jail.GID); err != nil {
 		return nil, nil, err
 	}
 	r.mark("disk")
 
-	netVM, err := s.net.AddVM(ctx, slot, op.UID, op.GID)
+	netVM, err := s.net.AddVM(ctx, slot, jail.UID, jail.GID)
 	if err != nil {
 		return nil, nil, err
 	}
@@ -229,22 +230,17 @@ func (s *Server) bootVM(ctx context.Context, r *run, slot int, runDir string, ad
 		_ = os.Chmod(pcap, 0o600) // tcpdump creates it 0644; runs are private
 	})
 
-	vsockUDS := filepath.Join(s.cfg.SocketDir, r.id+".vsock")
 	vmCfg := vm.Config{
-		Firecracker: s.cfg.Firecracker,
-		Socket:      filepath.Join(s.cfg.SocketDir, r.id+".sock"),
-		Dir:         workDir,
-		LogDir:      filepath.Join(runDir, "host"),
-		Kernel:      img.Kernel,
-		BootArgs:    s.bootArgs(),
-		Rootfs:      rootfs,
-		NetNS:       netVM.NS,
-		RunAs:       &vm.Credential{UID: op.UID, GID: op.GID},
-		TapName:     netns.TapName,
-		GuestMAC:    netns.GuestMAC,
-		VsockUDS:    vsockUDS,
-		VCPUs:       s.cfg.VCPUs,
-		MemMiB:      s.cfg.MemMiB,
+		Jail:     jail,
+		LogDir:   filepath.Join(runDir, "host"),
+		Kernel:   img.Kernel,
+		BootArgs: s.bootArgs(),
+		Rootfs:   rootfs,
+		TapName:  netns.TapName,
+		GuestMAC: netns.GuestMAC,
+		VsockUDS: vsock,
+		VCPUs:    s.cfg.VCPUs,
+		MemMiB:   s.cfg.MemMiB,
 	}
 	t0 := time.Now()
 	var machine *vm.Machine
@@ -264,7 +260,7 @@ func (s *Server) bootVM(ctx context.Context, r *run, slot int, runDir string, ad
 	})
 	r.log.Info("vm started", "pid", machine.PID(), "netns", netVM.NS, "outside", client)
 
-	agent, err := dialAgent(vsockUDS)
+	agent, err := dialAgent(jail.Path(vsock))
 	if err != nil {
 		return nil, nil, err
 	}

@@ -1,6 +1,6 @@
 # Roadmap
 
-Status: **P0–P4 done; P5 next**. Each phase ends with a written note in [`docs/journal/`](./journal/): what worked, what broke, what changed in the design.
+Status: **P0–P4 done; P5 in progress**. Each phase ends with a written note in [`docs/journal/`](./journal/): what worked, what broke, what changed in the design.
 
 The order is deliberate: **safety before live URLs, a working end-to-end slice before optimization, the familiar web stack last.**
 

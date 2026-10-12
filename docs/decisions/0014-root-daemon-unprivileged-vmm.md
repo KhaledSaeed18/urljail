@@ -1,6 +1,6 @@
 # 0014: urljaild runs as root; VMMs run as the operator
 
-- Status: Accepted
+- Status: Accepted; VMM launch superseded by [0016](./0016-every-vmm-jailed.md) (jailer, per-slot uid instead of the operator)
 - Date: 2026-10-12
 
 ## Context
