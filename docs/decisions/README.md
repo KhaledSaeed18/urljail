@@ -18,6 +18,7 @@ One file per significant decision. Never edit an accepted ADR's decision. Supers
 | [0012](./0012-google-chrome-stable-in-guest.md) | Google Chrome stable in the guest, pinned and archived | Accepted | 2026-10-12 |
 | [0013](./0013-own-cdp-client-over-pipe.md) | Own CDP client over --remote-debugging-pipe (cdproto types, no chromedp) | Accepted | 2026-10-12 |
 | [0014](./0014-root-daemon-unprivileged-vmm.md) | urljaild runs as root; VMMs run as the operator | Accepted | 2026-10-12 |
+| [0015](./0015-restore-on-demand.md) | Restore on demand; kvmclock and VMGenID for clone safety (no pool, SyncClock or Reseed) | Accepted | 2026-10-12 |
 
 ## Template
 

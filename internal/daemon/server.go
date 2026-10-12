@@ -115,7 +115,7 @@ func (s *Server) Detonate(req *daemonv1.DetonateRequest, stream daemonv1.DaemonS
 	if err != nil {
 		return status.Errorf(codes.Internal, "run id: %v", err)
 	}
-	r := &run{id: id.String(), stream: stream, log: s.log.With("run", id.String())}
+	r := &run{id: id.String(), stream: stream, log: s.log.With("run", id.String()), start: time.Now()}
 
 	if err := r.send(daemonv1.RunState_RUN_STATE_REQUESTED, req.GetUrl()); err != nil {
 		return err
@@ -171,6 +171,30 @@ type run struct {
 	id     string
 	stream progressSender
 	log    *slog.Logger
+
+	start time.Time
+	mu    sync.Mutex
+	marks map[string]int64 // step → ms since start
+}
+
+// mark records that a lifecycle step finished (cumulative ms since the request).
+func (r *run) mark(step string) {
+	r.mu.Lock()
+	defer r.mu.Unlock()
+	if r.marks == nil {
+		r.marks = map[string]int64{}
+	}
+	r.marks[step] = time.Since(r.start).Milliseconds()
+}
+
+func (r *run) timings() map[string]int64 {
+	r.mu.Lock()
+	defer r.mu.Unlock()
+	out := make(map[string]int64, len(r.marks))
+	for k, v := range r.marks {
+		out[k] = v
+	}
+	return out
 }
 
 type progressSender interface {

@@ -1,6 +1,6 @@
 # Roadmap
 
-Status: **P0–P3 done; P4 in progress**. Each phase ends with a written note in [`docs/journal/`](./journal/): what worked, what broke, what changed in the design.
+Status: **P0–P4 done; P5 next**. Each phase ends with a written note in [`docs/journal/`](./journal/): what worked, what broke, what changed in the design.
 
 The order is deliberate: **safety before live URLs, a working end-to-end slice before optimization, the familiar web stack last.**
 
@@ -53,7 +53,7 @@ The whole pipeline, as simple as possible, **cold boot** (no snapshots yet).
 
 **Exit:** isolation test plan passes in `dev` mode; reports contain DNS, flows, SNI, blocked attempts, reconciliation. **Met:** [P3 journal](./journal/p3-network.md).
 
-## P4: Snapshot pool (next)
+## P4: Snapshot pool (done 2026-10-12)
 - Snapshot procedure from [guest-image.md](./guest-image.md) (warm Chromium, no network before snapshot)
 - Restore into pre-created netns (identical inner config, unique SNAT)
 - `SyncClock` (or `LoadSnapshot` `clock_realtime`) + `Reseed` on restore; check VMGenID actually reseeds (device + driver confirmed in P1)
@@ -61,9 +61,9 @@ The whole pipeline, as simple as possible, **cold boot** (no snapshots yet).
 - Pool manager: pre-warm N, replenish, reap orphans at startup
 - Benchmarks: restore latency p50/p95, memory per clone, page-cache sharing
 
-**Exit:** p50 restore-to-navigation < 1 s; 2–3 concurrent clones within RAM budget.
+**Exit:** p50 restore-to-navigation < 1 s; 2–3 concurrent clones within RAM budget. **Met:** p50 202 ms, 3 clones in +370 MiB ([journal](./journal/p4-snapshots.md)). Pool, SyncClock, Reseed and the ≥ 7.0 kernel were resolved differently: [ADR 0015](./decisions/0015-restore-on-demand.md).
 
-## P5: Jailer & hardening
+## P5: Jailer & hardening (next)
 - Run every VMM under the jailer: chroot, unprivileged uid/gid, cgroup v2 limits, own netns, seccomp
 - SELinux: custom policy module / contexts for jailer paths (Fedora, enforcing; never `setenforce 0` as the fix)
 - Firecracker rate limiters on net/block; artifact size caps; wall-clock kill

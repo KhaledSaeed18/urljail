@@ -22,6 +22,9 @@ type Meta struct {
 	Error     string            `json:"error,omitempty"`
 	Versions  map[string]string `json:"versions"`
 	Clone     *Clone            `json:"clone,omitempty"`
+	// Lifecycle steps, cumulative ms since the request: preflight, disk, netns, ebpf, capture,
+	// vmm, agent, navigate (restore-to-navigation), done.
+	TimingsMs map[string]int64 `json:"timings_ms,omitempty"`
 }
 
 // Clone records how a VM restored from a snapshot started (P4 clone safety).

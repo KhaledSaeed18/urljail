@@ -61,7 +61,7 @@ func (s *Server) SelfTest(ctx context.Context, _ *daemonv1.SelfTestRequest) (*da
 	}
 
 	id, _ := uuid.NewV7()
-	r := &run{id: id.String(), stream: noProgress{}, log: s.log.With("selftest", id.String())}
+	r := &run{id: id.String(), stream: noProgress{}, log: s.log.With("selftest", id.String()), start: time.Now()}
 	runDir := filepath.Join(s.cfg.RunsDir, r.id)
 	if err := s.cfg.Operator.MkdirAll(filepath.Join(runDir, "host"), 0o700); err != nil {
 		return nil, err

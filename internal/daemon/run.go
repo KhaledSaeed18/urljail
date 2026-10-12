@@ -79,6 +79,8 @@ func (s *Server) detonate(ctx context.Context, r *run, u *url.URL, profile strin
 	_ = report.WriteMeta(runDir, m)
 	defer func() {
 		m.EndedAt = time.Now().UTC()
+		r.mark("done")
+		m.TimingsMs = r.timings()
 		if m.Clone != nil { // teardown has run, so the serial log is complete
 			b, _ := os.ReadFile(filepath.Join(runDir, "host", "serial.log"))
 			m.Clone.VMGenIDReseed = bytes.Contains(b, []byte("crng reseeded due to virtual machine fork"))
@@ -109,6 +111,7 @@ func (s *Server) detonate(ctx context.Context, r *run, u *url.URL, profile strin
 		}
 	}()
 
+	r.mark("preflight")
 	if s.snap != nil {
 		err = r.send(daemonv1.RunState_RUN_STATE_RESTORING, "restoring "+s.snap.manifest.Name)
 	} else {
@@ -163,6 +166,7 @@ func (s *Server) bootVM(ctx context.Context, r *run, slot int, runDir string, ad
 	if err := op.Chown(rootfs); err != nil { // Firecracker opens it as the operator
 		return nil, nil, err
 	}
+	r.mark("disk")
 
 	netVM, err := s.net.AddVM(ctx, slot, op.UID, op.GID)
 	if err != nil {
@@ -172,6 +176,7 @@ func (s *Server) bootVM(ctx context.Context, r *run, slot int, runDir string, ad
 	if err := s.net.VerifyVM(ctx, netVM); err != nil {
 		return nil, nil, fmt.Errorf("preflight: %w", err)
 	}
+	r.mark("netns")
 
 	// Host-attested records: every DNS reply the resolver sends this VM, every packet of it
 	// the egress ruleset drops, and a full packet capture of its TAP.
@@ -197,6 +202,7 @@ func (s *Server) bootVM(ctx context.Context, r *run, slot int, runDir string, ad
 	if err != nil {
 		return nil, nil, err
 	}
+	r.mark("ebpf")
 	addCleanup(func(context.Context) {
 		flows := probe.Close()
 		fl, err := newJSONLog(filepath.Join(runDir, "host", "flows.jsonl"), maxHostRecords)
@@ -217,6 +223,7 @@ func (s *Server) bootVM(ctx context.Context, r *run, slot int, runDir string, ad
 	if err != nil {
 		return nil, nil, fmt.Errorf("packet capture: %w", err)
 	}
+	r.mark("capture")
 	addCleanup(func(context.Context) {
 		r.log.Info("capture stopped", "tcpdump", strings.Join(capture.Stop(), "; "))
 		_ = os.Chmod(pcap, 0o600) // tcpdump creates it 0644; runs are private
@@ -249,6 +256,7 @@ func (s *Server) bootVM(ctx context.Context, r *run, slot int, runDir string, ad
 	if err != nil {
 		return nil, nil, err
 	}
+	r.mark("vmm")
 	addCleanup(func(ctx context.Context) {
 		gctx, gcancel := context.WithTimeout(ctx, shutdownGrace)
 		defer gcancel()
@@ -265,6 +273,7 @@ func (s *Server) bootVM(ctx context.Context, r *run, slot int, runDir string, ad
 	if err != nil {
 		return nil, nil, err
 	}
+	r.mark("agent")
 	if hello.GetBrowserVersion() != img.Manifest.Browser.Version {
 		// Guest-attested, so only a warning: the host's record (the image manifest) stands.
 		r.log.Warn("guest reports a different browser than the image manifest",

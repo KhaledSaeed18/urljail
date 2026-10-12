@@ -65,11 +65,11 @@ Snapshot "profiles" = different browser configurations (baseline, stealth varian
 
 ## Clone-safety checklist (each restore)
 
-- [ ] Wall clock synced from host (`SyncClock`) before navigation
-- [ ] Kernel RNG reseeded (VMGenID if available + `Reseed` over vsock)
-- [ ] Userspace RNG state: open research question (Chromium/BoringSSL state is cloned): [research/snapshot-entropy.md](./research/snapshot-entropy.md)
-- [ ] Writable overlay is fresh (per-run)
-- [ ] Network identity unique outside (SNAT in VM netns)
+- [x] Wall clock right before navigation: `clock_realtime` + `clocksource=kvm-clock`; skew recorded per run (~214 ms) and checked by the self-test
+- [x] Kernel RNG reseeded: VMGenID, logged by the guest kernel, recorded per run, checked by the self-test
+- [ ] Userspace RNG state: open research question (Chromium/BoringSSL state is cloned; first data: 25/25 distinct ClientHello randoms across 3 clones): [research/snapshot-entropy.md](./research/snapshot-entropy.md)
+- [x] Disk is fresh per run: reflink of the snapshot's disk in the run's work directory
+- [x] Network identity unique outside: each clone's own VM namespace, SNAT to `10.200.<n>.2`
 
 ## Image build
 

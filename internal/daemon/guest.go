@@ -77,6 +77,9 @@ func (s *Server) runGuest(ctx context.Context, r *run, c guestv1.GuestAgentServi
 		}
 		switch msg := m.GetMsg().(type) {
 		case *guestv1.DetonateResponse_Progress:
+			if msg.Progress.GetStage() == guestv1.Stage_STAGE_NAVIGATING {
+				r.mark("navigate")
+			}
 			if state, ok := stageState[msg.Progress.GetStage()]; ok {
 				if err := r.send(state, msg.Progress.GetMessage()); err != nil {
 					return nil, err

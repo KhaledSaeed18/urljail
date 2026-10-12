@@ -2,7 +2,7 @@
 
 > Detonate suspicious URLs in disposable Firecracker microVMs and report what they actually do.
 
-**Status:** P3 done: per-VM and egress namespaces, fail-closed firewall, resolver, NFLOG, pcap and eBPF capture; reports reconcile host and guest. P4 (snapshot pool) next. No code yet. Last updated 2026-10-12.
+**Status:** P4 done: every run restores a snapshot with Chrome prepared (request → navigate p50 202 ms), clone safety checked per run. P5 (jailer and hardening) next. No code yet. Last updated 2026-10-12.
 
 ## Reading order
 

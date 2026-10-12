@@ -45,7 +45,7 @@ func run() error {
 	runsDir := flag.String("runs-dir", "", "where run directories are written (default ~operator/.local/share/urljail/runs)")
 	imageDir := flag.String("image", "", "guest image directory (default ~operator/.local/share/urljail/images/default)")
 	firecracker := flag.String("firecracker", "", "firecracker binary (default ~operator/.local/bin/firecracker)")
-	maxVMs := flag.Int("max-vms", 2, "concurrent VMs (RAM is the limit on this laptop)")
+	maxVMs := flag.Int("max-vms", 3, "concurrent VMs (snapshot clones share memory: ~125 MiB each here)")
 	vcpus := flag.Int("vcpus", 2, "vCPUs per VM")
 	mem := flag.Int("mem", 1024, "guest memory per VM, MiB")
 	defTimeout := flag.Duration("timeout", 30*time.Second, "default wall-clock limit per run")

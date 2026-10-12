@@ -1,7 +1,8 @@
 # P4: Snapshot pool
 
-- Status: **in progress**
+- Status: **closed**
 - Started: 2026-10-12
+- Closed: 2026-10-12
 - Roadmap: [P4](../roadmap.md#p4-snapshot-pool-next)
 - Exit: p50 restore-to-navigation < 1 s; 2–3 concurrent clones within RAM budget.
 
@@ -11,7 +12,7 @@
 | - | --------- | ----- |
 | M1 | Snapshot built at daemon start (Chrome prepared, no network), every run restored from it | done |
 | M2 | Clone safety: clock, VMGenID reseed, distinct kernel randomness across clones | done |
-| M3 | Pool of pre-restored clones, benchmarks (p50/p95, memory per clone, page-cache sharing), concurrency; exit criterion | |
+| M3 | Benchmarks (p50/p95 per step, memory per clone, page-cache sharing), concurrency; pool decided against ([ADR 0015](../decisions/0015-restore-on-demand.md)); exit criterion | done |
 
 ## M1 notes
 
@@ -46,3 +47,30 @@
 - **ClientHello randoms and session IDs: 25 of 25 distinct across the clones.** BoringSSL in the cloned Chrome isn't replaying the snapshot's state for the values servers see. That's three clones, not a proof of independence (key shares, V8's `Math.random`, other userspace generators weren't checked): it stays research R2's question.
 - **The constant 214 ms skew** is the time between the clock being captured at pause and the snapshot being written (the 1 GiB memory file); every clone lags by it. Well inside the 2 s check, and irrelevant for TLS.
 - With the snapshot's memory in the page cache, restore-to-navigation is **~170–260 ms**; right after a build (pages just written) it was 0.7–1.0 s.
+
+## M3 notes
+
+- **Per-step timings** are now in every run's `meta.json` (`timings_ms`, cumulative from the request: preflight, disk, netns, ebpf, capture, vmm, agent, navigate, done).
+- **20 sequential example.com runs, restored on demand:**
+
+| Step | p50 | p95 |
+| ---- | --- | --- |
+| preflight (hash checks) | 6 ms | 13 ms |
+| disk (reflink) | 1 ms | 2 ms |
+| netns (namespace, TAP, veth, rules) | 63 ms | 88 ms |
+| eBPF attach | 22 ms | 26 ms |
+| tcpdump listening | 22 ms | 44 ms |
+| VMM (start + `PUT /snapshot/load`) | 20 ms | 23 ms |
+| agent answering | 45 ms | 59 ms |
+| first navigate | 14 ms | 22 ms |
+| **request → navigate** | **202 ms** | **250 ms** |
+| whole run (incl. ~3.5 s dwell, teardown) | 4.66 s | 5.18 s |
+
+- **3 concurrent clones** (`-max-vms 3`): request → navigate p50 216 ms; runs 7.4–7.6 s each (CPU contention on 4 cores / 8 threads, not memory); all three reports consistent, all reseeded.
+- **Memory:** host MemAvailable 3712 → 3342 MiB with 3 clones running Chrome on a page: **~123 MiB per clone**. Per Firecracker: RSS ~395 MiB, PSS ~205 MiB, shared clean ~288 MiB (the snapshot's memory file through the page cache), private dirty ~106 MiB. A cold-booted VM needed ~1 GiB; the default concurrency is now 3.
+- **No pre-restored pool:** [ADR 0015](../decisions/0015-restore-on-demand.md) (the target is met 5×; a paused clone's clock would lag by its waiting time; SyncClock/Reseed replaced by kvmclock + VMGenID; the ≥ 7.0 kernel moves to research R2).
+- Test-script slip, again: a bare `wait` also waited for the daemon started in the same shell (as in P2). Wait on PIDs.
+
+## Exit criterion
+
+*p50 restore-to-navigation < 1 s; 2–3 concurrent clones within RAM budget.* **Met:** p50 202 ms (p95 250 ms); 3 concurrent clones in +370 MiB.
