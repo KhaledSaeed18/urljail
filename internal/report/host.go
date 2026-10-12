@@ -69,7 +69,7 @@ func readJSONL[T any](path string) ([]T, error) {
 
 // addHost fills the host-attested sections and the reconciliation. It reports whether the
 // run has host-side records at all (runs from before P3 don't).
-func addHost(r *reportv0.Report, runDir string) bool {
+func addHost(r *reportv0.Report, runDir string, reportHosts map[string]bool) bool {
 	host := filepath.Join(runDir, "host")
 	dns, dnsErr := readJSONL[hostDNS](filepath.Join(host, "dns.jsonl"))
 	flows, flowErr := readJSONL[hostFlow](filepath.Join(host, "flows.jsonl"))
@@ -101,6 +101,12 @@ func addHost(r *reportv0.Report, runDir string) bool {
 	final, _ := url.Parse(r.GetNavigation().GetFinalUrl())
 	hints := hintHosts(filepath.Join(runDir, "guest", "dom.html"), final)
 	isHintHost := func(h string) bool { return hints[strings.TrimSuffix(strings.ToLower(h), ".")] }
+	isReportHost := func(h string) bool { return reportHosts[strings.TrimSuffix(strings.ToLower(h), ".")] }
+	// When a navigation fails on DNS, Chrome's error page probes whether DNS works at all: a
+	// lookup of google.com through the system resolver and one sent straight to 8.8.8.8 (which
+	// the VM namespace redirects to urljail's resolver like any port-53 packet). Found in P6.
+	dnsProbe := strings.Contains(r.GetNavigation().GetError(), "ERR_NAME_NOT_RESOLVED")
+	isProbeName := func(h string) bool { return dnsProbe && strings.TrimSuffix(strings.ToLower(h), ".") == "google.com" }
 
 	rec := &reportv0.Reconciliation{}
 	hostAddrs, hostSNI := map[string]bool{}, map[string]bool{}
@@ -126,6 +132,12 @@ func addHost(r *reportv0.Report, runDir string) bool {
 		case name != "" && isHintHost(name):
 			fl.Label = "page-hint" // preconnect/prefetch the page asked for
 			rec.PageFlows++
+		case name != "" && isReportHost(name):
+			fl.Label = "page-report" // Reporting API / NEL endpoint the page's headers named
+			rec.PageFlows++
+		case dnsProbe && f.Dst == "8.8.8.8" && f.Dport == 53:
+			fl.Label = "browser-background" // the error page's DNS probe
+			rec.BackgroundFlows++
 		case name != "" && isBackground(name):
 			fl.Label = "browser-background"
 			rec.BackgroundFlows++
@@ -156,6 +168,10 @@ func addHost(r *reportv0.Report, runDir string) bool {
 			label = "page"
 		case isHintHost(q.Name):
 			label = "page-hint"
+		case isReportHost(q.Name):
+			label = "page-report"
+		case isProbeName(q.Name):
+			label = "browser-background"
 		case isBackground(q.Name):
 			label = "browser-background"
 		}

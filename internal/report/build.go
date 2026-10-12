@@ -104,7 +104,7 @@ func Build(runDir string) (*reportv0.Report, error) {
 		b.add(e)
 	}
 	b.finish(r)
-	if !addHost(r, runDir) {
+	if !addHost(r, runDir, b.reportHosts) {
 		r.Gaps = append(r.Gaps, "No host-side records (run from before P3): every network observation is guest-attested (source guest.cdp)")
 	}
 	return r, nil
@@ -184,11 +184,12 @@ func artifacts(runDir string) *reportv0.Artifacts {
 // CDP params, only the fields the report uses. Everything here is guest-supplied.
 type (
 	cdpResponse struct {
-		URL             string  `json:"url"`
-		Status          float64 `json:"status"`
-		RemoteIPAddress string  `json:"remoteIPAddress"`
-		Protocol        string  `json:"protocol"`
-		FromDiskCache   bool    `json:"fromDiskCache"`
+		URL             string         `json:"url"`
+		Status          float64        `json:"status"`
+		RemoteIPAddress string         `json:"remoteIPAddress"`
+		Protocol        string         `json:"protocol"`
+		FromDiskCache   bool           `json:"fromDiskCache"`
+		Headers         map[string]any `json:"headers"`
 		SecurityDetails *struct {
 			Protocol    string   `json:"protocol"`
 			SubjectName string   `json:"subjectName"`
@@ -261,6 +262,7 @@ type builder struct {
 	byID        map[string]*reportv0.Request
 	tls         map[string]*reportv0.Tls
 	hosts       map[string]bool
+	reportHosts map[string]bool // Reporting API / NEL endpoints named in response headers
 	dataURLs    int
 	dialogs     []*reportv0.Dialog
 	downloads   map[string]*reportv0.Download
@@ -273,6 +275,7 @@ func newBuilder() *builder {
 		byID:        map[string]*reportv0.Request{},
 		tls:         map[string]*reportv0.Tls{},
 		hosts:       map[string]bool{},
+		reportHosts: map[string]bool{},
 		downloads:   map[string]*reportv0.Download{},
 	}
 }
@@ -304,6 +307,11 @@ func (b *builder) add(e event) {
 			fillResponse(req, &p.Response)
 		}
 		b.addTLS(&p.Response)
+		for _, h := range reportEndpointHosts(p.Response.Headers) {
+			if len(b.reportHosts) < maxReportHosts {
+				b.reportHosts[h] = true
+			}
+		}
 		if p.Type == "Document" && b.isMain(p.FrameID) {
 			for i := len(b.hops) - 1; i >= 0; i-- {
 				if b.hops[i].Url == p.Response.URL && b.hops[i].Status == 0 {

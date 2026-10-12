@@ -3,6 +3,7 @@ package report
 import (
 	"os"
 	"path/filepath"
+	"slices"
 	"strconv"
 	"strings"
 	"testing"
@@ -113,5 +114,47 @@ func TestPageHints(t *testing.T) {
 	}
 	if len(r.GetReconciliation().GetUnexplainedFlows()) != 0 || len(r.GetReconciliation().GetUnexplainedDns()) != 0 {
 		t.Errorf("hinted host still unexplained: %v %v", r.GetReconciliation().GetUnexplainedFlows(), r.GetReconciliation().GetUnexplainedDns())
+	}
+}
+
+func TestReportEndpointHosts(t *testing.T) {
+	h := reportEndpointHosts(map[string]any{
+		"Report-To":           `{"group":"cf-nel","max_age":604800,"endpoints":[{"url":"https://a.nel.cloudflare.com/report/v4?s=x"}]}` + "\n" + `{"group":"g2","endpoints":[{"url":"https://r.example.test/x"},{"url":"http://plain.test/"}]}`,
+		"reporting-endpoints": `default="https://rep.example.test/r", csp="https://csp.example.test/c"`,
+		"nel":                 `{"report_to":"cf-nel","max_age":604800}`,
+		"x-bad":               7.0,
+	})
+	want := map[string]bool{"a.nel.cloudflare.com": true, "r.example.test": true, "rep.example.test": true, "csp.example.test": true}
+	if len(h) != len(want) {
+		t.Fatalf("got %v", h)
+	}
+	for _, x := range h {
+		if !want[x] {
+			t.Errorf("unexpected %q (only https endpoints count)", x)
+		}
+	}
+}
+
+func TestDNSProbeOnlyOnDNSError(t *testing.T) {
+	for _, navErr := range []string{"net::ERR_NAME_NOT_RESOLVED", ""} {
+		dir := writeRun(t, true)
+		writeHost(t, dir)
+		h := filepath.Join(dir, "host")
+		f, _ := os.OpenFile(filepath.Join(h, "flows.jsonl"), os.O_APPEND|os.O_WRONLY, 0)
+		f.WriteString(`{"proto":"udp","dst":"8.8.8.8","dport":53,"pkts_out":1,"bytes_out":70,"pkts_in":1,"bytes_in":166}` + "\n")
+		f.Close()
+		f, _ = os.OpenFile(filepath.Join(h, "dns.jsonl"), os.O_APPEND|os.O_WRONLY, 0)
+		f.WriteString(`{"time":"2026-10-12T13:00:05Z","qname":"google.com.","qtype":"A","rcode":"NOERROR"}` + "\n")
+		f.Close()
+		os.WriteFile(filepath.Join(dir, "guest", "done.json"), []byte(`{"final_url":"https://short.test/","navigation_error":"`+navErr+`"}`), 0o600)
+		r, err := Build(dir)
+		if err != nil {
+			t.Fatal(err)
+		}
+		flagged := strings.Contains(strings.Join(r.GetReconciliation().GetUnexplainedFlows(), " "), "8.8.8.8:53") &&
+			slices.Contains(r.GetReconciliation().GetUnexplainedDns(), "google.com")
+		if flagged != (navErr == "") {
+			t.Errorf("nav error %q: 8.8.8.8 probe flagged=%v", navErr, flagged)
+		}
 	}
 }

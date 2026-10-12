@@ -10,3 +10,4 @@ One entry per phase, written while the phase runs and closed when its exit crite
 | P4 | [p4-snapshots.md](./p4-snapshots.md) | Closed 2026-10-12 |
 | P5 | [p5-hardening.md](./p5-hardening.md) | Closed 2026-10-12 |
 | Live gate | [live-gate.md](./live-gate.md) | Passed 2026-10-12 |
+| P6 | [p6-anti-cloaking.md](./p6-anti-cloaking.md) | In progress |

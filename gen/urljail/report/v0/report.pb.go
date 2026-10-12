@@ -693,7 +693,7 @@ type DnsQuery struct {
 	Rcode  string                 `protobuf:"bytes,3,opt,name=rcode,proto3" json:"rcode,omitempty"`
 	Cached bool                   `protobuf:"varint,4,opt,name=cached,proto3" json:"cached,omitempty"`
 	Time   *timestamppb.Timestamp `protobuf:"bytes,5,opt,name=time,proto3" json:"time,omitempty"`
-	// "page", "page-hint", "browser-background" or "unexplained" (see Reconciliation).
+	// "page", "page-hint", "page-report", "browser-background" or "unexplained" (see Reconciliation).
 	Label         string `protobuf:"bytes,6,opt,name=label,proto3" json:"label,omitempty"`
 	Source        string `protobuf:"bytes,7,opt,name=source,proto3" json:"source,omitempty"`
 	unknownFields protoimpl.UnknownFields
@@ -796,7 +796,8 @@ type Flow struct {
 	Last        *timestamppb.Timestamp `protobuf:"bytes,11,opt,name=last,proto3" json:"last,omitempty"`
 	TcpFlagsOut string                 `protobuf:"bytes,12,opt,name=tcp_flags_out,json=tcpFlagsOut,proto3" json:"tcp_flags_out,omitempty"`
 	// "page" (matches a guest request), "page-hint" (a host the page's <link rel=preconnect,
-	// dns-prefetch, prefetch, preload> named), "browser-background" (Chrome's own traffic, not
+	// dns-prefetch, prefetch, preload> named), "page-report" (a Reporting API / NEL endpoint the
+	// page's response headers named), "browser-background" (Chrome's own traffic, not
 	// requested by the page), "dns" (to our resolver, including the guest's ICMP errors for late
 	// replies), "no-data" (no payload exchanged:
 	// preconnects, blocked attempts) or "unexplained".

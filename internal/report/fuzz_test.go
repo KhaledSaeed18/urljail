@@ -9,6 +9,7 @@ import (
 
 // Build runs in the root daemon over guest-written files: it must never panic or hang.
 func FuzzBuild(f *testing.F) {
+	f.Add([]byte(`{"method":"Network.responseReceived","params":{"requestId":"1","response":{"url":"https://x.test/","headers":{"Report-To":"{\"endpoints\":[{\"url\":\"https://r.test/\"}]}","Reporting-Endpoints":"a=\"https://e.test/\""}}}}`), []byte(`{"navigation_error":"net::ERR_NAME_NOT_RESOLVED"}`), []byte(``))
 	f.Add([]byte(events), []byte(`{"final_url":"https://x.test/","dwell":"3.5s","dropped_events":"2"}`), []byte(`<link rel="preconnect" href="//a.test">`))
 	f.Add([]byte(`{"method":"Network.requestWillBeSent","params":{"requestId":"1","redirectResponse":{"status":1e999}}}`), []byte(`[]`), []byte(`<link rel=dns-prefetch href=::>`))
 	f.Fuzz(func(t *testing.T, ev, done, dom []byte) {
