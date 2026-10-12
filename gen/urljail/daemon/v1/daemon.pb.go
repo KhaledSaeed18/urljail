@@ -360,6 +360,182 @@ func (x *DetonateResponse) GetError() string {
 	return ""
 }
 
+type SelfTestRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *SelfTestRequest) Reset() {
+	*x = SelfTestRequest{}
+	mi := &file_urljail_daemon_v1_daemon_proto_msgTypes[4]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *SelfTestRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*SelfTestRequest) ProtoMessage() {}
+
+func (x *SelfTestRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_urljail_daemon_v1_daemon_proto_msgTypes[4]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use SelfTestRequest.ProtoReflect.Descriptor instead.
+func (*SelfTestRequest) Descriptor() ([]byte, []int) {
+	return file_urljail_daemon_v1_daemon_proto_rawDescGZIP(), []int{4}
+}
+
+type SelfTestResponse struct {
+	state  protoimpl.MessageState `protogen:"open.v1"`
+	Checks []*Check               `protobuf:"bytes,1,rep,name=checks,proto3" json:"checks,omitempty"`
+	Passed bool                   `protobuf:"varint,2,opt,name=passed,proto3" json:"passed,omitempty"`
+	// Where selftest.json and the VM's logs were written.
+	RunDir        string `protobuf:"bytes,3,opt,name=run_dir,json=runDir,proto3" json:"run_dir,omitempty"`
+	EgressMode    string `protobuf:"bytes,4,opt,name=egress_mode,json=egressMode,proto3" json:"egress_mode,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *SelfTestResponse) Reset() {
+	*x = SelfTestResponse{}
+	mi := &file_urljail_daemon_v1_daemon_proto_msgTypes[5]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *SelfTestResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*SelfTestResponse) ProtoMessage() {}
+
+func (x *SelfTestResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_urljail_daemon_v1_daemon_proto_msgTypes[5]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use SelfTestResponse.ProtoReflect.Descriptor instead.
+func (*SelfTestResponse) Descriptor() ([]byte, []int) {
+	return file_urljail_daemon_v1_daemon_proto_rawDescGZIP(), []int{5}
+}
+
+func (x *SelfTestResponse) GetChecks() []*Check {
+	if x != nil {
+		return x.Checks
+	}
+	return nil
+}
+
+func (x *SelfTestResponse) GetPassed() bool {
+	if x != nil {
+		return x.Passed
+	}
+	return false
+}
+
+func (x *SelfTestResponse) GetRunDir() string {
+	if x != nil {
+		return x.RunDir
+	}
+	return ""
+}
+
+func (x *SelfTestResponse) GetEgressMode() string {
+	if x != nil {
+		return x.EgressMode
+	}
+	return ""
+}
+
+type Check struct {
+	state protoimpl.MessageState `protogen:"open.v1"`
+	Name  string                 `protobuf:"bytes,1,opt,name=name,proto3" json:"name,omitempty"`
+	// What the plan expects, e.g. "dropped (private)".
+	Expected string `protobuf:"bytes,2,opt,name=expected,proto3" json:"expected,omitempty"`
+	// What happened: the guest's outcome and the host's evidence.
+	Observed string `protobuf:"bytes,3,opt,name=observed,proto3" json:"observed,omitempty"`
+	// "pass", "fail" or "skip".
+	Result        string `protobuf:"bytes,4,opt,name=result,proto3" json:"result,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *Check) Reset() {
+	*x = Check{}
+	mi := &file_urljail_daemon_v1_daemon_proto_msgTypes[6]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *Check) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*Check) ProtoMessage() {}
+
+func (x *Check) ProtoReflect() protoreflect.Message {
+	mi := &file_urljail_daemon_v1_daemon_proto_msgTypes[6]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use Check.ProtoReflect.Descriptor instead.
+func (*Check) Descriptor() ([]byte, []int) {
+	return file_urljail_daemon_v1_daemon_proto_rawDescGZIP(), []int{6}
+}
+
+func (x *Check) GetName() string {
+	if x != nil {
+		return x.Name
+	}
+	return ""
+}
+
+func (x *Check) GetExpected() string {
+	if x != nil {
+		return x.Expected
+	}
+	return ""
+}
+
+func (x *Check) GetObserved() string {
+	if x != nil {
+		return x.Observed
+	}
+	return ""
+}
+
+func (x *Check) GetResult() string {
+	if x != nil {
+		return x.Result
+	}
+	return ""
+}
+
 var File_urljail_daemon_v1_daemon_proto protoreflect.FileDescriptor
 
 const file_urljail_daemon_v1_daemon_proto_rawDesc = "" +
@@ -382,7 +558,19 @@ const file_urljail_daemon_v1_daemon_proto_rawDesc = "" +
 	"\x04time\x18\x03 \x01(\v2\x1a.google.protobuf.TimestampR\x04time\x12\x18\n" +
 	"\amessage\x18\x04 \x01(\tR\amessage\x12\x17\n" +
 	"\arun_dir\x18\x05 \x01(\tR\x06runDir\x12\x14\n" +
-	"\x05error\x18\x06 \x01(\tR\x05error*\xcb\x02\n" +
+	"\x05error\x18\x06 \x01(\tR\x05error\"\x11\n" +
+	"\x0fSelfTestRequest\"\x96\x01\n" +
+	"\x10SelfTestResponse\x120\n" +
+	"\x06checks\x18\x01 \x03(\v2\x18.urljail.daemon.v1.CheckR\x06checks\x12\x16\n" +
+	"\x06passed\x18\x02 \x01(\bR\x06passed\x12\x17\n" +
+	"\arun_dir\x18\x03 \x01(\tR\x06runDir\x12\x1f\n" +
+	"\vegress_mode\x18\x04 \x01(\tR\n" +
+	"egressMode\"k\n" +
+	"\x05Check\x12\x12\n" +
+	"\x04name\x18\x01 \x01(\tR\x04name\x12\x1a\n" +
+	"\bexpected\x18\x02 \x01(\tR\bexpected\x12\x1a\n" +
+	"\bobserved\x18\x03 \x01(\tR\bobserved\x12\x16\n" +
+	"\x06result\x18\x04 \x01(\tR\x06result*\xcb\x02\n" +
 	"\bRunState\x12\x19\n" +
 	"\x15RUN_STATE_UNSPECIFIED\x10\x00\x12\x17\n" +
 	"\x13RUN_STATE_REQUESTED\x10\x01\x12\x17\n" +
@@ -397,10 +585,11 @@ const file_urljail_daemon_v1_daemon_proto_rawDesc = "" +
 	"\x12RUN_STATE_TEARDOWN\x10\n" +
 	"\x12\x12\n" +
 	"\x0eRUN_STATE_DONE\x10\v\x12\x14\n" +
-	"\x10RUN_STATE_FAILED\x10\f2\xb8\x01\n" +
+	"\x10RUN_STATE_FAILED\x10\f2\x8d\x02\n" +
 	"\rDaemonService\x12P\n" +
 	"\aVersion\x12!.urljail.daemon.v1.VersionRequest\x1a\".urljail.daemon.v1.VersionResponse\x12U\n" +
-	"\bDetonate\x12\".urljail.daemon.v1.DetonateRequest\x1a#.urljail.daemon.v1.DetonateResponse0\x01B\xcb\x01\n" +
+	"\bDetonate\x12\".urljail.daemon.v1.DetonateRequest\x1a#.urljail.daemon.v1.DetonateResponse0\x01\x12S\n" +
+	"\bSelfTest\x12\".urljail.daemon.v1.SelfTestRequest\x1a#.urljail.daemon.v1.SelfTestResponseB\xcb\x01\n" +
 	"\x15com.urljail.daemon.v1B\vDaemonProtoP\x01Z?github.com/KhaledSaeed18/urljail/gen/urljail/daemon/v1;daemonv1\xa2\x02\x03UDX\xaa\x02\x11Urljail.Daemon.V1\xca\x02\x11Urljail\\Daemon\\V1\xe2\x02\x1dUrljail\\Daemon\\V1\\GPBMetadata\xea\x02\x13Urljail::Daemon::V1b\x06proto3"
 
 var (
@@ -416,29 +605,35 @@ func file_urljail_daemon_v1_daemon_proto_rawDescGZIP() []byte {
 }
 
 var file_urljail_daemon_v1_daemon_proto_enumTypes = make([]protoimpl.EnumInfo, 1)
-var file_urljail_daemon_v1_daemon_proto_msgTypes = make([]protoimpl.MessageInfo, 4)
+var file_urljail_daemon_v1_daemon_proto_msgTypes = make([]protoimpl.MessageInfo, 7)
 var file_urljail_daemon_v1_daemon_proto_goTypes = []any{
 	(RunState)(0),                 // 0: urljail.daemon.v1.RunState
 	(*VersionRequest)(nil),        // 1: urljail.daemon.v1.VersionRequest
 	(*VersionResponse)(nil),       // 2: urljail.daemon.v1.VersionResponse
 	(*DetonateRequest)(nil),       // 3: urljail.daemon.v1.DetonateRequest
 	(*DetonateResponse)(nil),      // 4: urljail.daemon.v1.DetonateResponse
-	(*durationpb.Duration)(nil),   // 5: google.protobuf.Duration
-	(*timestamppb.Timestamp)(nil), // 6: google.protobuf.Timestamp
+	(*SelfTestRequest)(nil),       // 5: urljail.daemon.v1.SelfTestRequest
+	(*SelfTestResponse)(nil),      // 6: urljail.daemon.v1.SelfTestResponse
+	(*Check)(nil),                 // 7: urljail.daemon.v1.Check
+	(*durationpb.Duration)(nil),   // 8: google.protobuf.Duration
+	(*timestamppb.Timestamp)(nil), // 9: google.protobuf.Timestamp
 }
 var file_urljail_daemon_v1_daemon_proto_depIdxs = []int32{
-	5, // 0: urljail.daemon.v1.DetonateRequest.timeout:type_name -> google.protobuf.Duration
+	8, // 0: urljail.daemon.v1.DetonateRequest.timeout:type_name -> google.protobuf.Duration
 	0, // 1: urljail.daemon.v1.DetonateResponse.state:type_name -> urljail.daemon.v1.RunState
-	6, // 2: urljail.daemon.v1.DetonateResponse.time:type_name -> google.protobuf.Timestamp
-	1, // 3: urljail.daemon.v1.DaemonService.Version:input_type -> urljail.daemon.v1.VersionRequest
-	3, // 4: urljail.daemon.v1.DaemonService.Detonate:input_type -> urljail.daemon.v1.DetonateRequest
-	2, // 5: urljail.daemon.v1.DaemonService.Version:output_type -> urljail.daemon.v1.VersionResponse
-	4, // 6: urljail.daemon.v1.DaemonService.Detonate:output_type -> urljail.daemon.v1.DetonateResponse
-	5, // [5:7] is the sub-list for method output_type
-	3, // [3:5] is the sub-list for method input_type
-	3, // [3:3] is the sub-list for extension type_name
-	3, // [3:3] is the sub-list for extension extendee
-	0, // [0:3] is the sub-list for field type_name
+	9, // 2: urljail.daemon.v1.DetonateResponse.time:type_name -> google.protobuf.Timestamp
+	7, // 3: urljail.daemon.v1.SelfTestResponse.checks:type_name -> urljail.daemon.v1.Check
+	1, // 4: urljail.daemon.v1.DaemonService.Version:input_type -> urljail.daemon.v1.VersionRequest
+	3, // 5: urljail.daemon.v1.DaemonService.Detonate:input_type -> urljail.daemon.v1.DetonateRequest
+	5, // 6: urljail.daemon.v1.DaemonService.SelfTest:input_type -> urljail.daemon.v1.SelfTestRequest
+	2, // 7: urljail.daemon.v1.DaemonService.Version:output_type -> urljail.daemon.v1.VersionResponse
+	4, // 8: urljail.daemon.v1.DaemonService.Detonate:output_type -> urljail.daemon.v1.DetonateResponse
+	6, // 9: urljail.daemon.v1.DaemonService.SelfTest:output_type -> urljail.daemon.v1.SelfTestResponse
+	7, // [7:10] is the sub-list for method output_type
+	4, // [4:7] is the sub-list for method input_type
+	4, // [4:4] is the sub-list for extension type_name
+	4, // [4:4] is the sub-list for extension extendee
+	0, // [0:4] is the sub-list for field type_name
 }
 
 func init() { file_urljail_daemon_v1_daemon_proto_init() }
@@ -452,7 +647,7 @@ func file_urljail_daemon_v1_daemon_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_urljail_daemon_v1_daemon_proto_rawDesc), len(file_urljail_daemon_v1_daemon_proto_rawDesc)),
 			NumEnums:      1,
-			NumMessages:   4,
+			NumMessages:   7,
 			NumExtensions: 0,
 			NumServices:   1,
 		},

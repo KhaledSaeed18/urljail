@@ -12,6 +12,10 @@ service DaemonService {
   // Detonate opens one URL in one fresh microVM and streams the run's progress.
   // The stream ends after a RUN_STATE_DONE or RUN_STATE_FAILED message.
   rpc Detonate(DetonateRequest) returns (stream DetonateResponse);
+  // SelfTest boots a VM and runs the isolation test plan from inside it
+  // (docs/network.md#isolation-test-plan-must-pass-before-live-mode-is-enabled).
+  // It needs every VM slot, so it waits for no one and fails if a run is active.
+  rpc SelfTest(SelfTestRequest) returns (SelfTestResponse);
 }
 
 message VersionRequest {}
@@ -62,4 +66,24 @@ message DetonateResponse {
   string run_dir = 5;
   // Set with RUN_STATE_FAILED.
   string error = 6;
+}
+
+message SelfTestRequest {}
+
+message SelfTestResponse {
+  repeated Check checks = 1;
+  bool passed = 2;
+  // Where selftest.json and the VM's logs were written.
+  string run_dir = 3;
+  string egress_mode = 4;
+}
+
+message Check {
+  string name = 1;
+  // What the plan expects, e.g. "dropped (private)".
+  string expected = 2;
+  // What happened: the guest's outcome and the host's evidence.
+  string observed = 3;
+  // "pass", "fail" or "skip".
+  string result = 4;
 }

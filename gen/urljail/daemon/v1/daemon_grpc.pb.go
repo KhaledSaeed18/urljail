@@ -21,6 +21,7 @@ const _ = grpc.SupportPackageIsVersion9
 const (
 	DaemonService_Version_FullMethodName  = "/urljail.daemon.v1.DaemonService/Version"
 	DaemonService_Detonate_FullMethodName = "/urljail.daemon.v1.DaemonService/Detonate"
+	DaemonService_SelfTest_FullMethodName = "/urljail.daemon.v1.DaemonService/SelfTest"
 )
 
 // DaemonServiceClient is the client API for DaemonService service.
@@ -34,6 +35,10 @@ type DaemonServiceClient interface {
 	// Detonate opens one URL in one fresh microVM and streams the run's progress.
 	// The stream ends after a RUN_STATE_DONE or RUN_STATE_FAILED message.
 	Detonate(ctx context.Context, in *DetonateRequest, opts ...grpc.CallOption) (grpc.ServerStreamingClient[DetonateResponse], error)
+	// SelfTest boots a VM and runs the isolation test plan from inside it
+	// (docs/network.md#isolation-test-plan-must-pass-before-live-mode-is-enabled).
+	// It needs every VM slot, so it waits for no one and fails if a run is active.
+	SelfTest(ctx context.Context, in *SelfTestRequest, opts ...grpc.CallOption) (*SelfTestResponse, error)
 }
 
 type daemonServiceClient struct {
@@ -73,6 +78,16 @@ func (c *daemonServiceClient) Detonate(ctx context.Context, in *DetonateRequest,
 // This type alias is provided for backwards compatibility with existing code that references the prior non-generic stream type by name.
 type DaemonService_DetonateClient = grpc.ServerStreamingClient[DetonateResponse]
 
+func (c *daemonServiceClient) SelfTest(ctx context.Context, in *SelfTestRequest, opts ...grpc.CallOption) (*SelfTestResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(SelfTestResponse)
+	err := c.cc.Invoke(ctx, DaemonService_SelfTest_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // DaemonServiceServer is the server API for DaemonService service.
 // All implementations must embed UnimplementedDaemonServiceServer
 // for forward compatibility.
@@ -84,6 +99,10 @@ type DaemonServiceServer interface {
 	// Detonate opens one URL in one fresh microVM and streams the run's progress.
 	// The stream ends after a RUN_STATE_DONE or RUN_STATE_FAILED message.
 	Detonate(*DetonateRequest, grpc.ServerStreamingServer[DetonateResponse]) error
+	// SelfTest boots a VM and runs the isolation test plan from inside it
+	// (docs/network.md#isolation-test-plan-must-pass-before-live-mode-is-enabled).
+	// It needs every VM slot, so it waits for no one and fails if a run is active.
+	SelfTest(context.Context, *SelfTestRequest) (*SelfTestResponse, error)
 	mustEmbedUnimplementedDaemonServiceServer()
 }
 
@@ -99,6 +118,9 @@ func (UnimplementedDaemonServiceServer) Version(context.Context, *VersionRequest
 }
 func (UnimplementedDaemonServiceServer) Detonate(*DetonateRequest, grpc.ServerStreamingServer[DetonateResponse]) error {
 	return status.Error(codes.Unimplemented, "method Detonate not implemented")
+}
+func (UnimplementedDaemonServiceServer) SelfTest(context.Context, *SelfTestRequest) (*SelfTestResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method SelfTest not implemented")
 }
 func (UnimplementedDaemonServiceServer) mustEmbedUnimplementedDaemonServiceServer() {}
 func (UnimplementedDaemonServiceServer) testEmbeddedByValue()                       {}
@@ -150,6 +172,24 @@ func _DaemonService_Detonate_Handler(srv interface{}, stream grpc.ServerStream) 
 // This type alias is provided for backwards compatibility with existing code that references the prior non-generic stream type by name.
 type DaemonService_DetonateServer = grpc.ServerStreamingServer[DetonateResponse]
 
+func _DaemonService_SelfTest_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(SelfTestRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(DaemonServiceServer).SelfTest(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: DaemonService_SelfTest_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(DaemonServiceServer).SelfTest(ctx, req.(*SelfTestRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // DaemonService_ServiceDesc is the grpc.ServiceDesc for DaemonService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -160,6 +200,10 @@ var DaemonService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "Version",
 			Handler:    _DaemonService_Version_Handler,
+		},
+		{
+			MethodName: "SelfTest",
+			Handler:    _DaemonService_SelfTest_Handler,
 		},
 	},
 	Streams: []grpc.StreamDesc{

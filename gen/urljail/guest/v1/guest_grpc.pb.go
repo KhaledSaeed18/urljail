@@ -21,6 +21,7 @@ const _ = grpc.SupportPackageIsVersion9
 const (
 	GuestAgentService_Hello_FullMethodName    = "/urljail.guest.v1.GuestAgentService/Hello"
 	GuestAgentService_Detonate_FullMethodName = "/urljail.guest.v1.GuestAgentService/Detonate"
+	GuestAgentService_Probe_FullMethodName    = "/urljail.guest.v1.GuestAgentService/Probe"
 )
 
 // GuestAgentServiceClient is the client API for GuestAgentService service.
@@ -35,6 +36,10 @@ type GuestAgentServiceClient interface {
 	// Detonate opens one URL in a fresh Chrome and streams what happens. One at a time.
 	// The stream ends with a Done message.
 	Detonate(ctx context.Context, in *DetonateRequest, opts ...grpc.CallOption) (grpc.ServerStreamingClient[DetonateResponse], error)
+	// Probe makes network attempts from inside the guest for the isolation self-test
+	// (docs/network.md#isolation-test-plan-must-pass-before-live-mode-is-enabled).
+	// The host judges the outcome; the guest only reports what happened.
+	Probe(ctx context.Context, in *ProbeRequest, opts ...grpc.CallOption) (*ProbeResponse, error)
 }
 
 type guestAgentServiceClient struct {
@@ -74,6 +79,16 @@ func (c *guestAgentServiceClient) Detonate(ctx context.Context, in *DetonateRequ
 // This type alias is provided for backwards compatibility with existing code that references the prior non-generic stream type by name.
 type GuestAgentService_DetonateClient = grpc.ServerStreamingClient[DetonateResponse]
 
+func (c *guestAgentServiceClient) Probe(ctx context.Context, in *ProbeRequest, opts ...grpc.CallOption) (*ProbeResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(ProbeResponse)
+	err := c.cc.Invoke(ctx, GuestAgentService_Probe_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // GuestAgentServiceServer is the server API for GuestAgentService service.
 // All implementations must embed UnimplementedGuestAgentServiceServer
 // for forward compatibility.
@@ -86,6 +101,10 @@ type GuestAgentServiceServer interface {
 	// Detonate opens one URL in a fresh Chrome and streams what happens. One at a time.
 	// The stream ends with a Done message.
 	Detonate(*DetonateRequest, grpc.ServerStreamingServer[DetonateResponse]) error
+	// Probe makes network attempts from inside the guest for the isolation self-test
+	// (docs/network.md#isolation-test-plan-must-pass-before-live-mode-is-enabled).
+	// The host judges the outcome; the guest only reports what happened.
+	Probe(context.Context, *ProbeRequest) (*ProbeResponse, error)
 	mustEmbedUnimplementedGuestAgentServiceServer()
 }
 
@@ -101,6 +120,9 @@ func (UnimplementedGuestAgentServiceServer) Hello(context.Context, *HelloRequest
 }
 func (UnimplementedGuestAgentServiceServer) Detonate(*DetonateRequest, grpc.ServerStreamingServer[DetonateResponse]) error {
 	return status.Error(codes.Unimplemented, "method Detonate not implemented")
+}
+func (UnimplementedGuestAgentServiceServer) Probe(context.Context, *ProbeRequest) (*ProbeResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method Probe not implemented")
 }
 func (UnimplementedGuestAgentServiceServer) mustEmbedUnimplementedGuestAgentServiceServer() {}
 func (UnimplementedGuestAgentServiceServer) testEmbeddedByValue()                           {}
@@ -152,6 +174,24 @@ func _GuestAgentService_Detonate_Handler(srv interface{}, stream grpc.ServerStre
 // This type alias is provided for backwards compatibility with existing code that references the prior non-generic stream type by name.
 type GuestAgentService_DetonateServer = grpc.ServerStreamingServer[DetonateResponse]
 
+func _GuestAgentService_Probe_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ProbeRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(GuestAgentServiceServer).Probe(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: GuestAgentService_Probe_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(GuestAgentServiceServer).Probe(ctx, req.(*ProbeRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // GuestAgentService_ServiceDesc is the grpc.ServiceDesc for GuestAgentService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -162,6 +202,10 @@ var GuestAgentService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "Hello",
 			Handler:    _GuestAgentService_Hello_Handler,
+		},
+		{
+			MethodName: "Probe",
+			Handler:    _GuestAgentService_Probe_Handler,
 		},
 	},
 	Streams: []grpc.StreamDesc{

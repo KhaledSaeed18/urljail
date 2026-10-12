@@ -33,17 +33,17 @@ table inet urljail {
 		iifname "lo" accept
 		# The resolver, for VMs (their DNS is DNAT'd here in their own namespace).
 		iifname "veth-eg-*" ip saddr 10.200.0.0/16 meta l4proto { tcp, udp } th dport 53 accept
-		iifname "veth-eg-*" log prefix "uj input " group {{.LogGroup}} counter drop
+		iifname "veth-eg-*" log prefix "uj input " group {{.LogGroup}} counter drop comment "input"
 	}
 
 	chain forward {
 		type filter hook forward priority filter; policy drop;
 		ct state established,related accept
-		iifname "veth-eg-*" ip daddr @private4 log prefix "uj private " group {{.LogGroup}} counter drop
+		iifname "veth-eg-*" ip daddr @private4 log prefix "uj private " group {{.LogGroup}} counter drop comment "private"
 		# QUIC: forces TCP so SNI and TLS stay observable.
-		iifname "veth-eg-*" udp dport 443 log prefix "uj quic " group {{.LogGroup}} counter drop
+		iifname "veth-eg-*" udp dport 443 log prefix "uj quic " group {{.LogGroup}} counter drop comment "quic"
 		iifname "veth-eg-*" oifname "{{.Exit}}" tcp dport { 80, 443 } counter accept
-		iifname "veth-eg-*" log prefix "uj other " group {{.LogGroup}} counter drop
+		iifname "veth-eg-*" log prefix "uj other " group {{.LogGroup}} counter drop comment "other"
 	}
 
 	chain output {
@@ -81,12 +81,14 @@ table ip urljail {
 	chain input {
 		type filter hook input priority filter; policy drop;
 		ct state established,related accept
+		counter drop comment "vm-input"
 	}
 
 	chain forward {
 		type filter hook forward priority filter; policy drop;
 		ct state established,related accept
 		iifname "{{.Tap}}" oifname "{{.Veth}}" accept
+		counter drop comment "vm-forward"
 	}
 }
 `))

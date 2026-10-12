@@ -154,9 +154,18 @@ func (s *Server) timeout(req *daemonv1.DetonateRequest) (time.Duration, error) {
 // run sends one detonation's progress to the client.
 type run struct {
 	id     string
-	stream daemonv1.DaemonService_DetonateServer
+	stream progressSender
 	log    *slog.Logger
 }
+
+type progressSender interface {
+	Send(*daemonv1.DetonateResponse) error
+}
+
+// noProgress is the sender for runs nobody streams (the self-test).
+type noProgress struct{}
+
+func (noProgress) Send(*daemonv1.DetonateResponse) error { return nil }
 
 func (r *run) send(state daemonv1.RunState, msg string) error {
 	r.log.Info("state", "state", state.String(), "msg", msg)

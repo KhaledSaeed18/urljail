@@ -9,6 +9,7 @@ import (
 	"io"
 	"os"
 	"os/signal"
+	"path/filepath"
 	"syscall"
 	"time"
 
@@ -25,6 +26,7 @@ const usage = `usage: urljail [-socket path] <command> [args]
 commands:
   detonate [-profile p] [-timeout d] <url>   open a URL in a fresh microVM
   report <run-dir>                           rebuild report.json from a run's artifacts
+  selftest                                   run the network isolation test plan in a VM
   version                                    show CLI and daemon versions
 `
 
@@ -71,6 +73,8 @@ func run() error {
 		return cmdDetonate(ctx, client, args)
 	case "report":
 		return cmdReport(args)
+	case "selftest":
+		return cmdSelfTest(ctx, client)
 	default:
 		fmt.Fprintf(os.Stderr, "unknown command %q\n\n", cmd)
 		flag.Usage()
@@ -146,4 +150,26 @@ func stateName(s daemonv1.RunState) string {
 		n = n[len(prefix):]
 	}
 	return n
+}
+
+func cmdSelfTest(ctx context.Context, c daemonv1.DaemonServiceClient) error {
+	ctx, cancel := context.WithTimeout(ctx, 2*time.Minute)
+	defer cancel()
+	fmt.Println("booting a test VM and probing from inside it...")
+	res, err := c.SelfTest(ctx, &daemonv1.SelfTestRequest{})
+	if err != nil {
+		return fmt.Errorf("daemon: %w", err)
+	}
+	fmt.Printf("\nisolation self-test (egress mode %s)\n\n", res.GetEgressMode())
+	for _, ch := range res.GetChecks() {
+		mark := map[string]string{"pass": "PASS", "fail": "FAIL", "skip": "skip"}[ch.GetResult()]
+		fmt.Printf("  %-4s  %-44s %s\n        %-44s %s\n", mark, ch.GetName(), "expect: "+ch.GetExpected(), "", ch.GetObserved())
+	}
+	fmt.Printf("\n  details: %s\n", filepath.Join(res.GetRunDir(), "selftest.json"))
+	if !res.GetPassed() {
+		fmt.Println("\nFAILED: do not use live mode")
+		return exitError(1)
+	}
+	fmt.Println("\nall checks passed")
+	return nil
 }

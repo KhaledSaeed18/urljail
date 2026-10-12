@@ -10,7 +10,7 @@
 | # | Milestone | State |
 | - | --------- | ----- |
 | M1 | Root daemon ([ADR 0014](../decisions/0014-root-daemon-unprivileged-vmm.md)); per-VM + egress namespaces; nftables rulesets with hash check; unbound with rebind protection; per-run DNS log | done |
-| M2 | Isolation test plan, automated through guest probes | |
+| M2 | Isolation test plan automated: `urljail selftest`, guest `Probe` RPC + host drop counters / DNS log | done |
 | M3 | eBPF (TCX) flow + TLS SNI/ALPN capture; pcap; blocked attempts from NFLOG | |
 | M4 | Host-side report sections, host/guest reconciliation, background-traffic labels, `urljail doctor` | |
 
@@ -28,3 +28,30 @@
 The first host-side DNS log showed what CDP never did: besides `example.com`, Chrome looked up `redirector.gvt1.com`, `edgedl.me.gvt1.com`, `clients2.google.com`, `update.googleapis.com`, `accounts.google.com`, `www.google.com`, `android.clients.google.com` and `mtalk.google.com` during a single run, despite `--disable-background-networking`. These are browser-internal requests (component updater, sign-in, GCM), which the page's `Network` domain doesn't report. This is exactly what the two-witness design (G2) is for.
 
 Adding the `ComponentUpdatesEnabled: false` policy cut it from 11 to 8 names; the rest is what real Chrome does. Decision: keep the policy, and label known browser-background destinations in the report (M4) instead of trying to hide them.
+
+## M2 notes
+
+- **`urljail selftest`** boots a VM (the shared `bootVM` path, so the test exercises exactly what detonations use) and asks the guest agent to `Probe`: TCP connects, a UDP datagram, and DNS lookups, all concurrently from inside the guest. The guest only reports what happened; the daemon judges.
+- **Two-sided evidence per check:** the guest's outcome (e.g. `timeout`) plus host evidence: the nftables drop counter for that rule rising (`private`, `quic`, `other`, `input` in the egress namespace; `vm-input` in the VM namespace; rules now carry comments so `nft -j` counters can be read), or the probe's unique name appearing in the host DNS log. The self-test holds every VM slot, so nothing else moves the counters.
+- **Rebind checks have a positive control:** `1.1.1.1.nip.io` must resolve, so a broken `nip.io` can't make `192.168.1.1.nip.io` / `127.0.0.1.nip.io` "pass" by not answering.
+- **The host's own LAN is probed by discovery:** default gateway, the host's addresses on the default interface, Docker's bridge (`192.168.0.1`, `192.168.0.116`, `172.17.0.1` here).
+
+### Result (dev mode, 2026-10-12): 16 pass, 0 fail, 2 skipped (live only)
+
+| Check | Guest | Host |
+| ----- | ----- | ---- |
+| Public HTTPS (control) | connected | — |
+| Public non-web port (1.1.1.1:22) | timeout | `other` +2 |
+| Cloud metadata 169.254.169.254 | timeout | `private` |
+| Another VM (10.200.1.2) | timeout | `private` |
+| Host side of the exit (10.199.0.1) | timeout | `private` |
+| Egress namespace itself | timeout | `input` +2 |
+| VM namespace itself (172.16.0.1:22) | timeout | `vm-input` +2 |
+| QUIC (UDP 443) | no reply | `quic` +1 |
+| DNS sent to 8.8.8.8 | answered (NXDOMAIN) | name in host DNS log |
+| Rebind control `1.1.1.1.nip.io` | resolved 1.1.1.1 | — |
+| Rebind to RFC 1918 / loopback | no answer | — |
+| Default gateway, host address, Docker bridge | timeout | `private` |
+| Non-allowlisted URL in dev mode | — | refused by policy |
+
+**Known weakness, to fix in M3:** the six `private` checks share one counter (all saw +12), so the host evidence is "private drops happened", not "this destination was dropped". Each still needs its own guest-side timeout, and an allowed probe would have connected or been refused instead, so it can't pass by accident; but M3's NFLOG listener sees each dropped packet's destination, and the checks should then require per-destination evidence.

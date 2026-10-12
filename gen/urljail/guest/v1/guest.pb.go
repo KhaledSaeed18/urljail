@@ -646,6 +646,344 @@ func (x *Done) GetError() string {
 	return ""
 }
 
+type ProbeRequest struct {
+	state  protoimpl.MessageState `protogen:"open.v1"`
+	Probes []*ProbeSpec           `protobuf:"bytes,1,rep,name=probes,proto3" json:"probes,omitempty"`
+	// Per probe; probes run concurrently.
+	Timeout       *durationpb.Duration `protobuf:"bytes,2,opt,name=timeout,proto3" json:"timeout,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *ProbeRequest) Reset() {
+	*x = ProbeRequest{}
+	mi := &file_urljail_guest_v1_guest_proto_msgTypes[8]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ProbeRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ProbeRequest) ProtoMessage() {}
+
+func (x *ProbeRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_urljail_guest_v1_guest_proto_msgTypes[8]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ProbeRequest.ProtoReflect.Descriptor instead.
+func (*ProbeRequest) Descriptor() ([]byte, []int) {
+	return file_urljail_guest_v1_guest_proto_rawDescGZIP(), []int{8}
+}
+
+func (x *ProbeRequest) GetProbes() []*ProbeSpec {
+	if x != nil {
+		return x.Probes
+	}
+	return nil
+}
+
+func (x *ProbeRequest) GetTimeout() *durationpb.Duration {
+	if x != nil {
+		return x.Timeout
+	}
+	return nil
+}
+
+type ProbeSpec struct {
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// Echoed back in the result.
+	Id string `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
+	// Types that are valid to be assigned to Kind:
+	//
+	//	*ProbeSpec_Tcp
+	//	*ProbeSpec_Udp
+	//	*ProbeSpec_Dns
+	//	*ProbeSpec_DnsVia
+	Kind          isProbeSpec_Kind `protobuf_oneof:"kind"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *ProbeSpec) Reset() {
+	*x = ProbeSpec{}
+	mi := &file_urljail_guest_v1_guest_proto_msgTypes[9]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ProbeSpec) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ProbeSpec) ProtoMessage() {}
+
+func (x *ProbeSpec) ProtoReflect() protoreflect.Message {
+	mi := &file_urljail_guest_v1_guest_proto_msgTypes[9]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ProbeSpec.ProtoReflect.Descriptor instead.
+func (*ProbeSpec) Descriptor() ([]byte, []int) {
+	return file_urljail_guest_v1_guest_proto_rawDescGZIP(), []int{9}
+}
+
+func (x *ProbeSpec) GetId() string {
+	if x != nil {
+		return x.Id
+	}
+	return ""
+}
+
+func (x *ProbeSpec) GetKind() isProbeSpec_Kind {
+	if x != nil {
+		return x.Kind
+	}
+	return nil
+}
+
+func (x *ProbeSpec) GetTcp() string {
+	if x != nil {
+		if x, ok := x.Kind.(*ProbeSpec_Tcp); ok {
+			return x.Tcp
+		}
+	}
+	return ""
+}
+
+func (x *ProbeSpec) GetUdp() string {
+	if x != nil {
+		if x, ok := x.Kind.(*ProbeSpec_Udp); ok {
+			return x.Udp
+		}
+	}
+	return ""
+}
+
+func (x *ProbeSpec) GetDns() string {
+	if x != nil {
+		if x, ok := x.Kind.(*ProbeSpec_Dns); ok {
+			return x.Dns
+		}
+	}
+	return ""
+}
+
+func (x *ProbeSpec) GetDnsVia() *DNSVia {
+	if x != nil {
+		if x, ok := x.Kind.(*ProbeSpec_DnsVia); ok {
+			return x.DnsVia
+		}
+	}
+	return nil
+}
+
+type isProbeSpec_Kind interface {
+	isProbeSpec_Kind()
+}
+
+type ProbeSpec_Tcp struct {
+	// Open a TCP connection to host:port.
+	Tcp string `protobuf:"bytes,2,opt,name=tcp,proto3,oneof"`
+}
+
+type ProbeSpec_Udp struct {
+	// Send one UDP datagram to host:port and wait briefly for any reply.
+	Udp string `protobuf:"bytes,3,opt,name=udp,proto3,oneof"`
+}
+
+type ProbeSpec_Dns struct {
+	// Resolve a name with the guest's configured resolver.
+	Dns string `protobuf:"bytes,4,opt,name=dns,proto3,oneof"`
+}
+
+type ProbeSpec_DnsVia struct {
+	// Resolve a name by asking this server ("ip:53") directly.
+	DnsVia *DNSVia `protobuf:"bytes,5,opt,name=dns_via,json=dnsVia,proto3,oneof"`
+}
+
+func (*ProbeSpec_Tcp) isProbeSpec_Kind() {}
+
+func (*ProbeSpec_Udp) isProbeSpec_Kind() {}
+
+func (*ProbeSpec_Dns) isProbeSpec_Kind() {}
+
+func (*ProbeSpec_DnsVia) isProbeSpec_Kind() {}
+
+type DNSVia struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Name          string                 `protobuf:"bytes,1,opt,name=name,proto3" json:"name,omitempty"`
+	Server        string                 `protobuf:"bytes,2,opt,name=server,proto3" json:"server,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *DNSVia) Reset() {
+	*x = DNSVia{}
+	mi := &file_urljail_guest_v1_guest_proto_msgTypes[10]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *DNSVia) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*DNSVia) ProtoMessage() {}
+
+func (x *DNSVia) ProtoReflect() protoreflect.Message {
+	mi := &file_urljail_guest_v1_guest_proto_msgTypes[10]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use DNSVia.ProtoReflect.Descriptor instead.
+func (*DNSVia) Descriptor() ([]byte, []int) {
+	return file_urljail_guest_v1_guest_proto_rawDescGZIP(), []int{10}
+}
+
+func (x *DNSVia) GetName() string {
+	if x != nil {
+		return x.Name
+	}
+	return ""
+}
+
+func (x *DNSVia) GetServer() string {
+	if x != nil {
+		return x.Server
+	}
+	return ""
+}
+
+type ProbeResult struct {
+	state protoimpl.MessageState `protogen:"open.v1"`
+	Id    string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
+	// "connected", "timeout", "refused", "reply", "no reply", "resolved", "no answer" or "error".
+	Outcome string `protobuf:"bytes,2,opt,name=outcome,proto3" json:"outcome,omitempty"`
+	// Addresses for DNS probes; error text otherwise.
+	Detail        []string `protobuf:"bytes,3,rep,name=detail,proto3" json:"detail,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *ProbeResult) Reset() {
+	*x = ProbeResult{}
+	mi := &file_urljail_guest_v1_guest_proto_msgTypes[11]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ProbeResult) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ProbeResult) ProtoMessage() {}
+
+func (x *ProbeResult) ProtoReflect() protoreflect.Message {
+	mi := &file_urljail_guest_v1_guest_proto_msgTypes[11]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ProbeResult.ProtoReflect.Descriptor instead.
+func (*ProbeResult) Descriptor() ([]byte, []int) {
+	return file_urljail_guest_v1_guest_proto_rawDescGZIP(), []int{11}
+}
+
+func (x *ProbeResult) GetId() string {
+	if x != nil {
+		return x.Id
+	}
+	return ""
+}
+
+func (x *ProbeResult) GetOutcome() string {
+	if x != nil {
+		return x.Outcome
+	}
+	return ""
+}
+
+func (x *ProbeResult) GetDetail() []string {
+	if x != nil {
+		return x.Detail
+	}
+	return nil
+}
+
+type ProbeResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Results       []*ProbeResult         `protobuf:"bytes,1,rep,name=results,proto3" json:"results,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *ProbeResponse) Reset() {
+	*x = ProbeResponse{}
+	mi := &file_urljail_guest_v1_guest_proto_msgTypes[12]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ProbeResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ProbeResponse) ProtoMessage() {}
+
+func (x *ProbeResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_urljail_guest_v1_guest_proto_msgTypes[12]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ProbeResponse.ProtoReflect.Descriptor instead.
+func (*ProbeResponse) Descriptor() ([]byte, []int) {
+	return file_urljail_guest_v1_guest_proto_rawDescGZIP(), []int{12}
+}
+
+func (x *ProbeResponse) GetResults() []*ProbeResult {
+	if x != nil {
+		return x.Results
+	}
+	return nil
+}
+
 var File_urljail_guest_v1_guest_proto protoreflect.FileDescriptor
 
 const file_urljail_guest_v1_guest_proto_rawDesc = "" +
@@ -688,15 +1026,35 @@ const file_urljail_guest_v1_guest_proto_rawDesc = "" +
 	"\x05dwell\x18\x04 \x01(\v2\x19.google.protobuf.DurationR\x05dwell\x12!\n" +
 	"\fdwell_reason\x18\x05 \x01(\tR\vdwellReason\x12%\n" +
 	"\x0edropped_events\x18\x06 \x01(\x03R\rdroppedEvents\x12\x14\n" +
-	"\x05error\x18\a \x01(\tR\x05error*_\n" +
+	"\x05error\x18\a \x01(\tR\x05error\"x\n" +
+	"\fProbeRequest\x123\n" +
+	"\x06probes\x18\x01 \x03(\v2\x1b.urljail.guest.v1.ProbeSpecR\x06probes\x123\n" +
+	"\atimeout\x18\x02 \x01(\v2\x19.google.protobuf.DurationR\atimeout\"\x94\x01\n" +
+	"\tProbeSpec\x12\x0e\n" +
+	"\x02id\x18\x01 \x01(\tR\x02id\x12\x12\n" +
+	"\x03tcp\x18\x02 \x01(\tH\x00R\x03tcp\x12\x12\n" +
+	"\x03udp\x18\x03 \x01(\tH\x00R\x03udp\x12\x12\n" +
+	"\x03dns\x18\x04 \x01(\tH\x00R\x03dns\x123\n" +
+	"\adns_via\x18\x05 \x01(\v2\x18.urljail.guest.v1.DNSViaH\x00R\x06dnsViaB\x06\n" +
+	"\x04kind\"4\n" +
+	"\x06DNSVia\x12\x12\n" +
+	"\x04name\x18\x01 \x01(\tR\x04name\x12\x16\n" +
+	"\x06server\x18\x02 \x01(\tR\x06server\"O\n" +
+	"\vProbeResult\x12\x0e\n" +
+	"\x02id\x18\x01 \x01(\tR\x02id\x12\x18\n" +
+	"\aoutcome\x18\x02 \x01(\tR\aoutcome\x12\x16\n" +
+	"\x06detail\x18\x03 \x03(\tR\x06detail\"H\n" +
+	"\rProbeResponse\x127\n" +
+	"\aresults\x18\x01 \x03(\v2\x1d.urljail.guest.v1.ProbeResultR\aresults*_\n" +
 	"\x05Stage\x12\x15\n" +
 	"\x11STAGE_UNSPECIFIED\x10\x00\x12\x14\n" +
 	"\x10STAGE_NAVIGATING\x10\x01\x12\x13\n" +
 	"\x0fSTAGE_OBSERVING\x10\x02\x12\x14\n" +
-	"\x10STAGE_COLLECTING\x10\x032\xb2\x01\n" +
+	"\x10STAGE_COLLECTING\x10\x032\xfc\x01\n" +
 	"\x11GuestAgentService\x12H\n" +
 	"\x05Hello\x12\x1e.urljail.guest.v1.HelloRequest\x1a\x1f.urljail.guest.v1.HelloResponse\x12S\n" +
-	"\bDetonate\x12!.urljail.guest.v1.DetonateRequest\x1a\".urljail.guest.v1.DetonateResponse0\x01B\xc3\x01\n" +
+	"\bDetonate\x12!.urljail.guest.v1.DetonateRequest\x1a\".urljail.guest.v1.DetonateResponse0\x01\x12H\n" +
+	"\x05Probe\x12\x1e.urljail.guest.v1.ProbeRequest\x1a\x1f.urljail.guest.v1.ProbeResponseB\xc3\x01\n" +
 	"\x14com.urljail.guest.v1B\n" +
 	"GuestProtoP\x01Z=github.com/KhaledSaeed18/urljail/gen/urljail/guest/v1;guestv1\xa2\x02\x03UGX\xaa\x02\x10Urljail.Guest.V1\xca\x02\x10Urljail\\Guest\\V1\xe2\x02\x1cUrljail\\Guest\\V1\\GPBMetadata\xea\x02\x12Urljail::Guest::V1b\x06proto3"
 
@@ -713,7 +1071,7 @@ func file_urljail_guest_v1_guest_proto_rawDescGZIP() []byte {
 }
 
 var file_urljail_guest_v1_guest_proto_enumTypes = make([]protoimpl.EnumInfo, 1)
-var file_urljail_guest_v1_guest_proto_msgTypes = make([]protoimpl.MessageInfo, 8)
+var file_urljail_guest_v1_guest_proto_msgTypes = make([]protoimpl.MessageInfo, 13)
 var file_urljail_guest_v1_guest_proto_goTypes = []any{
 	(Stage)(0),                    // 0: urljail.guest.v1.Stage
 	(*HelloRequest)(nil),          // 1: urljail.guest.v1.HelloRequest
@@ -724,30 +1082,41 @@ var file_urljail_guest_v1_guest_proto_goTypes = []any{
 	(*Event)(nil),                 // 6: urljail.guest.v1.Event
 	(*Artifact)(nil),              // 7: urljail.guest.v1.Artifact
 	(*Done)(nil),                  // 8: urljail.guest.v1.Done
-	(*durationpb.Duration)(nil),   // 9: google.protobuf.Duration
-	(*timestamppb.Timestamp)(nil), // 10: google.protobuf.Timestamp
+	(*ProbeRequest)(nil),          // 9: urljail.guest.v1.ProbeRequest
+	(*ProbeSpec)(nil),             // 10: urljail.guest.v1.ProbeSpec
+	(*DNSVia)(nil),                // 11: urljail.guest.v1.DNSVia
+	(*ProbeResult)(nil),           // 12: urljail.guest.v1.ProbeResult
+	(*ProbeResponse)(nil),         // 13: urljail.guest.v1.ProbeResponse
+	(*durationpb.Duration)(nil),   // 14: google.protobuf.Duration
+	(*timestamppb.Timestamp)(nil), // 15: google.protobuf.Timestamp
 }
 var file_urljail_guest_v1_guest_proto_depIdxs = []int32{
-	9,  // 0: urljail.guest.v1.HelloResponse.uptime:type_name -> google.protobuf.Duration
-	9,  // 1: urljail.guest.v1.DetonateRequest.min_dwell:type_name -> google.protobuf.Duration
-	9,  // 2: urljail.guest.v1.DetonateRequest.max_dwell:type_name -> google.protobuf.Duration
-	9,  // 3: urljail.guest.v1.DetonateRequest.jitter:type_name -> google.protobuf.Duration
+	14, // 0: urljail.guest.v1.HelloResponse.uptime:type_name -> google.protobuf.Duration
+	14, // 1: urljail.guest.v1.DetonateRequest.min_dwell:type_name -> google.protobuf.Duration
+	14, // 2: urljail.guest.v1.DetonateRequest.max_dwell:type_name -> google.protobuf.Duration
+	14, // 3: urljail.guest.v1.DetonateRequest.jitter:type_name -> google.protobuf.Duration
 	5,  // 4: urljail.guest.v1.DetonateResponse.progress:type_name -> urljail.guest.v1.Progress
 	6,  // 5: urljail.guest.v1.DetonateResponse.event:type_name -> urljail.guest.v1.Event
 	7,  // 6: urljail.guest.v1.DetonateResponse.artifact:type_name -> urljail.guest.v1.Artifact
 	8,  // 7: urljail.guest.v1.DetonateResponse.done:type_name -> urljail.guest.v1.Done
 	0,  // 8: urljail.guest.v1.Progress.stage:type_name -> urljail.guest.v1.Stage
-	10, // 9: urljail.guest.v1.Event.time:type_name -> google.protobuf.Timestamp
-	9,  // 10: urljail.guest.v1.Done.dwell:type_name -> google.protobuf.Duration
-	1,  // 11: urljail.guest.v1.GuestAgentService.Hello:input_type -> urljail.guest.v1.HelloRequest
-	3,  // 12: urljail.guest.v1.GuestAgentService.Detonate:input_type -> urljail.guest.v1.DetonateRequest
-	2,  // 13: urljail.guest.v1.GuestAgentService.Hello:output_type -> urljail.guest.v1.HelloResponse
-	4,  // 14: urljail.guest.v1.GuestAgentService.Detonate:output_type -> urljail.guest.v1.DetonateResponse
-	13, // [13:15] is the sub-list for method output_type
-	11, // [11:13] is the sub-list for method input_type
-	11, // [11:11] is the sub-list for extension type_name
-	11, // [11:11] is the sub-list for extension extendee
-	0,  // [0:11] is the sub-list for field type_name
+	15, // 9: urljail.guest.v1.Event.time:type_name -> google.protobuf.Timestamp
+	14, // 10: urljail.guest.v1.Done.dwell:type_name -> google.protobuf.Duration
+	10, // 11: urljail.guest.v1.ProbeRequest.probes:type_name -> urljail.guest.v1.ProbeSpec
+	14, // 12: urljail.guest.v1.ProbeRequest.timeout:type_name -> google.protobuf.Duration
+	11, // 13: urljail.guest.v1.ProbeSpec.dns_via:type_name -> urljail.guest.v1.DNSVia
+	12, // 14: urljail.guest.v1.ProbeResponse.results:type_name -> urljail.guest.v1.ProbeResult
+	1,  // 15: urljail.guest.v1.GuestAgentService.Hello:input_type -> urljail.guest.v1.HelloRequest
+	3,  // 16: urljail.guest.v1.GuestAgentService.Detonate:input_type -> urljail.guest.v1.DetonateRequest
+	9,  // 17: urljail.guest.v1.GuestAgentService.Probe:input_type -> urljail.guest.v1.ProbeRequest
+	2,  // 18: urljail.guest.v1.GuestAgentService.Hello:output_type -> urljail.guest.v1.HelloResponse
+	4,  // 19: urljail.guest.v1.GuestAgentService.Detonate:output_type -> urljail.guest.v1.DetonateResponse
+	13, // 20: urljail.guest.v1.GuestAgentService.Probe:output_type -> urljail.guest.v1.ProbeResponse
+	18, // [18:21] is the sub-list for method output_type
+	15, // [15:18] is the sub-list for method input_type
+	15, // [15:15] is the sub-list for extension type_name
+	15, // [15:15] is the sub-list for extension extendee
+	0,  // [0:15] is the sub-list for field type_name
 }
 
 func init() { file_urljail_guest_v1_guest_proto_init() }
@@ -761,13 +1130,19 @@ func file_urljail_guest_v1_guest_proto_init() {
 		(*DetonateResponse_Artifact)(nil),
 		(*DetonateResponse_Done)(nil),
 	}
+	file_urljail_guest_v1_guest_proto_msgTypes[9].OneofWrappers = []any{
+		(*ProbeSpec_Tcp)(nil),
+		(*ProbeSpec_Udp)(nil),
+		(*ProbeSpec_Dns)(nil),
+		(*ProbeSpec_DnsVia)(nil),
+	}
 	type x struct{}
 	out := protoimpl.TypeBuilder{
 		File: protoimpl.DescBuilder{
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_urljail_guest_v1_guest_proto_rawDesc), len(file_urljail_guest_v1_guest_proto_rawDesc)),
 			NumEnums:      1,
-			NumMessages:   8,
+			NumMessages:   13,
 			NumExtensions: 0,
 			NumServices:   1,
 		},

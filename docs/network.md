@@ -127,6 +127,9 @@ CDP is the browser's own account. eBPF on the TAP sees what *actually left the V
 
 ## Isolation test plan (must pass before `live` mode is enabled)
 
+Automated from P3: `urljail selftest` boots a VM and runs these from inside it (guest agent `Probe` RPC); each check needs the guest's outcome **and** host evidence (the matching drop counter rising, or the query in the host DNS log). The self-test takes every VM slot, so counters can only move because of it. Results go to `runs/<id>/selftest.json`. Rows marked *live* are skipped in `dev` mode.
+
+
 | Test | Expected |
 | ---- | -------- |
 | Guest → `192.168.1.1` (router), host LAN IP, `10.x` Docker bridge | dropped, logged |

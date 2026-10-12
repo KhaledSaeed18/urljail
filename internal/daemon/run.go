@@ -100,37 +100,61 @@ func (s *Server) detonate(ctx context.Context, r *run, u *url.URL, profile strin
 		return err
 	}
 
+	agent, err := s.bootVM(ctx, r, slot, runDir, func(f func(context.Context)) { cleanups = append(cleanups, f) })
+	if err != nil {
+		return err
+	}
+
+	d, err := s.dwellFor(ctx)
+	if err != nil {
+		return err
+	}
+	done, err := s.runGuest(ctx, r, guestv1.NewGuestAgentServiceClient(agent), u.String(), d, runDir)
+	if err != nil {
+		return err
+	}
+	msg := fmt.Sprintf("final %s after %s (%s)", done.GetFinalUrl(), done.GetDwell().AsDuration().Round(time.Millisecond), done.GetDwellReason())
+	if e := done.GetNavigationError(); e != "" {
+		msg = "navigation error: " + e
+	}
+	return r.send(daemonv1.RunState_RUN_STATE_COLLECTING, msg)
+}
+
+// bootVM prepares slot's disk and namespace, starts the VM and waits for its guest agent.
+// Everything it creates is registered with addCleanup, so the caller's teardown removes it.
+func (s *Server) bootVM(ctx context.Context, r *run, slot int, runDir string, addCleanup func(func(context.Context))) (*grpc.ClientConn, error) {
+	img := s.cfg.Image
 	op := s.cfg.Operator
 	workDir := filepath.Join(s.cfg.WorkDir, r.id)
 	if err := op.MkdirAll(workDir, 0o700); err != nil {
-		return err
+		return nil, err
 	}
-	cleanups = append(cleanups, func(context.Context) { os.RemoveAll(workDir) })
+	addCleanup(func(context.Context) { os.RemoveAll(workDir) })
 	rootfs := filepath.Join(workDir, "rootfs.ext4")
 	if err := vm.CloneFile(img.Rootfs, rootfs); err != nil {
-		return fmt.Errorf("cloning rootfs: %w", err)
+		return nil, fmt.Errorf("cloning rootfs: %w", err)
 	}
 	if err := op.Chown(rootfs); err != nil { // Firecracker opens it as the operator
-		return err
+		return nil, err
 	}
 
 	netVM, err := s.net.AddVM(ctx, slot, op.UID, op.GID)
 	if err != nil {
-		return err
+		return nil, err
 	}
-	cleanups = append(cleanups, func(ctx context.Context) { s.net.RemoveVM(ctx, netVM) })
+	addCleanup(func(ctx context.Context) { s.net.RemoveVM(ctx, netVM) })
 	if err := s.net.VerifyVM(ctx, netVM); err != nil {
-		return fmt.Errorf("preflight: %w", err)
+		return nil, fmt.Errorf("preflight: %w", err)
 	}
 
 	// Host-attested DNS: every reply the resolver sends this VM.
 	dns, err := newDNSLog(filepath.Join(runDir, "host", "dns.jsonl"))
 	if err != nil {
-		return err
+		return nil, err
 	}
 	client := netns.VMOutsideIP(slot)
 	s.net.Resolver().Attach(client, dns.write)
-	cleanups = append(cleanups, func(context.Context) {
+	addCleanup(func(context.Context) {
 		s.net.Resolver().Detach(client)
 		dns.close()
 	})
@@ -153,9 +177,9 @@ func (s *Server) detonate(ctx context.Context, r *run, u *url.URL, profile strin
 		MemMiB:      s.cfg.MemMiB,
 	})
 	if err != nil {
-		return err
+		return nil, err
 	}
-	cleanups = append(cleanups, func(ctx context.Context) {
+	addCleanup(func(ctx context.Context) {
 		gctx, gcancel := context.WithTimeout(ctx, shutdownGrace)
 		defer gcancel()
 		_ = machine.Shutdown(gctx)
@@ -164,12 +188,12 @@ func (s *Server) detonate(ctx context.Context, r *run, u *url.URL, profile strin
 
 	agent, err := dialAgent(vsockUDS)
 	if err != nil {
-		return err
+		return nil, err
 	}
-	cleanups = append(cleanups, func(context.Context) { agent.Close() })
+	addCleanup(func(context.Context) { agent.Close() })
 	hello, err := waitAgent(ctx, machine, guestv1.NewGuestAgentServiceClient(agent))
 	if err != nil {
-		return err
+		return nil, err
 	}
 	if hello.GetBrowserVersion() != img.Manifest.Browser.Version {
 		// Guest-attested, so only a warning: the host's record (the image manifest) stands.
@@ -179,22 +203,9 @@ func (s *Server) detonate(ctx context.Context, r *run, u *url.URL, profile strin
 	if err := r.send(daemonv1.RunState_RUN_STATE_NET_READY,
 		fmt.Sprintf("guest agent up %d ms after start (Chrome %s, kernel %s)",
 			time.Since(t0).Milliseconds(), hello.GetBrowserVersion(), hello.GetKernel())); err != nil {
-		return err
+		return nil, err
 	}
-
-	d, err := s.dwellFor(ctx)
-	if err != nil {
-		return err
-	}
-	done, err := s.runGuest(ctx, r, guestv1.NewGuestAgentServiceClient(agent), u.String(), d, runDir)
-	if err != nil {
-		return err
-	}
-	msg := fmt.Sprintf("final %s after %s (%s)", done.GetFinalUrl(), done.GetDwell().AsDuration().Round(time.Millisecond), done.GetDwellReason())
-	if e := done.GetNavigationError(); e != "" {
-		msg = "navigation error: " + e
-	}
-	return r.send(daemonv1.RunState_RUN_STATE_COLLECTING, msg)
+	return agent, nil
 }
 
 // collectMargin is the time kept back from the run's deadline for collecting artifacts.
