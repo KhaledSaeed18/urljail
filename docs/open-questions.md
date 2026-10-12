@@ -14,7 +14,7 @@ Decided in principle; each needs a fact confirmed on the real stack.
 
 | # | Question | Plan | When |
 | - | -------- | ---- | ---- |
-| Q7 | Does the Firecracker release we pick expose VMGenID on x86_64? | Check the Firecracker CHANGELOG and run `dmesg \| grep -i vmgenid` in the guest. Keep the agent-side `Reseed` either way | P1 |
+| Q7 | Does the Firecracker release we pick expose VMGenID on x86_64? | **Yes** (2026-10-12): v1.17.0 exposes `VMGENCTR:00` and the CI 6.18 kernel's `vmgenid` driver binds ([P1 journal](./journal/p1-boot.md)). Still to verify: reseed actually happens on snapshot restore. Keep the agent-side `Reseed` either way | P4 |
 | Q8 | Firecracker vsock `CONNECT` handshake semantics | Documented in [ADR 0007](./decisions/0007-grpc-over-vsock.md); confirm with an integration test | P2 |
 | Q13 | Do feed terms of use (OpenPhish, URLhaus, PhishTank) permit research detonation? | Check each feed's terms before ingesting from it. Expect to start with OpenPhish community + URLhaus; PhishTank reportedly no longer accepts new registrations (verify) | Live gate |
 

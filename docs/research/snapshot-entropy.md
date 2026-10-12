@@ -17,7 +17,7 @@ Firecracker documents this concern (`random-for-clones`) _(verify current doc na
 
 | Layer | State | Fix available |
 | ----- | ----- | ------------- |
-| Guest kernel CRNG | cloned | **VMGenID**: the VMM changes a generation ID on restore; Linux (≥ 5.18 with `CONFIG_VMGENID`) reseeds on change. Recent Firecracker exposes a VMGenID device _(verify version)_. Also: host-injected entropy over vsock |
+| Guest kernel CRNG | cloned | **VMGenID**: the VMM changes a generation ID on restore; Linux (≥ 5.18 with `CONFIG_VMGENID`) reseeds on change. Firecracker exposes a VMGenID device on x86_64 since 1.8.0; confirmed bound in the guest on v1.17.0 ([P1 journal](../journal/p1-boot.md)). Also: host-injected entropy over vsock |
 | Kernel-derived values (TCP ISN, etc.) | depend on CRNG + secrets | fixed if CRNG reseeded before first use |
 | **Userspace PRNGs** (BoringSSL in Chromium, V8 `Math.random`, Go runtime in guest agent) | **cloned, and the kernel reseed does not touch them** | open question: this is the interesting part |
 
