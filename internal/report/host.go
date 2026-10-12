@@ -98,6 +98,9 @@ func addHost(r *reportv0.Report, runDir string) bool {
 		}
 	}
 	isPageHost := func(h string) bool { return guestHosts[strings.TrimSuffix(strings.ToLower(h), ".")] }
+	final, _ := url.Parse(r.GetNavigation().GetFinalUrl())
+	hints := hintHosts(filepath.Join(runDir, "guest", "dom.html"), final)
+	isHintHost := func(h string) bool { return hints[strings.TrimSuffix(strings.ToLower(h), ".")] }
 
 	rec := &reportv0.Reconciliation{}
 	hostAddrs, hostSNI := map[string]bool{}, map[string]bool{}
@@ -119,6 +122,9 @@ func addHost(r *reportv0.Report, runDir string) bool {
 			fl.Label = "dns"
 		case guestAddrs[addr] || (name != "" && isPageHost(name)):
 			fl.Label = "page"
+			rec.PageFlows++
+		case name != "" && isHintHost(name):
+			fl.Label = "page-hint" // preconnect/prefetch the page asked for
 			rec.PageFlows++
 		case name != "" && isBackground(name):
 			fl.Label = "browser-background"
@@ -148,6 +154,8 @@ func addHost(r *reportv0.Report, runDir string) bool {
 		switch {
 		case isPageHost(q.Name):
 			label = "page"
+		case isHintHost(q.Name):
+			label = "page-hint"
 		case isBackground(q.Name):
 			label = "browser-background"
 		}

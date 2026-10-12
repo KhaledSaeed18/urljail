@@ -1,11 +1,11 @@
 # Live gate
 
-- Status: **in progress**
+- Status: **passed** (2026-10-12)
 - Started: 2026-10-12
 - Roadmap: [live gate](../roadmap.md#live-gate-before-p6-next)
 - Exit: every item on the roadmap's live-gate checklist done; live mode then starts only through its interlock.
 
-## WireGuard egress (done with a local test peer; real VPN pending)
+## WireGuard egress
 
 - **As designed in [ADR 0003](../decisions/0003-wireguard-netns-egress.md):** `wg0` is created in the host namespace (its encrypted UDP leaves through the host's network) and moved into `uj-egress`, where it holds the **only** default route. In live mode there is no link from the egress namespace to the host at all: with the tunnel down there is no route out. Configured over netlink (`wgctrl`), so `wireguard-tools` isn't needed. Input is a standard wg-quick file (`-wg-config`, must be `0600`).
 - **Resolver in live mode** forwards to the VPN's DNS (from the config). A VPN's DNS is often private (Mullvad: `10.64.0.1`), so the egress output rules allow exactly those upstream addresses on the exit before the private-address drop.
@@ -49,14 +49,20 @@ Go native fuzz targets for every parser the root daemon runs on guest-controlled
 - **Flaky free server:** one start's IP-echo request timed out. The exit-IP probe now waits 10 s and tries up to 3 times.
 - **Crash loop:** each failed interlock exited 1 and systemd restarted it every 5 s (6 times in a minute), re-running the whole self-test each time. An interlock failure now exits with status 3 and the unit has `RestartPreventExitStatus=3`: it stays stopped and the journal says why.
 
+## Live mode verified (2026-10-12)
+
+- After reinstalling the fixes: `live interlock passed`, 0 restarts, `doctor` healthy with `Egress mode: live: WireGuard is the only exit`, a fresh handshake, VMMs confined, no dev sudo rule.
+- Detonations through Proton (exit `149.88.25.131`): `example.com` (consistent) and `www.wikipedia.org`, which isn't on the dev allowlist and only live mode may open.
+- **Finding:** the Wikipedia report was "NOT consistent": the host saw a connection to `upload.wikimedia.org` and lookups for `en.wikipedia.org` and `upload.wikimedia.org` that no guest request explained. The page had `<link rel="preconnect" href="//upload.wikimedia.org">` and `//en.wikipedia.org`: Chrome connects and resolves for resource hints without a request the Network domain reports. The report builder now reads `<link rel=preconnect|dns-prefetch|prefetch|preload|prerender|modulepreload>` from the captured DOM (an HTML tokenizer, not a regex) and labels matching flows and DNS `page-hint`; the DOM is guest-attested like the CDP requests. The rebuilt report is consistent. The DOM parser is covered by the report fuzzer.
+
 ## Checklist
 
 | Item | State |
 | ---- | ----- |
-| WireGuard-in-netns egress working; `live` mode interlock in the daemon | done with the test peer; needs a run with the real VPN config |
-| Full isolation test plan in `live` mode, incl. "VPN down ⇒ no egress" | passes in live-test; the exit-IP check needs the real VPN |
+| WireGuard-in-netns egress working; `live` mode interlock in the daemon | **done**: verified with Proton VPN Free |
+| Full isolation test plan in `live` mode, incl. "VPN down ⇒ no egress" | **done**: all checks pass with the real VPN (exit `149.88.25.131` ≠ home) |
 | Dev sudo rule removed | done 2026-10-12: `sudo -n` now asks for a password; `doctor` reports it gone; the service keeps working |
 | Threat model reviewed against what was built | done ([review](../threat-model.md#review-against-the-built-system-2026-10-12)): one false claim corrected (downloads), diagram fixed, 8 new threats; adds "fuzz the root parsers" before live |
 | Feed terms of use checked (Q13) | done: free feeds first (operator's decision) |
 | Feed ingestion design, URLs strictly as data | done ([feed-ingestion.md](../feed-ingestion.md)): unprivileged `urljail feeds`, never in the root daemon |
-| VPN config (Proton VPN Free, [ADR 0017](../decisions/0017-proton-vpn-free.md)) | pending (operator) |
+| VPN config (Proton VPN Free, [ADR 0017](../decisions/0017-proton-vpn-free.md)) | **done** |

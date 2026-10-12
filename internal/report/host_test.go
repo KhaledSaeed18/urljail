@@ -95,3 +95,23 @@ func TestHostWithoutGuestEvents(t *testing.T) {
 }
 
 func itoa(n uint32) string { return strconv.FormatUint(uint64(n), 10) }
+
+func TestPageHints(t *testing.T) {
+	dir := writeRun(t, true)
+	writeHost(t, dir)
+	// beacon.evil.test is unexplained in writeHost; a preconnect hint in the DOM explains it.
+	dom := `<html><head><link rel="preconnect" href="//beacon.evil.test"><link rel=stylesheet href="https://x.test/a.css"></head></html>`
+	os.WriteFile(filepath.Join(dir, "guest", "dom.html"), []byte(dom), 0o600)
+	r, err := Build(dir)
+	if err != nil {
+		t.Fatal(err)
+	}
+	for _, f := range r.GetNetwork().GetFlows() {
+		if f.GetSni() == "beacon.evil.test" && f.GetLabel() != "page-hint" {
+			t.Errorf("hinted flow labeled %q", f.GetLabel())
+		}
+	}
+	if len(r.GetReconciliation().GetUnexplainedFlows()) != 0 || len(r.GetReconciliation().GetUnexplainedDns()) != 0 {
+		t.Errorf("hinted host still unexplained: %v %v", r.GetReconciliation().GetUnexplainedFlows(), r.GetReconciliation().GetUnexplainedDns())
+	}
+}

@@ -222,7 +222,7 @@
         },
         "label": {
           "default": "",
-          "description": "\"page\", \"browser-background\" or \"unexplained\" (see Reconciliation).",
+          "description": "\"page\", \"page-hint\", \"browser-background\" or \"unexplained\" (see Reconciliation).",
           "type": "string"
         },
         "qname": {
@@ -476,7 +476,7 @@
         },
         "label": {
           "default": "",
-          "description": "\"page\" (matches a guest request), \"browser-background\" (Chrome's own traffic, not\n requested by the page), \"dns\" (to our resolver, including the guest's ICMP errors for late\n replies), \"no-data\" (no payload exchanged:\n preconnects, blocked attempts) or \"unexplained\".",
+          "description": "\"page\" (matches a guest request), \"page-hint\" (a host the page's \u003clink rel=preconnect,\n dns-prefetch, prefetch, preload\u003e named), \"browser-background\" (Chrome's own traffic, not\n requested by the page), \"dns\" (to our resolver, including the guest's ICMP errors for late\n replies), \"no-data\" (no payload exchanged:\n preconnects, blocked attempts) or \"unexplained\".",
           "type": "string"
         },
         "last": {

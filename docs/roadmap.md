@@ -1,6 +1,6 @@
 # Roadmap
 
-Status: **P0–P5 done; the live gate next**. Each phase ends with a written note in [`docs/journal/`](./journal/): what worked, what broke, what changed in the design.
+Status: **P0–P5 done; live gate passed; P6 next**. Each phase ends with a written note in [`docs/journal/`](./journal/): what worked, what broke, what changed in the design.
 
 The order is deliberate: **safety before live URLs, a working end-to-end slice before optimization, the familiar web stack last.**
 
@@ -71,16 +71,16 @@ The whole pipeline, as simple as possible, **cold boot** (no snapshots yet).
 
 **Exit:** no VMM runs outside the jailer; SELinux enforcing with no unexplained denials. **Met:** [P5 journal](./journal/p5-hardening.md); jail design [ADR 0016](./decisions/0016-every-vmm-jailed.md).
 
-## LIVE GATE (before P6) (next)
-- [~] WireGuard-in-netns egress working; `live` mode interlock in the daemon (done against a local test peer, `-egress live-test`; needs a run with the real VPN) ([journal](./journal/live-gate.md))
-- [~] Full isolation test plan passes in `live` mode, including "VPN down ⇒ no egress" (passes in live-test; the exit-IP check needs the real VPN)
+## LIVE GATE (before P6) (passed 2026-10-12)
+- [x] WireGuard-in-netns egress working; `live` mode interlock in the daemon ([journal](./journal/live-gate.md))
+- [x] Full isolation test plan passes in `live` mode, including "VPN down ⇒ no egress" and the exit IP (Proton `149.88.25.131` ≠ home)
 - [x] Threat model reviewed against what was actually built ([review](./threat-model.md#review-against-the-built-system-2026-10-12))
 - [x] Dev sudo rule removed (`/etc/sudoers.d/urljail-dev`); urljaild runs as a systemd service from root-owned binaries
 - [x] Feed terms of use checked for each source (Q13): free feeds first ([research/feeds.md](./research/feeds.md))
-- [ ] Proton VPN Free WireGuard config installed ([ADR 0017](./decisions/0017-proton-vpn-free.md)); live self-test passes with it
+- [x] Proton VPN Free WireGuard config installed ([ADR 0017](./decisions/0017-proton-vpn-free.md)); live self-test passes with it
 - [x] Feed ingestion design treating URLs strictly as data ([feed-ingestion.md](./feed-ingestion.md))
 
-## P6: Anti-cloaking research
+## P6: Anti-cloaking research (next)
 See [research/anti-cloaking.md](./research/anti-cloaking.md).
 - Snapshot profiles as experimental conditions (baseline vs stealth variants)
 - Fresh-feed ingestion; detonate within minutes of publication (phishing URLs die in hours)

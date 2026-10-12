@@ -9,9 +9,9 @@ import (
 
 // Build runs in the root daemon over guest-written files: it must never panic or hang.
 func FuzzBuild(f *testing.F) {
-	f.Add([]byte(events), []byte(`{"final_url":"https://x.test/","dwell":"3.5s","dropped_events":"2"}`))
-	f.Add([]byte(`{"method":"Network.requestWillBeSent","params":{"requestId":"1","redirectResponse":{"status":1e999}}}`), []byte(`[]`))
-	f.Fuzz(func(t *testing.T, ev, done []byte) {
+	f.Add([]byte(events), []byte(`{"final_url":"https://x.test/","dwell":"3.5s","dropped_events":"2"}`), []byte(`<link rel="preconnect" href="//a.test">`))
+	f.Add([]byte(`{"method":"Network.requestWillBeSent","params":{"requestId":"1","redirectResponse":{"status":1e999}}}`), []byte(`[]`), []byte(`<link rel=dns-prefetch href=::>`))
+	f.Fuzz(func(t *testing.T, ev, done, dom []byte) {
 		dir := t.TempDir()
 		if err := WriteMeta(dir, Meta{RunID: "r", URL: "https://x.test/", Status: "completed", StartedAt: time.Unix(1, 0)}); err != nil {
 			t.Fatal(err)
@@ -20,6 +20,7 @@ func FuzzBuild(f *testing.F) {
 		os.MkdirAll(g, 0o700)
 		os.WriteFile(filepath.Join(g, "events.jsonl"), ev, 0o600)
 		os.WriteFile(filepath.Join(g, "done.json"), done, 0o600)
+		os.WriteFile(filepath.Join(g, "dom.html"), dom, 0o600)
 		if _, err := Build(dir); err != nil {
 			t.Fatal(err)
 		}
