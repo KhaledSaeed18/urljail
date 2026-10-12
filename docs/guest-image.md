@@ -11,13 +11,13 @@ Status: **design draft**. What runs inside the microVM, and how the snapshot is 
 | Init | Tiny init (or systemd-free shell init) | Fast boot; no extra listeners. For scale: the CI Ubuntu image with systemd took 629 ms of userspace boot in P1 |
 | Transport | VirtIO over PCI (`--enable-pci`), available since Firecracker 1.13 and recommended by its getting-started guide | Used in P1; needs PCI support in the guest kernel (Firecracker `kernel-policy.md`) |
 | IPv6 | disabled in the guest | v1 has no IPv6 egress; the CI image brings up link-local IPv6 by default |
-| Browser | Chromium, version pinned and recorded. Distro package vs Google's official build is still open (Q17 in [open-questions.md](./open-questions.md)) | Rebuild image on every Chromium security release |
+| Browser | Google Chrome stable from Google's `.deb`, version pinned, `.deb` archived with its SHA-256, self-update removed ([ADR 0012](./decisions/0012-google-chrome-stable-in-guest.md)) | Rebuild image on every Chrome stable release |
 | Guest agent | Go, `CGO_ENABLED=0`, static | Talks AF_VSOCK to host; drives Chromium via chromedp |
 | Fonts | A realistic desktop font set | Missing fonts are a fingerprint signal (see [anti-cloaking](./research/anti-cloaking.md)) |
 
 ## Chromium configuration
 
-Enterprise policy (`/etc/chromium/policies/managed/urljail.json`) + flags.
+Enterprise policy (`/etc/opt/chrome/policies/managed/urljail.json`) + flags.
 
 | Setting | Value | Why |
 | ------- | ----- | --- |

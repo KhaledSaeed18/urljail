@@ -15,6 +15,7 @@ One file per significant decision. Never edit an accepted ADR's decision. Supers
 | [0009](./0009-debian-guest-ci-kernel.md) | Debian 13 slim guest, CI kernel until P4, new headless as baseline | Accepted | 2026-10-12 |
 | [0010](./0010-mullvad-live-egress.md) | Mullvad as the live-mode WireGuard provider | Accepted | 2026-10-12 |
 | [0011](./0011-hand-written-firecracker-client.md) | Hand-written Firecracker API client (amends 0002) | Accepted | 2026-10-12 |
+| [0012](./0012-google-chrome-stable-in-guest.md) | Google Chrome stable in the guest, pinned and archived | Accepted | 2026-10-12 |
 
 ## Template
 

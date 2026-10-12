@@ -36,7 +36,7 @@ Learn the raw primitives before writing any Go. **No isolation exists yet**: the
 The whole pipeline, as simple as possible, **cold boot** (no snapshots yet).
 - Go module, `urljaild` + `urljail` skeletons, gRPC over a Unix socket
 - Hand-written Firecracker API client over the Unix socket ([ADR 0011](./decisions/0011-hand-written-firecracker-client.md)); per-run TAP + simple NAT (dev egress), reusing P1's Docker/firewalld handling
-- Custom Debian 13 slim rootfs with Chromium + guest agent; decide the browser build (Q17)
+- Custom Debian 13 slim rootfs with Google Chrome stable ([ADR 0012](./decisions/0012-google-chrome-stable-in-guest.md)) + guest agent, built rootless from a podman `debian:trixie-slim` container
 - vsock channel: gRPC over host UDS `CONNECT` ([ADR 0007](./decisions/0007-grpc-over-vsock.md)), with an integration test for the handshake (Q8)
 - Guest agent: navigate, collect CDP events, screenshot, DOM → stream back
 - First `report.json` (navigation + requests + screenshot only)

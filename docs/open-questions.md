@@ -6,7 +6,7 @@ Each question gets resolved into an ADR, a doc update, or explicitly parked. Lea
 
 | # | Question | Leaning | Decide by |
 | - | -------- | ------- | --------- |
-| Q17 | Guest browser build: Debian's `chromium` package vs Google's official Chrome / Chrome for Testing | Official build (closer to what real users run; matters for anti-cloaking) | P2 |
+| — | _(none)_ | | |
 
 ## Verification tasks
 
@@ -35,4 +35,5 @@ Decided in principle; each needs a fact confirmed on the real stack.
 | Q14 | Run IDs | UUIDv7 | [ADR 0008](./decisions/0008-protobuf-report-schema.md) |
 | Q15 | Display server for headful Chromium | `--headless=new` baseline; headful (Xvfb / cage) as a P6 profile, cost measured then | [ADR 0009](./decisions/0009-debian-guest-ci-kernel.md) |
 | Q16 | Use `linkopsy` as the name of the report or subcommand? | Parked: keep `urljail detonate` | — |
+| Q17 | Guest browser build | Google Chrome stable `.deb`, pinned and archived (Debian 13's `chromium` is 5 majors behind) | [ADR 0012](./decisions/0012-google-chrome-stable-in-guest.md) |
 | Q18 | Firecracker API client | Hand-written thin client over the API socket; generate from the v1.17.0 OpenAPI spec if it grows | [ADR 0011](./decisions/0011-hand-written-firecracker-client.md) |
