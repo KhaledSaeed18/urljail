@@ -14,7 +14,7 @@ Decided in principle; each needs a fact confirmed on the real stack.
 
 | # | Question | Plan | When |
 | - | -------- | ---- | ---- |
-| Q13 | Do feed terms of use (OpenPhish, URLhaus, PhishTank) permit research detonation? | Check each feed's terms before ingesting from it. Expect to start with OpenPhish community + URLhaus; PhishTank reportedly no longer accepts new registrations (verify) | Live gate |
+| Q13 | Do feed terms of use (OpenPhish, URLhaus, PhishTank) permit research detonation? | Researched ([research/feeds.md](./research/feeds.md)): OpenPhish allows independent research but its free feed is 12 h stale; URLhaus allows not-for-profit use but is malware; PhishTank registration closed. **Operator decision:** which source (OpenPhish Academic, paid, own CT-log discovery, or free feeds for testing only) | Live gate |
 
 ## Resolved
 

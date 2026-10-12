@@ -45,7 +45,7 @@ Guest-level hypervisor masking is therefore **low priority**; browser and networ
 
 ## Data sources
 
-- OpenPhish (community feed) as the main phishing source; URLhaus (abuse.ch) is mostly malware distribution. PhishTank reportedly no longer accepts new registrations _(verify)_. Check each feed's terms of use before ingesting from it (Q13).
+- Terms and freshness of each feed: [feeds.md](./feeds.md). In short: OpenPhish Community is 12 h stale, URLhaus is malware, PhishTank registration is closed; fresh phishing needs OpenPhish Academic or paid, or own discovery from CT logs.
 - Exit type (VPN/datacenter ASN) is itself a cloaking signal; record exit server, IP and ASN per run ([ADR 0010](../decisions/0010-mullvad-live-egress.md)).
 - Freshness is the dominant variable: record time-since-first-seen for every detonation.
 

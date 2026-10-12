@@ -44,6 +44,6 @@ Go native fuzz targets for every parser the root daemon runs on guest-controlled
 | Full isolation test plan in `live` mode, incl. "VPN down ⇒ no egress" | passes in live-test; the exit-IP check needs the real VPN |
 | Dev sudo rule removed | pending (operator): install the service first (`sudo scripts/install-daemon.sh`), then `sudo rm /etc/sudoers.d/urljail-dev` |
 | Threat model reviewed against what was built | draft done ([review](../threat-model.md#review-against-the-built-system-2026-10-12)): one false claim corrected (downloads), diagram fixed, 8 new threats; adds "fuzz the root parsers" before live |
-| Feed terms of use checked (Q13) | pending (operator decision) |
+| Feed terms of use checked (Q13) | researched ([feeds.md](../research/feeds.md)); choosing a source is the operator's decision |
 | Feed ingestion design, URLs strictly as data | pending |
 | Mullvad subscription; exit recorded per run | pending (operator) |
