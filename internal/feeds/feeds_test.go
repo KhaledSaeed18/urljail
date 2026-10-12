@@ -94,3 +94,62 @@ func FuzzNormalize(f *testing.F) {
 		}
 	})
 }
+
+func TestScore(t *testing.T) {
+	for name, want := range map[string]bool{
+		"paypal-account-verify.com":       true,
+		"login.micros0ft-support.top":     true,
+		"secure-auspost-parcel.info":      true,
+		"www.paypal.com":                  false, // the brand itself
+		"paypal-shop.myshopify.com":       false, // platform subdomain
+		"myupsidedown.com":                false, // "ups" only as a token
+		"secure-login-portal.example.com": false, // no brand
+		"applesauce-recipes.com":          false, // apple is token-only
+		"ups-tracking-delivery.xyz":       true,
+	} {
+		s, why := Score(name)
+		if (s >= CandidateScore) != want {
+			t.Errorf("Score(%q) = %d %v, candidate want %v", name, s, why, want)
+		}
+	}
+}
+
+func TestMinAgeFeedPauseLock(t *testing.T) {
+	now := time.Date(2026, 10, 13, 3, 0, 0, 0, time.UTC)
+	s, err := Open(t.TempDir())
+	if err != nil {
+		t.Fatal(err)
+	}
+	s.AddCandidate(&Item{URL: "https://young.test/", Feed: "ct", FirstSeen: now.Add(-time.Minute)})
+	s.AddCandidate(&Item{URL: "https://ready.test/", Feed: "ct", FirstSeen: now.Add(-10 * time.Minute)})
+	s.Add("openphish-community", []string{"https://other.test/"}, now.Add(-time.Minute))
+	l := DefaultLimits
+	l.MinAge, l.Feed = 5*time.Minute, "ct"
+	got := s.Next(5, now, l)
+	if len(got) != 1 || got[0].URL != "https://ready.test/" {
+		t.Fatalf("Next = %v", got)
+	}
+	if s.Items["https://young.test/"].Status != "queued" {
+		t.Error("a young candidate must wait, not expire")
+	}
+
+	if s.IsPaused() {
+		t.Fatal("paused at start")
+	}
+	if s.SetPaused(true) != nil || !s.IsPaused() || s.SetPaused(false) != nil || s.IsPaused() || s.SetPaused(false) != nil {
+		t.Error("pause/resume")
+	}
+	unlock, err := s.Lock()
+	if err != nil {
+		t.Fatal(err)
+	}
+	if _, err := s.Lock(); err == nil { // flock is per open file: a second open conflicts
+		t.Error("second lock succeeded")
+	}
+	unlock()
+	if u, err := s.Lock(); err != nil {
+		t.Errorf("lock after unlock: %v", err)
+	} else {
+		u()
+	}
+}

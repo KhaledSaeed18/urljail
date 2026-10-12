@@ -50,3 +50,13 @@ No profile changed what a page showed. The gate is itself a cloaking technique (
 
 Rerun of `*.cupricclumbers.com` under all five profiles with the fix: final URL, title and DOM kept, the screenshot timed out in every profile and the report says so. Every profile got the same page: a Chinese gambling-site title and no body, only a script from another host on port 6987, typical of hijacked-domain spam kits that pick content by referrer (search-engine visitors) or mobile User-Agent, neither of which any profile varies yet. Chrome looked up that host's HTTPS record as `_6987._https.<host>` (RFC 9460 port prefix), which reconciliation now maps to the host. Known limit: a run whose screenshot times out ends with status `error` although everything else was collected.
 
+After a fourth batch (3 more URLs, all `NXDOMAIN` in every profile): 9 OpenPhish URLs, 6 dead, 1 Cloudflare takedown, 1 human-verification gate, 1 bodyless spam page, **none showed phishing content in any profile**. The feed's age (about 7 h here) is the limit, not the profiles.
+
+## M3: own discovery from CT logs
+
+Decision (2026-10-13): find candidates in Certificate Transparency instead of waiting for feeds ([feed-ingestion.md#ct-discovery-own-source-p6](../feed-ingestion.md#ct-discovery-own-source-p6)).
+
+- Parser checked against a real Let's Encrypt tile (256 entries, 6 s of the log, 78 precertificates).
+- First scoring pass, 3 min live: 8 candidates, all false positives (Microsoft's internal `microsoft-int.com`, machine-generated hostnames). Tuned: brand position, hyphens counted in the registered name only, generated labels penalized, those domains excluded. 10 min live afterwards: 0 candidates in 41,539 names.
+- Dumped 7,540 names (4 min) to check: genuine brand impersonation is rare. The one plausible candidate, `accounts.tdaccounts.online`, needed a general rule (short brand glued to an action word: `td`+`accounts`), not a memorized name.
+

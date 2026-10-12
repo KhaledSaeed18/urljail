@@ -62,3 +62,16 @@ The Auth-Key lives in `~/.config/urljail/feeds.toml` (`0600`), never in run reco
 ## Tests (when built)
 
 Fuzz the feed parsers; unit-test normalization and dedup; a fake feed server for the fetchers (conditional GET, rate limits); an end-to-end run in `live-test` with an allowlisted URL injected as if from a feed (the policy must still refuse any non-allowlisted one there).
+
+## CT discovery (own source, P6)
+
+Decision (2026-10-13): the free feeds are hours old and most of their URLs are dead by then (P6 journal), so urljail also finds candidates itself in **Certificate Transparency**: a phishing site on its own domain needs a certificate, and the certificate is public within seconds.
+
+- **Logs:** Let's Encrypt's current static-ct-api logs (`internal/ctlog`), picked from Chrome's log list at start (shards rotate every six months). Only full tiles are read; a follower more than 20 tiles behind skips ahead, since only fresh names matter. Checkpoint signatures aren't verified: the logs are a source of names to try, nothing more.
+- **Parsing:** each entry is read only as far as the certificate's dNSName SANs, with every length bounded; DNS-character names only; fuzzed.
+- **Scoring** (`feeds.Score`): a brand in the registered name (+3) or a subdomain (+2), lookalike spelling (+1), action words (+1 each, up to 3), a cheap TLD (+1), two or more hyphens in the registered name (+1), machine-generated labels (−2). Candidate at 4 or more, and only with a brand, unless three action words sit on a cheap TLD. The brands' own domains and hosting platforms are excluded. Every point is recorded with the candidate (`reasons`) so hit rates can be measured per rule.
+- **Scheduling:** `urljail feeds watch` waits `-min-age` (default 5 min) after the certificate's log timestamp, then runs each candidate under every profile, newest first, with the same per-domain limits; CT candidates expire after 6 h.
+- **Volume** (first sample, 2026-10-13): about 31 new unique names per second across both logs; brand impersonation is rare, about 1 candidate in 7,500 names, so this is a slow trickle of very fresh URLs.
+- **Queue safety:** commands that change the queue take a lock; `feeds pause` is a file, so it reaches a running `watch`.
+- **Tuning:** `urljail feeds ct -for 10m -dry-run -dump names.txt` records names for offline scoring (`URLJAIL_CT_DUMP=names.txt go test ./internal/feeds/ -run TestScoreDump -v`).
+

@@ -6,6 +6,7 @@ import (
 	"os"
 	"path/filepath"
 	"sort"
+	"syscall"
 	"time"
 )
 
@@ -20,6 +21,8 @@ type Item struct {
 	Runs      map[string]string `json:"runs,omitempty"`   // profile → run ID
 	RunAt     time.Time         `json:"run_at,omitzero"`
 	Error     string            `json:"error,omitempty"`
+	Score     int               `json:"score,omitempty"` // own discovery: score and why
+	Reasons   []string          `json:"reasons,omitempty"`
 }
 
 // FetchState is what urljail remembers about a source between fetches.
@@ -33,15 +36,48 @@ type FetchState struct {
 
 // Store is ~/.local/share/urljail/feeds/state.json.
 type Store struct {
+	dir     string
 	path    string
 	Items   map[string]*Item       `json:"items"`
 	Sources map[string]*FetchState `json:"sources"`
-	Paused  bool                   `json:"paused"`
+}
+
+// IsPaused reports whether submissions are paused. It's a file next to the state, so a
+// running `feeds watch` sees `feeds pause` from another process.
+func (s *Store) IsPaused() bool {
+	_, err := os.Stat(filepath.Join(s.dir, "paused"))
+	return err == nil
+}
+
+// SetPaused pauses or resumes submissions.
+func (s *Store) SetPaused(p bool) error {
+	f := filepath.Join(s.dir, "paused")
+	if !p {
+		if err := os.Remove(f); err != nil && !errors.Is(err, os.ErrNotExist) {
+			return err
+		}
+		return nil
+	}
+	return os.WriteFile(f, nil, 0o600)
+}
+
+// Lock takes the store for this process: commands that change the queue would otherwise
+// overwrite each other's state.json.
+func (s *Store) Lock() (unlock func(), err error) {
+	f, err := os.OpenFile(filepath.Join(s.dir, "lock"), os.O_CREATE|os.O_RDWR, 0o600)
+	if err != nil {
+		return nil, err
+	}
+	if err := syscall.Flock(int(f.Fd()), syscall.LOCK_EX|syscall.LOCK_NB); err != nil {
+		f.Close()
+		return nil, errors.New("another `urljail feeds` command is using the queue")
+	}
+	return func() { f.Close() }, nil
 }
 
 // Open loads the store in dir, or starts an empty one.
 func Open(dir string) (*Store, error) {
-	s := &Store{path: filepath.Join(dir, "state.json"), Items: map[string]*Item{}, Sources: map[string]*FetchState{}}
+	s := &Store{dir: dir, path: filepath.Join(dir, "state.json"), Items: map[string]*Item{}, Sources: map[string]*FetchState{}}
 	b, err := os.ReadFile(s.path)
 	if errors.Is(err, os.ErrNotExist) {
 		return s, os.MkdirAll(dir, 0o700)
@@ -94,11 +130,23 @@ func (s *Store) Add(feed string, urls []string, now time.Time) (added int) {
 	return added
 }
 
+// AddCandidate queues one discovered URL unless it's known; it reports whether it was new.
+func (s *Store) AddCandidate(it *Item) bool {
+	if s.Items[it.URL] != nil {
+		return false
+	}
+	it.Domain, it.Status = Domain(it.URL), "queued"
+	s.Items[it.URL] = it
+	return true
+}
+
 // Limits are the scheduling rules (docs/feed-ingestion.md#queue-and-scheduling).
 type Limits struct {
 	MaxAge      time.Duration // older than this (since first seen) expires: stale phishing is mostly dead
 	DomainGap   time.Duration // at most one run per registrable domain within this
 	DomainDaily int           // and at most this many per domain per 24 h
+	MinAge      time.Duration // younger than this (since first seen) waits: a new site needs time to go up
+	Feed        string        // only this feed's items; "": any
 }
 
 // DefaultLimits are gentle on the (often compromised) sites behind phishing URLs.
@@ -119,7 +167,7 @@ func (s *Store) Next(n int, now time.Time, l Limits) []*Item {
 				daily[it.Domain]++
 			}
 		}
-		if it.Status == "queued" {
+		if it.Status == "queued" && (l.Feed == "" || it.Feed == l.Feed) && now.Sub(it.FirstSeen) >= l.MinAge {
 			if now.Sub(it.FirstSeen) > l.MaxAge {
 				it.Status = "expired"
 				continue
