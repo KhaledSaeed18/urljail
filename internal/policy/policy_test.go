@@ -30,6 +30,7 @@ func TestCheck(t *testing.T) {
 		{"other port", live, "https://example.com:8443/", false},
 		{"live any host", live, "https://phish.test/login", true},
 		{"off refuses all", off, "https://example.com/", false},
+		{"live-test keeps the allowlist", Policy{Mode: EgressLiveTest, Allowlist: DefaultDevAllowlist}, "https://phish.test/", false},
 		{"garbage", dev, "://", false},
 	}
 	for _, tt := range tests {
@@ -51,7 +52,7 @@ func TestCheck(t *testing.T) {
 }
 
 func TestParseEgressMode(t *testing.T) {
-	for _, s := range []string{"off", "dev", "live"} {
+	for _, s := range []string{"off", "dev", "live-test", "live"} {
 		if _, err := ParseEgressMode(s); err != nil {
 			t.Errorf("ParseEgressMode(%q) = %v", s, err)
 		}

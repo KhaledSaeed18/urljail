@@ -9,3 +9,4 @@ One entry per phase, written while the phase runs and closed when its exit crite
 | P3 | [p3-network.md](./p3-network.md) | Closed 2026-10-12 |
 | P4 | [p4-snapshots.md](./p4-snapshots.md) | Closed 2026-10-12 |
 | P5 | [p5-hardening.md](./p5-hardening.md) | Closed 2026-10-12 |
+| Live gate | [live-gate.md](./live-gate.md) | In progress |

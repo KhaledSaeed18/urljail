@@ -72,8 +72,8 @@ The whole pipeline, as simple as possible, **cold boot** (no snapshots yet).
 **Exit:** no VMM runs outside the jailer; SELinux enforcing with no unexplained denials. **Met:** [P5 journal](./journal/p5-hardening.md); jail design [ADR 0016](./decisions/0016-every-vmm-jailed.md).
 
 ## LIVE GATE (before P6) (next)
-- [ ] WireGuard-in-netns egress working; `live` mode interlock in the daemon
-- [ ] Full isolation test plan passes in `live` mode, including "VPN down ⇒ no egress"
+- [~] WireGuard-in-netns egress working; `live` mode interlock in the daemon (done against a local test peer, `-egress live-test`; needs a run with the real VPN) ([journal](./journal/live-gate.md))
+- [~] Full isolation test plan passes in `live` mode, including "VPN down ⇒ no egress" (passes in live-test; the exit-IP check needs the real VPN)
 - [ ] Threat model reviewed against what was actually built
 - [ ] Dev sudo rule removed (`/etc/sudoers.d/urljail-dev`)
 - [ ] Feed terms of use checked for each source (Q13)

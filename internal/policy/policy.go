@@ -18,6 +18,9 @@ const (
 	EgressOff  EgressMode = "off"  // nothing leaves; every detonation is refused
 	EgressDev  EgressMode = "dev"  // host NAT; allowlisted benign domains only
 	EgressLive EgressMode = "live" // WireGuard only; any URL (after the live gate)
+	// EgressLiveTest exercises the live exit through a local WireGuard peer that leaves from
+	// the home IP, so URLs stay on the dev allowlist.
+	EgressLiveTest EgressMode = "live-test"
 )
 
 // DefaultDevAllowlist holds domains reserved for documentation (RFC 2606), safe to fetch in dev mode.
@@ -26,10 +29,10 @@ var DefaultDevAllowlist = []string{"example.com", "example.net", "example.org"}
 // ParseEgressMode parses "off", "dev" or "live".
 func ParseEgressMode(s string) (EgressMode, error) {
 	switch m := EgressMode(s); m {
-	case EgressOff, EgressDev, EgressLive:
+	case EgressOff, EgressDev, EgressLive, EgressLiveTest:
 		return m, nil
 	}
-	return "", fmt.Errorf("unknown egress mode %q (want off, dev or live)", s)
+	return "", fmt.Errorf("unknown egress mode %q (want off, dev, live-test or live)", s)
 }
 
 // ErrRefused wraps every policy refusal, so callers can tell refusals from bugs.
@@ -63,7 +66,7 @@ func (p Policy) Check(raw string) (*url.URL, error) {
 	switch p.Mode {
 	case EgressOff:
 		return nil, refuse("egress mode is off")
-	case EgressDev:
+	case EgressDev, EgressLiveTest:
 		if net.ParseIP(host) != nil {
 			return nil, refuse("dev mode: IP literal %s is not allowlisted", host)
 		}

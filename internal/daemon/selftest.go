@@ -4,7 +4,9 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"io"
 	"net"
+	"net/http"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -19,6 +21,7 @@ import (
 	daemonv1 "github.com/KhaledSaeed18/urljail/gen/urljail/daemon/v1"
 	guestv1 "github.com/KhaledSaeed18/urljail/gen/urljail/guest/v1"
 	"github.com/KhaledSaeed18/urljail/internal/netns"
+	"github.com/KhaledSaeed18/urljail/internal/policy"
 	"github.com/KhaledSaeed18/urljail/internal/report"
 	"github.com/KhaledSaeed18/urljail/internal/version"
 )
@@ -187,9 +190,18 @@ func (s *Server) SelfTest(ctx context.Context, _ *daemonv1.SelfTestRequest) (*da
 		}
 		out.Checks = append(out.Checks, row)
 	}
-	for _, name := range []string{"VPN down ⇒ no egress", "Public IP seen by the guest is the VPN exit"} {
-		out.Checks = append(out.Checks, &daemonv1.Check{Name: name, Expected: "live mode only", Result: "skip",
-			Observed: "egress mode " + string(s.cfg.Policy.Mode)})
+	if s.net.Live() {
+		for _, c := range s.liveChecks(ctx, guestv1.NewGuestAgentServiceClient(agent)) {
+			if c.GetResult() == "fail" {
+				out.Passed = false
+			}
+			out.Checks = append(out.Checks, c)
+		}
+	} else {
+		for _, name := range []string{"VPN down ⇒ no egress", "Public IP seen by the guest is the VPN exit"} {
+			out.Checks = append(out.Checks, &daemonv1.Check{Name: name, Expected: "live mode only", Result: "skip",
+				Observed: "egress mode " + string(s.cfg.Policy.Mode)})
+		}
 	}
 
 	b, _ := json.MarshalIndent(out, "", "  ")
@@ -367,4 +379,76 @@ func contains(xs []string, x string) bool {
 		}
 	}
 	return false
+}
+
+// ipEcho returns the caller's public IP as plain text.
+const ipEcho = "https://api.ipify.org"
+
+// liveChecks are the self-test rows that need the WireGuard exit (docs/network.md).
+func (s *Server) liveChecks(ctx context.Context, agent guestv1.GuestAgentServiceClient) []*daemonv1.Check {
+	var out []*daemonv1.Check
+	probe := func(p *guestv1.ProbeSpec) *guestv1.ProbeResult {
+		resp, err := agent.Probe(ctx, &guestv1.ProbeRequest{Probes: []*guestv1.ProbeSpec{p}, Timeout: durationpb.New(4 * time.Second)})
+		if err != nil || len(resp.GetResults()) != 1 {
+			return &guestv1.ProbeResult{Outcome: "error", Detail: []string{fmt.Sprint(err)}}
+		}
+		return resp.GetResults()[0]
+	}
+
+	// The exit IP: what the guest sees as its public address must not be the host's.
+	row := &daemonv1.Check{Name: "Public IP seen by the guest is the VPN exit", Expected: "differs from the host's public IP"}
+	guest := probe(&guestv1.ProbeSpec{Id: "exit-ip", Kind: &guestv1.ProbeSpec_HttpGet{HttpGet: ipEcho}})
+	hostIP, herr := hostPublicIP(ctx)
+	guestIP := strings.Join(guest.GetDetail(), "")
+	row.Observed = fmt.Sprintf("guest: %s %s; host: %s %v", guest.GetOutcome(), guestIP, hostIP, herr)
+	switch {
+	case s.cfg.Policy.Mode == policy.EgressLiveTest:
+		row.Result, row.Observed = "skip", row.Observed+"; live-test: the local test peer exits through this host"
+	case guest.GetOutcome() == "http 200" && net.ParseIP(guestIP) != nil && herr == nil && guestIP != hostIP:
+		row.Result = "pass"
+	default:
+		row.Result = "fail"
+	}
+	out = append(out, row)
+
+	// VPN down ⇒ no egress: take the tunnel down for real, check nothing gets out, restore it.
+	row = &daemonv1.Check{Name: "VPN down ⇒ no egress", Expected: "public TCP 443 unreachable with the tunnel down"}
+	if err := s.net.SetTunnel(ctx, false); err != nil {
+		row.Result, row.Observed = "fail", "taking the tunnel down: "+err.Error()
+		return append(out, row)
+	}
+	down := probe(&guestv1.ProbeSpec{Id: "vpn-down", Kind: &guestv1.ProbeSpec_Tcp{Tcp: "1.1.1.1:443"}})
+	upAt := time.Now()
+	upErr := s.net.SetTunnel(ctx, true)
+	if upErr == nil {
+		hctx, cancel := context.WithTimeout(ctx, 15*time.Second)
+		upErr = s.net.WaitHandshake(hctx, upAt.Add(-time.Second))
+		cancel()
+	}
+	row.Observed = "guest: " + down.GetOutcome() + " " + strings.Join(down.GetDetail(), " ")
+	row.Result = "pass"
+	if down.GetOutcome() == "connected" {
+		row.Result = "fail"
+	}
+	if upErr != nil {
+		row.Result, row.Observed = "fail", row.Observed+"; restoring the tunnel failed: "+upErr.Error()
+	}
+	return append(out, row)
+}
+
+// hostPublicIP asks the IP-echo service from the host's own network namespace.
+func hostPublicIP(ctx context.Context) (string, error) {
+	ctx, cancel := context.WithTimeout(ctx, 5*time.Second)
+	defer cancel()
+	req, err := http.NewRequestWithContext(ctx, http.MethodGet, ipEcho, nil)
+	if err != nil {
+		return "", err
+	}
+	resp, err := http.DefaultClient.Do(req)
+	if err != nil {
+		return "", err
+	}
+	defer resp.Body.Close()
+	b, _ := io.ReadAll(io.LimitReader(resp.Body, 64))
+	return strings.TrimSpace(string(b)), nil
 }

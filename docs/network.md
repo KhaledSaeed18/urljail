@@ -56,12 +56,17 @@ The topology above is implemented in `internal/netns` ([ADR 0014](./decisions/00
 - **Dev exit on the host:** `uj-host` in firewalld's `trusted` zone, masquerade on the default zone, and two tagged `DOCKER-USER` accepts. The host only ever receives what the egress namespace already allowed.
 - **Teardown:** deleting a VM namespace destroys its TAP and both veth ends; daemon shutdown deletes `uj-egress` (and with it `uj-host`) and removes the host-side rules. Leftover namespaces from a crashed daemon are deleted at start.
 
+### Live exit (as built, live gate)
+
+`wg0` created in the host namespace, moved into `uj-egress`, configured over netlink; the only default route there is `default dev wg0`, and there is no link to the host. The resolver forwards to the VPN's DNS, allowed by exact address on the exit. SYNs across the exit are MSS-clamped to its MTU − 40 (1380 on WireGuard). `-egress live-test` runs the same path to a local peer (`uj-testvpn`) for testing. Interlock and checks: [live-gate journal](./journal/live-gate.md).
+
 ## Egress modes
 
 | Mode | Route out | Allowed URL sources | Purpose |
 | ---- | --------- | ------------------- | ------- |
 | `off` | none | — | default; nothing leaves |
 | `dev` | host NAT via physical interface | **allowlisted benign domains only** (example.com, test pages we host) | Phases 1–5, development |
+| `live-test` | `wg0` to a local test peer, which exits through the host | allowlisted benign domains only | Testing the live exit without a VPN account |
 | `live` | `wg0` only | anything, including phishing feeds | Phase 6+, real detonations |
 
 `urljaild` refuses to detonate a non-allowlisted URL unless mode is `live` **and** `wg0` is up with a recent handshake. This interlock is code, not convention.

@@ -3,8 +3,12 @@ package main
 import (
 	"context"
 	"errors"
+	"io"
 	"net"
+	"net/http"
 	"os"
+	"strconv"
+	"strings"
 	"sync"
 	"syscall"
 	"time"
@@ -68,6 +72,18 @@ func probe(ctx context.Context, p *guestv1.ProbeSpec, timeout time.Duration) *gu
 		return &guestv1.ProbeResult{Outcome: "no reply"}
 	case *guestv1.ProbeSpec_Dns:
 		return resolve(ctx, net.DefaultResolver, k.Dns)
+	case *guestv1.ProbeSpec_HttpGet:
+		req, err := http.NewRequestWithContext(ctx, http.MethodGet, k.HttpGet, nil)
+		if err != nil {
+			return &guestv1.ProbeResult{Outcome: "error", Detail: []string{err.Error()}}
+		}
+		resp, err := http.DefaultClient.Do(req)
+		if err != nil {
+			return netErr(err)
+		}
+		defer resp.Body.Close()
+		body, _ := io.ReadAll(io.LimitReader(resp.Body, 256))
+		return &guestv1.ProbeResult{Outcome: "http " + strconv.Itoa(resp.StatusCode), Detail: []string{strings.TrimSpace(string(body))}}
 	case *guestv1.ProbeSpec_DnsVia:
 		r := &net.Resolver{PreferGo: true, Dial: func(ctx context.Context, network, _ string) (net.Conn, error) {
 			var d net.Dialer

@@ -75,3 +75,12 @@ func namespaces(ctx context.Context) ([]string, error) {
 	}
 	return names, nil
 }
+
+// linkMTU reads an interface's MTU inside ns.
+func linkMTU(ctx context.Context, ns, dev string) (int, error) {
+	out, err := in(ctx, ns, "cat", "/sys/class/net/"+dev+"/mtu")
+	if err != nil {
+		return 0, err
+	}
+	return strconv.Atoi(strings.TrimSpace(out))
+}

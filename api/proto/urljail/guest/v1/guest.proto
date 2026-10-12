@@ -125,6 +125,8 @@ message ProbeSpec {
     string dns = 4;
     // Resolve a name by asking this server ("ip:53") directly.
     DNSVia dns_via = 5;
+    // GET this URL; the result's detail is the start of the body (e.g. an IP-echo service).
+    string http_get = 6;
   }
 }
 

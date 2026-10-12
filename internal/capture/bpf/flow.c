@@ -86,8 +86,14 @@ static __always_inline void account(struct __sk_buff *skb, int out)
 	__u16 sport = 0, dport = 0;
 	__u8 flags = 0;
 	__u32 seq = 0, payload_off = 0, payload_len = 0;
+	// A non-first IP fragment carries no L4 header: its bytes there are payload, not ports
+	// (found in P3 follow-up: fragments showed up as flows to random ports). Account it with
+	// ports 0 under its protocol.
+	int fragment = (bpf_ntohs(ip.frag_off) & 0x1fff) != 0;
 
-	if (ip.protocol == IPPROTO_TCP) {
+	if (fragment) {
+		// no ports, no payload capture
+	} else if (ip.protocol == IPPROTO_TCP) {
 		struct tcphdr tcp;
 		if (bpf_skb_load_bytes(skb, l4, &tcp, sizeof(tcp)) < 0)
 			return;

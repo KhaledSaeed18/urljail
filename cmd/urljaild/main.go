@@ -41,7 +41,8 @@ func run() error {
 	socket := flag.String("socket", paths.Socket(), "gRPC Unix socket path")
 	egress := flag.String("egress", "dev", "egress mode: off, dev or live")
 	allow := flag.String("allow", strings.Join(policy.DefaultDevAllowlist, ","), "dev mode allowlist (comma-separated domains)")
-	upstreams := flag.String("dns-upstream", "1.1.1.1,9.9.9.9", "DNS servers the resolver forwards to, through the exit")
+	upstreams := flag.String("dns-upstream", "1.1.1.1,9.9.9.9", "DNS servers the resolver forwards to, through the exit (dev mode; live uses the VPN's DNS)")
+	wgConfig := flag.String("wg-config", "", "WireGuard config (wg-quick format) for live mode, readable by root only")
 	runsDir := flag.String("runs-dir", "", "where run directories are written (default ~operator/.local/share/urljail/runs)")
 	imageDir := flag.String("image", "", "guest image directory (default ~operator/.local/share/urljail/images/default)")
 	firecracker := flag.String("firecracker", "", "firecracker binary (default ~operator/.local/bin/firecracker)")
@@ -86,9 +87,25 @@ func run() error {
 	if err != nil {
 		return err
 	}
+	// The live interlock (docs/roadmap.md#live-gate-before-p6): live mode needs the dev sudo
+	// rule gone and a WireGuard config; the daemon then won't serve until the tunnel has a
+	// handshake and its own isolation self-test passes, live checks included.
+	var wg *netns.WGConfig
 	if mode == policy.EgressLive {
-		// The interlock: live egress needs WireGuard in the egress netns and the live gate.
-		return fmt.Errorf("egress mode live is not available before the live gate")
+		if _, err := os.Stat(daemon.DevSudoersRule); err == nil {
+			return fmt.Errorf("live mode refused: %s still exists (the live gate requires removing it)", daemon.DevSudoersRule)
+		}
+		if *wgConfig == "" {
+			return fmt.Errorf("live mode needs -wg-config")
+		}
+		if fi, err := os.Stat(*wgConfig); err != nil {
+			return err
+		} else if fi.Mode().Perm()&0o077 != 0 {
+			return fmt.Errorf("%s holds a private key: make it readable by root only (chmod 600)", *wgConfig)
+		}
+		if wg, err = netns.ParseWGQuick(*wgConfig); err != nil {
+			return err
+		}
 	}
 
 	// /run/urljail is root's; the VM socket directory is the operator's, because Firecracker
@@ -149,14 +166,25 @@ func run() error {
 
 	daemon.Reap(ctx, cfg, log)
 	var eg *netns.Egress
-	if mode == policy.EgressDev {
+	if mode != policy.EgressOff {
 		if eg, err = netns.Up(ctx, netns.EgressConfig{
 			Upstreams: splitList(*upstreams),
 			StateDir:  filepath.Join(paths.RunDir, "unbound"),
+			WG:        wg,
+			TestVPN:   mode == policy.EgressLiveTest,
 		}, log); err != nil {
 			return fmt.Errorf("egress: %w", err)
 		}
 		defer eg.Close(context.Background())
+		if eg.Live() {
+			hctx, cancel := context.WithTimeout(ctx, 20*time.Second)
+			err := eg.WaitHandshake(hctx, time.Time{})
+			cancel()
+			if err != nil {
+				return fmt.Errorf("live interlock: %w", err)
+			}
+			log.Info("WireGuard tunnel up")
+		}
 	}
 	// After the namespace cleanup above, which kills whatever was left inside them.
 	if err := daemon.SetupJails(cfg); err != nil {
@@ -191,6 +219,19 @@ func run() error {
 		if err := srv.EnsureSnapshot(ctx); err != nil {
 			return err
 		}
+	}
+	if eg != nil && eg.Live() {
+		res, err := srv.SelfTest(ctx, &daemonv1.SelfTestRequest{})
+		if err != nil {
+			return fmt.Errorf("live interlock: self-test: %w", err)
+		}
+		for _, c := range res.GetChecks() {
+			log.Info("self-test", "check", c.GetName(), "result", c.GetResult(), "observed", c.GetObserved())
+		}
+		if !res.GetPassed() && !(mode == policy.EgressLiveTest && !hasFail(res)) {
+			return fmt.Errorf("live interlock: the isolation self-test failed (details in %s)", filepath.Join(res.GetRunDir(), "selftest.json"))
+		}
+		log.Info("live interlock passed", "mode", mode)
 	}
 	l, err := daemon.Listen(*socket)
 	if err != nil {
@@ -244,4 +285,13 @@ func splitList(s string) []string {
 		}
 	}
 	return out
+}
+
+func hasFail(res *daemonv1.SelfTestResponse) bool {
+	for _, c := range res.GetChecks() {
+		if c.GetResult() == "fail" {
+			return true
+		}
+	}
+	return false
 }

@@ -10,12 +10,14 @@ import (
 	"os/exec"
 	"strconv"
 	"strings"
+	"time"
 
 	"golang.org/x/sys/unix"
 
 	daemonv1 "github.com/KhaledSaeed18/urljail/gen/urljail/daemon/v1"
 	"github.com/KhaledSaeed18/urljail/internal/capture"
 	"github.com/KhaledSaeed18/urljail/internal/netns"
+	"github.com/KhaledSaeed18/urljail/internal/policy"
 )
 
 // Doctor implements DaemonService.Doctor.
@@ -71,7 +73,21 @@ func (s *Server) Doctor(ctx context.Context, _ *daemonv1.DoctorRequest) (*daemon
 			add("IPv6", "fail", "enabled in the egress namespace")
 		}
 	}
-	add("Egress mode", "warn", string(s.cfg.Policy.Mode)+": guests leave from the home IP; allowlisted benign URLs only")
+	switch s.cfg.Policy.Mode {
+	case policy.EgressLive:
+		add("Egress mode", "ok", "live: WireGuard is the only exit")
+	case policy.EgressLiveTest:
+		add("Egress mode", "warn", "live-test: WireGuard to a local test peer that exits from the home IP; allowlisted benign URLs only")
+	default:
+		add("Egress mode", "warn", string(s.cfg.Policy.Mode)+": guests leave from the home IP; allowlisted benign URLs only")
+	}
+	if s.net != nil && s.net.Live() {
+		if t, err := s.net.Handshake(); err != nil || time.Since(t) > netns.MaxHandshakeAge {
+			add("VPN tunnel", "fail", fmt.Sprintf("last handshake %s ago (%v)", time.Since(t).Round(time.Second), err))
+		} else {
+			add("VPN tunnel", "ok", fmt.Sprintf("last handshake %s ago", time.Since(t).Round(time.Second)))
+		}
+	}
 
 	// Capture.
 	if err := capture.Supported(); err != nil {
@@ -151,8 +167,12 @@ func (s *Server) Doctor(ctx context.Context, _ *daemonv1.DoctorRequest) (*daemon
 	} else {
 		add("Leftovers", "ok", fmt.Sprintf("%d VM namespaces, %d running VMs", len(vms), n))
 	}
-	if _, err := os.Stat("/etc/sudoers.d/urljail-dev"); err == nil {
-		add("Dev sudo rule", "warn", "/etc/sudoers.d/urljail-dev is root-equivalent: remove before the live gate")
+	if _, err := os.Stat(DevSudoersRule); err == nil {
+		result := "warn"
+		if s.cfg.Policy.Mode == policy.EgressLive {
+			result = "fail"
+		}
+		add("Dev sudo rule", result, DevSudoersRule+" is root-equivalent: remove before the live gate")
 	} else {
 		add("Dev sudo rule", "ok", "not installed")
 	}
@@ -189,3 +209,6 @@ func atLeast(release string, major, minor int) bool {
 	mi, _ := strconv.Atoi(strings.TrimFunc(parts[1], func(r rune) bool { return r < '0' || r > '9' }))
 	return ma > major || ma == major && mi >= minor
 }
+
+// DevSudoersRule is the development convenience that must be gone before live mode.
+const DevSudoersRule = "/etc/sudoers.d/urljail-dev"

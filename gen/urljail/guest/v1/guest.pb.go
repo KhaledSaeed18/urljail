@@ -816,6 +816,7 @@ type ProbeSpec struct {
 	//	*ProbeSpec_Udp
 	//	*ProbeSpec_Dns
 	//	*ProbeSpec_DnsVia
+	//	*ProbeSpec_HttpGet
 	Kind          isProbeSpec_Kind `protobuf_oneof:"kind"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
@@ -901,6 +902,15 @@ func (x *ProbeSpec) GetDnsVia() *DNSVia {
 	return nil
 }
 
+func (x *ProbeSpec) GetHttpGet() string {
+	if x != nil {
+		if x, ok := x.Kind.(*ProbeSpec_HttpGet); ok {
+			return x.HttpGet
+		}
+	}
+	return ""
+}
+
 type isProbeSpec_Kind interface {
 	isProbeSpec_Kind()
 }
@@ -925,6 +935,11 @@ type ProbeSpec_DnsVia struct {
 	DnsVia *DNSVia `protobuf:"bytes,5,opt,name=dns_via,json=dnsVia,proto3,oneof"`
 }
 
+type ProbeSpec_HttpGet struct {
+	// GET this URL; the result's detail is the start of the body (e.g. an IP-echo service).
+	HttpGet string `protobuf:"bytes,6,opt,name=http_get,json=httpGet,proto3,oneof"`
+}
+
 func (*ProbeSpec_Tcp) isProbeSpec_Kind() {}
 
 func (*ProbeSpec_Udp) isProbeSpec_Kind() {}
@@ -932,6 +947,8 @@ func (*ProbeSpec_Udp) isProbeSpec_Kind() {}
 func (*ProbeSpec_Dns) isProbeSpec_Kind() {}
 
 func (*ProbeSpec_DnsVia) isProbeSpec_Kind() {}
+
+func (*ProbeSpec_HttpGet) isProbeSpec_Kind() {}
 
 type DNSVia struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
@@ -1142,13 +1159,14 @@ const file_urljail_guest_v1_guest_proto_rawDesc = "" +
 	"\x05error\x18\a \x01(\tR\x05error\"x\n" +
 	"\fProbeRequest\x123\n" +
 	"\x06probes\x18\x01 \x03(\v2\x1b.urljail.guest.v1.ProbeSpecR\x06probes\x123\n" +
-	"\atimeout\x18\x02 \x01(\v2\x19.google.protobuf.DurationR\atimeout\"\x94\x01\n" +
+	"\atimeout\x18\x02 \x01(\v2\x19.google.protobuf.DurationR\atimeout\"\xb1\x01\n" +
 	"\tProbeSpec\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\x12\x12\n" +
 	"\x03tcp\x18\x02 \x01(\tH\x00R\x03tcp\x12\x12\n" +
 	"\x03udp\x18\x03 \x01(\tH\x00R\x03udp\x12\x12\n" +
 	"\x03dns\x18\x04 \x01(\tH\x00R\x03dns\x123\n" +
-	"\adns_via\x18\x05 \x01(\v2\x18.urljail.guest.v1.DNSViaH\x00R\x06dnsViaB\x06\n" +
+	"\adns_via\x18\x05 \x01(\v2\x18.urljail.guest.v1.DNSViaH\x00R\x06dnsVia\x12\x1b\n" +
+	"\bhttp_get\x18\x06 \x01(\tH\x00R\ahttpGetB\x06\n" +
 	"\x04kind\"4\n" +
 	"\x06DNSVia\x12\x12\n" +
 	"\x04name\x18\x01 \x01(\tR\x04name\x12\x16\n" +
@@ -1255,6 +1273,7 @@ func file_urljail_guest_v1_guest_proto_init() {
 		(*ProbeSpec_Udp)(nil),
 		(*ProbeSpec_Dns)(nil),
 		(*ProbeSpec_DnsVia)(nil),
+		(*ProbeSpec_HttpGet)(nil),
 	}
 	type x struct{}
 	out := protoimpl.TypeBuilder{

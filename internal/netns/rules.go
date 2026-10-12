@@ -38,6 +38,11 @@ table inet urljail {
 
 	chain forward {
 		type filter hook forward priority filter; policy drop;
+		# The exit's MTU can be smaller than the guest's (WireGuard: 1420): clamp the MSS of SYNs
+		# both ways across the exit, so neither side sends segments too big for it, instead of
+		# relying on ICMP "need to frag", which VPN paths often drop.
+		oifname "{{.Exit}}" tcp flags & (syn | rst) == syn tcp option maxseg size > {{.MSS}} tcp option maxseg size set {{.MSS}}
+		iifname "{{.Exit}}" tcp flags & (syn | rst) == syn tcp option maxseg size > {{.MSS}} tcp option maxseg size set {{.MSS}}
 		# Nothing from the internet has a private source. In dev mode the host's own ICMP errors
 		# do (they'd tell a guest the home LAN address, found in P3), and they're "related", so
 		# this comes before the established/related accept.
@@ -54,6 +59,11 @@ table inet urljail {
 		type filter hook output priority filter; policy drop;
 		oifname "lo" accept
 		ct state established,related accept
+		# The resolver's upstreams, by address: a VPN's DNS is often private (Mullvad: 10.64.0.1),
+		# and only these exact addresses are allowed past the private drop below.
+{{- range .Upstreams}}
+		oifname "{{$.Exit}}" ip daddr {{.}} meta l4proto { tcp, udp } th dport { 53, 853 } accept
+{{- end}}
 		ip daddr @private4 counter drop
 		# The resolver's upstream queries.
 		oifname "{{.Exit}}" meta l4proto { tcp, udp } th dport { 53, 853 } accept
