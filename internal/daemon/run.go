@@ -9,6 +9,7 @@ import (
 	"net/url"
 	"os"
 	"path/filepath"
+	"strings"
 	"sync"
 	"time"
 
@@ -26,6 +27,11 @@ import (
 )
 
 const (
+	// maxHostRecords caps each host log (DNS replies, blocked packets) per run.
+	maxHostRecords = 20000
+	// maxPackets caps the packet capture per run.
+	maxPackets = 500000
+
 	// shutdownGrace is how long the guest gets to shut down after Ctrl-Alt-Del before the VMM
 	// is killed. A guest still booting ignores Ctrl-Alt-Del, and evidence is collected before
 	// teardown, so there's nothing to wait for beyond a clean exit.
@@ -147,16 +153,37 @@ func (s *Server) bootVM(ctx context.Context, r *run, slot int, runDir string, ad
 		return nil, fmt.Errorf("preflight: %w", err)
 	}
 
-	// Host-attested DNS: every reply the resolver sends this VM.
-	dns, err := newDNSLog(filepath.Join(runDir, "host", "dns.jsonl"))
+	// Host-attested records: every DNS reply the resolver sends this VM, every packet of it
+	// the egress ruleset drops, and a full packet capture of its TAP.
+	client := netns.VMOutsideIP(slot)
+	dns, err := newJSONLog(filepath.Join(runDir, "host", "dns.jsonl"), maxHostRecords)
 	if err != nil {
 		return nil, err
 	}
-	client := netns.VMOutsideIP(slot)
-	s.net.Resolver().Attach(client, dns.write)
+	s.net.Resolver().Attach(client, func(q netns.Query) { dns.write(q) })
+	blocked, err := newJSONLog(filepath.Join(runDir, "host", "blocked.jsonl"), maxHostRecords)
+	if err != nil {
+		return nil, err
+	}
+	s.net.AttachBlocked(client, func(b netns.Blocked) { blocked.write(b) })
 	addCleanup(func(context.Context) {
 		s.net.Resolver().Detach(client)
-		dns.close()
+		s.net.DetachBlocked(client)
+		if n := dns.close() + blocked.close(); n > 0 {
+			r.log.Warn("host records over the limit were dropped", "count", n)
+		}
+	})
+	pcap := filepath.Join(runDir, "host", "capture.pcap")
+	if err := op.Chown(filepath.Join(runDir, "host")); err != nil {
+		return nil, err
+	}
+	capture, err := netns.StartCapture(netVM, pcap, op.Name, maxPackets)
+	if err != nil {
+		return nil, fmt.Errorf("packet capture: %w", err)
+	}
+	addCleanup(func(context.Context) {
+		r.log.Info("capture stopped", "tcpdump", strings.Join(capture.Stop(), "; "))
+		_ = os.Chmod(pcap, 0o600) // tcpdump creates it 0644; runs are private
 	})
 
 	vsockUDS := filepath.Join(s.cfg.SocketDir, r.id+".vsock")
@@ -265,34 +292,44 @@ func waitAgent(ctx context.Context, m *vm.Machine, c guestv1.GuestAgentServiceCl
 	return nil, fmt.Errorf("guest agent not reachable: %w", err)
 }
 
-// dnsLog writes host/dns.jsonl: the resolver's replies to one VM, host-attested.
-type dnsLog struct {
-	mu  sync.Mutex
-	f   *os.File
-	enc *json.Encoder
+// jsonLog writes host-attested records, one JSON object per line, up to a limit; records past
+// the limit are counted, not written (a page can make the guest generate them at will).
+type jsonLog struct {
+	mu      sync.Mutex
+	f       *os.File
+	enc     *json.Encoder
+	n, max  int
+	dropped int
 }
 
-func newDNSLog(path string) (*dnsLog, error) {
+func newJSONLog(path string, max int) (*jsonLog, error) {
 	f, err := os.OpenFile(path, os.O_CREATE|os.O_WRONLY|os.O_TRUNC, 0o600)
 	if err != nil {
 		return nil, err
 	}
-	return &dnsLog{f: f, enc: json.NewEncoder(f)}, nil
+	return &jsonLog{f: f, enc: json.NewEncoder(f), max: max}, nil
 }
 
-func (d *dnsLog) write(q netns.Query) {
-	d.mu.Lock()
-	defer d.mu.Unlock()
-	if d.f != nil {
-		_ = d.enc.Encode(q)
+func (l *jsonLog) write(v any) {
+	l.mu.Lock()
+	defer l.mu.Unlock()
+	if l.f == nil {
+		return
 	}
+	if l.n >= l.max {
+		l.dropped++
+		return
+	}
+	l.n++
+	_ = l.enc.Encode(v)
 }
 
-func (d *dnsLog) close() {
-	d.mu.Lock()
-	defer d.mu.Unlock()
-	if d.f != nil {
-		d.f.Close()
-		d.f = nil
+func (l *jsonLog) close() int {
+	l.mu.Lock()
+	defer l.mu.Unlock()
+	if l.f != nil {
+		l.f.Close()
+		l.f = nil
 	}
+	return l.dropped
 }

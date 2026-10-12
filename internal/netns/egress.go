@@ -23,6 +23,8 @@ type Egress struct {
 	log       *slog.Logger
 	rulesHash string
 	resolver  *Resolver
+	blocked   *blockLog
+	stopLogs  context.CancelFunc
 
 	mu       sync.Mutex
 	vmHashes map[int]string
@@ -82,6 +84,11 @@ func Up(ctx context.Context, cfg EgressConfig, log *slog.Logger) (*Egress, error
 	if e.resolver, err = startResolver(ctx, EgressNS, cfg, log); err != nil {
 		return nil, err
 	}
+	logCtx, stopLogs := context.WithCancel(context.WithoutCancel(ctx))
+	e.stopLogs = stopLogs
+	if e.blocked, err = startBlockLog(logCtx, e); err != nil {
+		return nil, err
+	}
 	ok = true
 	log.Info("egress namespace up", "exit", "dev (host NAT)", "rules_sha256", hash[:12], "upstreams", cfg.Upstreams)
 	return e, nil
@@ -94,6 +101,12 @@ func (e *Egress) Resolver() *Resolver { return e.resolver }
 func (e *Egress) Close(ctx context.Context) {
 	if e.resolver != nil {
 		e.resolver.stop()
+	}
+	if e.stopLogs != nil {
+		e.stopLogs()
+	}
+	if e.blocked != nil {
+		e.blocked.nf.Close()
 	}
 	e.hostExitDown(ctx)
 	if err := ip(ctx, "netns", "del", EgressNS); err != nil && !strings.Contains(err.Error(), "No such file") {

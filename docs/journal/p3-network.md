@@ -11,8 +11,9 @@
 | - | --------- | ----- |
 | M1 | Root daemon ([ADR 0014](../decisions/0014-root-daemon-unprivileged-vmm.md)); per-VM + egress namespaces; nftables rulesets with hash check; unbound with rebind protection; per-run DNS log | done |
 | M2 | Isolation test plan automated: `urljail selftest`, guest `Probe` RPC + host drop counters / DNS log | done |
-| M3 | eBPF (TCX) flow + TLS SNI/ALPN capture; pcap; blocked attempts from NFLOG | |
-| M4 | Host-side report sections, host/guest reconciliation, background-traffic labels, `urljail doctor` | |
+| M3 | Blocked attempts from NFLOG (per packet); pcap via tcpdump; self-test requires per-destination evidence | done |
+| M4 | eBPF (TCX) flow records + TLS ClientHello SNI/ALPN | |
+| M5 | Host-side report sections, host/guest reconciliation, background-traffic labels, `urljail doctor` | |
 
 ## M1 notes
 
@@ -55,3 +56,10 @@ Adding the `ComponentUpdatesEnabled: false` policy cut it from 11 to 8 names; th
 | Non-allowlisted URL in dev mode | — | refused by policy |
 
 **Known weakness, to fix in M3:** the six `private` checks share one counter (all saw +12), so the host evidence is "private drops happened", not "this destination was dropped". Each still needs its own guest-side timeout, and an allowed probe would have connected or been refused instead, so it can't pass by accident; but M3's NFLOG listener sees each dropped packet's destination, and the checks should then require per-destination evidence.
+
+## M3 notes
+
+- **NFLOG, per packet:** the egress rules `log group 2`; the daemon opens the NFLOG netlink socket *inside* `uj-egress` (netlink sockets belong to a namespace: lock the OS thread, `setns`, open, `setns` back; a thread that can't switch back stays locked and is discarded). Each drop gives reason (from the log prefix), source, destination, protocol and port, routed by source (`10.200.<n>.2`) into the run's `host/blocked.jsonl`, capped at 20 000 records per run (the overflow is counted). Under a flood the netlink buffer can overflow (ENOBUFS): lines are lost, the drops still happen.
+- **Self-test tightened:** every egress drop check now also needs its own destination and port in the blocked log with the right reason, fixing M2's shared-counter weakness. All checks pass with per-destination evidence (e.g. `private tcp 192.168.0.1:80`, `quic udp 1.1.1.1:443`).
+- **pcap:** tcpdump in the VM namespace on `tap0`, started before the VM boots, writing raw packets only, after dropping to the operator (`-Z`), capped at 500 000 packets. example.com: 847 packets, 633 KB; the ClientHellos show SNI in clear (ECH is off by policy): `example.com` plus the Google hosts from the DNS log. tcpdump creates the file `0644`; teardown makes it `0600` like the rest of the run.
+- **Not verified yet:** offline TLS decryption with the key log (no Wireshark/tshark on this host). The pieces are there (`host/capture.pcap` + `guest/sslkeys.log`).

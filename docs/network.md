@@ -115,10 +115,10 @@ Docker on this host installs its own iptables-nft rules and sets the FORWARD pol
 
 | Tap point | What | How |
 | --------- | ---- | --- |
-| `tap0` in VM netns | full pcap | `tcpdump -U -w` subprocess inside the VM netns, with a size cap; in-process AF_PACKET (gopacket/pcapgo) only if needed later. Watch for SELinux denials writing to the artifact directory |
+| `tap0` in VM netns | full pcap | `tcpdump -i tap0 -s 0 -U -w host/capture.pcap -Z <operator> -c 500000` inside the VM netns, started before the VM boots (the daemon waits for "listening"). Writes raw packets only, no dissection. Decrypt offline: `wireshark -o tls.keylog_file:guest/sslkeys.log host/capture.pcap` |
 | `tap0` TCX ingress/egress | flow records: 5-tuple, bytes, packets, first/last seen; TLS ClientHello SNI + ALPN | eBPF (cilium/ebpf, TCX attach; kernel ≥ 6.6), ring buffer → userspace |
 | unbound | DNS queries/answers | log stream |
-| nftables | dropped-packet counters/logs | `log` statements → per-run "blocked attempts" |
+| nftables | dropped-packet counters/logs | `log group 2` → NFLOG socket opened inside `uj-egress` (setns on a locked thread) → per-packet reason/src/dst/port, routed by source to `host/blocked.jsonl` (capped at 20 000 per run). Commented rules give per-reason counters |
 
 Decryption: Chromium writes `SSLKEYLOGFILE` in the guest; the guest agent ships it back; pcap + key log decrypt offline in Wireshark/tshark. No MITM proxy, so the server sees Chrome's real TLS fingerprint (see [ADR 0004](./decisions/0004-sslkeylog-instead-of-mitm.md)).
 

@@ -109,6 +109,7 @@ func (s *Server) SelfTest(ctx context.Context, _ *daemonv1.SelfTestRequest) (*da
 		return nil, err
 	}
 	dnsSeen := dnsNames(filepath.Join(runDir, "host", "dns.jsonl"))
+	blocked := blockedSet(filepath.Join(runDir, "host", "blocked.jsonl"))
 
 	byID := map[string]*guestv1.ProbeResult{}
 	for _, res := range resp.GetResults() {
@@ -135,6 +136,12 @@ func (s *Server) SelfTest(ctx context.Context, _ *daemonv1.SelfTestRequest) (*da
 			d := after[c.counter] - before[c.counter]
 			obs = append(obs, fmt.Sprintf("host: %s +%d", c.counter, d))
 			pass = pass && d > 0
+			// Egress drops are also logged per packet: require this probe's own destination.
+			if target := probeTarget(c.probe); target != "" && !strings.HasPrefix(c.counter, "vm-") {
+				seen := blocked[c.counter+" "+target]
+				obs = append(obs, fmt.Sprintf("blocked log has %s: %v", target, seen))
+				pass = pass && seen
+			}
 		}
 		if c.dnsName != "" {
 			seen := dnsSeen[strings.ToLower(c.dnsName)+"."]
@@ -281,6 +288,33 @@ func (s *Server) allCounters(ctx context.Context, vm *netns.VM) (map[string]uint
 		eg[k] = n
 	}
 	return eg, nil
+}
+
+// probeTarget is "proto ip:port" for TCP and UDP probes.
+func probeTarget(p *guestv1.ProbeSpec) string {
+	switch {
+	case p.GetTcp() != "":
+		return "tcp " + p.GetTcp()
+	case p.GetUdp() != "":
+		return "udp " + p.GetUdp()
+	}
+	return ""
+}
+
+// blockedSet reads host/blocked.jsonl as a set of "reason proto ip:port".
+func blockedSet(path string) map[string]bool {
+	seen := map[string]bool{}
+	b, err := os.ReadFile(path)
+	if err != nil {
+		return seen
+	}
+	for _, line := range strings.Split(string(b), "\n") {
+		var bl netns.Blocked
+		if json.Unmarshal([]byte(line), &bl) == nil && bl.Dst != "" {
+			seen[fmt.Sprintf("%s %s %s", bl.Reason, bl.Proto, net.JoinHostPort(bl.Dst, fmt.Sprint(bl.Port)))] = true
+		}
+	}
+	return seen
 }
 
 func dnsNames(path string) map[string]bool {

@@ -112,9 +112,10 @@ runs/<run-id>/
   guest/chrome.log     # Chrome's stderr
   host/serial.log      # guest serial console
   host/firecracker.log
-  host/capture.pcapng  # (P3) full packet capture on the VM's TAP
-  host/flows.jsonl     # (P3) eBPF flow + SNI records
-  host/dns.jsonl       # (P3) resolver log slice for this run
+  host/capture.pcap    # full packet capture on the VM's TAP (tcpdump writes pcap, not pcapng)
+  host/dns.jsonl       # resolver replies to this VM
+  host/blocked.jsonl   # packets of this VM the egress ruleset dropped (NFLOG)
+  host/flows.jsonl     # (P3 M4) eBPF flow + SNI records
   downloads/<sha256>   # (later) never executed
 ```
 
