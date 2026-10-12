@@ -53,6 +53,9 @@ func run() error {
 	mem := flag.Int("mem", 1024, "guest memory per VM, MiB")
 	defTimeout := flag.Duration("timeout", 30*time.Second, "default wall-clock limit per run")
 	maxTimeout := flag.Duration("max-timeout", 5*time.Minute, "largest timeout a client may request")
+	minDwell := flag.Duration("min-dwell", 3*time.Second, "minimum observation after navigation")
+	maxDwell := flag.Duration("max-dwell", 15*time.Second, "maximum observation after navigation")
+	jitter := flag.Duration("dwell-jitter", time.Second, "random extra minimum observation, up to this")
 	flag.Parse()
 
 	log := slog.New(slog.NewTextHandler(os.Stderr, nil))
@@ -74,6 +77,9 @@ func run() error {
 		RunsDir:        *runsDir,
 		DefaultTimeout: *defTimeout,
 		MaxTimeout:     *maxTimeout,
+		MinDwell:       *minDwell,
+		MaxDwell:       *maxDwell,
+		DwellJitter:    *jitter,
 		Firecracker:    *firecracker,
 		DNS:            *dns,
 		SocketDir:      filepath.Join(filepath.Dir(*socket), "vm"),

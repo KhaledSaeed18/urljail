@@ -13,7 +13,8 @@ Status: **design draft**. What runs inside the microVM, and how the snapshot is 
 | IPv6 | disabled in the guest | v1 has no IPv6 egress; the CI image brings up link-local IPv6 by default |
 | Browser | Google Chrome stable from Google's `.deb`, version pinned, `.deb` archived with its SHA-256, self-update removed ([ADR 0012](./decisions/0012-google-chrome-stable-in-guest.md)) | Rebuild image on every Chrome stable release |
 | Guest agent | Go, `CGO_ENABLED=0`, static | Talks AF_VSOCK to host; drives Chromium via chromedp |
-| Fonts | A realistic desktop font set | Missing fonts are a fingerprint signal (see [anti-cloaking](./research/anti-cloaking.md)) |
+| Fonts | Liberation, DejaVu, Noto (incl. CJK and color emoji) | Missing fonts are a fingerprint signal (see [anti-cloaking](./research/anti-cloaking.md)); M4's first screenshot showed tofu for CJK until `fonts-noto-cjk` was added |
+| Init | `urljail-init` (Go, PID 1): mounts, loopback, `/dev/vsock` for the agent's group, reaper, Ctrl-Alt-Del → reboot | No systemd; agent reachable 1.38 s after VMM start |
 
 ## Chromium configuration
 
@@ -21,7 +22,11 @@ Enterprise policy (`/etc/opt/chrome/policies/managed/urljail.json`) + flags.
 
 | Setting | Value | Why |
 | ------- | ----- | --- |
-| `--remote-debugging-pipe` | on | CDP over a pipe, **no TCP debug port**, so nothing for a page to reach via DNS rebinding to localhost |
+| `--remote-debugging-pipe` | on | CDP over a pipe, **no TCP debug port**, so nothing for a page to reach via DNS rebinding to localhost. Client: [ADR 0013](./decisions/0013-own-cdp-client-over-pipe.md); only `Network` + `Page` enabled, no `Runtime.enable` |
+| `--disable-background-networking` | on | Cuts Chrome's background requests to Google (component updates, variations, most GCM) that would be noise in the host capture; not observable by pages. Some GCM traffic (`mtalk.google.com`) remains, as in real Chrome: the report should label it, not hide it |
+| `--window-size` | 1920,1080 | Common desktop size; headless-new reports a realistic smaller viewport (1920×993 in M4) |
+| Tab | the tab Chrome opens at startup | A tab from `Target.createTarget` is a background tab: `visibilityState` hidden, throttled timers, no paint until a screenshot forces one (found in M4) |
+| Sandbox | on, as uid 1000 | Guest kernel has user/PID/net namespaces + seccomp; never `--no-sandbox` |
 | `--disable-quic` | on | Keep traffic on TCP so SNI/TLS is observable (also dropped at firewall) |
 | `EncryptedClientHelloEnabled` policy | false | ECH would hide the real SNI behind the CDN's public name |
 | `DnsOverHttpsMode` policy | off | All DNS must go to our resolver |

@@ -162,9 +162,42 @@ func (s *Server) detonate(ctx context.Context, r *run, u *url.URL, profile strin
 		r.log.Warn("guest reports a different browser than the image manifest",
 			"guest", hello.GetBrowserVersion(), "manifest", img.Manifest.Browser.Version)
 	}
-	return r.send(daemonv1.RunState_RUN_STATE_NET_READY,
-		fmt.Sprintf("guest agent up %d ms after start (Chrome %s, kernel %s); navigation arrives in M4",
-			time.Since(t0).Milliseconds(), hello.GetBrowserVersion(), hello.GetKernel()))
+	if err := r.send(daemonv1.RunState_RUN_STATE_NET_READY,
+		fmt.Sprintf("guest agent up %d ms after start (Chrome %s, kernel %s)",
+			time.Since(t0).Milliseconds(), hello.GetBrowserVersion(), hello.GetKernel())); err != nil {
+		return err
+	}
+
+	d, err := s.dwellFor(ctx)
+	if err != nil {
+		return err
+	}
+	done, err := s.runGuest(ctx, r, guestv1.NewGuestAgentServiceClient(agent), u.String(), d, runDir)
+	if err != nil {
+		return err
+	}
+	msg := fmt.Sprintf("final %s after %s (%s)", done.GetFinalUrl(), done.GetDwell().AsDuration().Round(time.Millisecond), done.GetDwellReason())
+	if e := done.GetNavigationError(); e != "" {
+		msg = "navigation error: " + e
+	}
+	return r.send(daemonv1.RunState_RUN_STATE_COLLECTING, msg)
+}
+
+// collectMargin is the time kept back from the run's deadline for collecting artifacts.
+const collectMargin = 8 * time.Second
+
+// dwellFor fits the configured dwell into the time the run has left.
+func (s *Server) dwellFor(ctx context.Context) (dwell, error) {
+	d := dwell{min: s.cfg.MinDwell, max: s.cfg.MaxDwell, jitter: s.cfg.DwellJitter}
+	if dl, ok := ctx.Deadline(); ok {
+		if left := time.Until(dl) - collectMargin; left < d.max {
+			d.max = left
+		}
+	}
+	if d.max < d.min {
+		return d, fmt.Errorf("not enough time left to observe for %s (raise the timeout)", d.min)
+	}
+	return d, nil
 }
 
 // dialAgent returns a gRPC connection to the guest agent over the VM's vsock socket.

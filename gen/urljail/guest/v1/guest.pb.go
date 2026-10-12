@@ -10,6 +10,7 @@ import (
 	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
 	protoimpl "google.golang.org/protobuf/runtime/protoimpl"
 	durationpb "google.golang.org/protobuf/types/known/durationpb"
+	timestamppb "google.golang.org/protobuf/types/known/timestamppb"
 	reflect "reflect"
 	sync "sync"
 	unsafe "unsafe"
@@ -21,6 +22,58 @@ const (
 	// Verify that runtime/protoimpl is sufficiently up-to-date.
 	_ = protoimpl.EnforceVersion(protoimpl.MaxVersion - 20)
 )
+
+type Stage int32
+
+const (
+	Stage_STAGE_UNSPECIFIED Stage = 0
+	Stage_STAGE_NAVIGATING  Stage = 1
+	Stage_STAGE_OBSERVING   Stage = 2
+	Stage_STAGE_COLLECTING  Stage = 3
+)
+
+// Enum value maps for Stage.
+var (
+	Stage_name = map[int32]string{
+		0: "STAGE_UNSPECIFIED",
+		1: "STAGE_NAVIGATING",
+		2: "STAGE_OBSERVING",
+		3: "STAGE_COLLECTING",
+	}
+	Stage_value = map[string]int32{
+		"STAGE_UNSPECIFIED": 0,
+		"STAGE_NAVIGATING":  1,
+		"STAGE_OBSERVING":   2,
+		"STAGE_COLLECTING":  3,
+	}
+)
+
+func (x Stage) Enum() *Stage {
+	p := new(Stage)
+	*p = x
+	return p
+}
+
+func (x Stage) String() string {
+	return protoimpl.X.EnumStringOf(x.Descriptor(), protoreflect.EnumNumber(x))
+}
+
+func (Stage) Descriptor() protoreflect.EnumDescriptor {
+	return file_urljail_guest_v1_guest_proto_enumTypes[0].Descriptor()
+}
+
+func (Stage) Type() protoreflect.EnumType {
+	return &file_urljail_guest_v1_guest_proto_enumTypes[0]
+}
+
+func (x Stage) Number() protoreflect.EnumNumber {
+	return protoreflect.EnumNumber(x)
+}
+
+// Deprecated: Use Stage.Descriptor instead.
+func (Stage) EnumDescriptor() ([]byte, []int) {
+	return file_urljail_guest_v1_guest_proto_rawDescGZIP(), []int{0}
+}
 
 type HelloRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
@@ -129,19 +182,521 @@ func (x *HelloResponse) GetUptime() *durationpb.Duration {
 	return nil
 }
 
+type DetonateRequest struct {
+	state protoimpl.MessageState `protogen:"open.v1"`
+	Url   string                 `protobuf:"bytes,1,opt,name=url,proto3" json:"url,omitempty"`
+	// Observe for at least min_dwell (plus a random jitter of up to jitter), then stop once the
+	// network is idle, or at max_dwell at the latest (open question Q11's resolution).
+	MinDwell      *durationpb.Duration `protobuf:"bytes,2,opt,name=min_dwell,json=minDwell,proto3" json:"min_dwell,omitempty"`
+	MaxDwell      *durationpb.Duration `protobuf:"bytes,3,opt,name=max_dwell,json=maxDwell,proto3" json:"max_dwell,omitempty"`
+	Jitter        *durationpb.Duration `protobuf:"bytes,4,opt,name=jitter,proto3" json:"jitter,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *DetonateRequest) Reset() {
+	*x = DetonateRequest{}
+	mi := &file_urljail_guest_v1_guest_proto_msgTypes[2]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *DetonateRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*DetonateRequest) ProtoMessage() {}
+
+func (x *DetonateRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_urljail_guest_v1_guest_proto_msgTypes[2]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use DetonateRequest.ProtoReflect.Descriptor instead.
+func (*DetonateRequest) Descriptor() ([]byte, []int) {
+	return file_urljail_guest_v1_guest_proto_rawDescGZIP(), []int{2}
+}
+
+func (x *DetonateRequest) GetUrl() string {
+	if x != nil {
+		return x.Url
+	}
+	return ""
+}
+
+func (x *DetonateRequest) GetMinDwell() *durationpb.Duration {
+	if x != nil {
+		return x.MinDwell
+	}
+	return nil
+}
+
+func (x *DetonateRequest) GetMaxDwell() *durationpb.Duration {
+	if x != nil {
+		return x.MaxDwell
+	}
+	return nil
+}
+
+func (x *DetonateRequest) GetJitter() *durationpb.Duration {
+	if x != nil {
+		return x.Jitter
+	}
+	return nil
+}
+
+type DetonateResponse struct {
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// Types that are valid to be assigned to Msg:
+	//
+	//	*DetonateResponse_Progress
+	//	*DetonateResponse_Event
+	//	*DetonateResponse_Artifact
+	//	*DetonateResponse_Done
+	Msg           isDetonateResponse_Msg `protobuf_oneof:"msg"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *DetonateResponse) Reset() {
+	*x = DetonateResponse{}
+	mi := &file_urljail_guest_v1_guest_proto_msgTypes[3]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *DetonateResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*DetonateResponse) ProtoMessage() {}
+
+func (x *DetonateResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_urljail_guest_v1_guest_proto_msgTypes[3]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use DetonateResponse.ProtoReflect.Descriptor instead.
+func (*DetonateResponse) Descriptor() ([]byte, []int) {
+	return file_urljail_guest_v1_guest_proto_rawDescGZIP(), []int{3}
+}
+
+func (x *DetonateResponse) GetMsg() isDetonateResponse_Msg {
+	if x != nil {
+		return x.Msg
+	}
+	return nil
+}
+
+func (x *DetonateResponse) GetProgress() *Progress {
+	if x != nil {
+		if x, ok := x.Msg.(*DetonateResponse_Progress); ok {
+			return x.Progress
+		}
+	}
+	return nil
+}
+
+func (x *DetonateResponse) GetEvent() *Event {
+	if x != nil {
+		if x, ok := x.Msg.(*DetonateResponse_Event); ok {
+			return x.Event
+		}
+	}
+	return nil
+}
+
+func (x *DetonateResponse) GetArtifact() *Artifact {
+	if x != nil {
+		if x, ok := x.Msg.(*DetonateResponse_Artifact); ok {
+			return x.Artifact
+		}
+	}
+	return nil
+}
+
+func (x *DetonateResponse) GetDone() *Done {
+	if x != nil {
+		if x, ok := x.Msg.(*DetonateResponse_Done); ok {
+			return x.Done
+		}
+	}
+	return nil
+}
+
+type isDetonateResponse_Msg interface {
+	isDetonateResponse_Msg()
+}
+
+type DetonateResponse_Progress struct {
+	Progress *Progress `protobuf:"bytes,1,opt,name=progress,proto3,oneof"`
+}
+
+type DetonateResponse_Event struct {
+	Event *Event `protobuf:"bytes,2,opt,name=event,proto3,oneof"`
+}
+
+type DetonateResponse_Artifact struct {
+	Artifact *Artifact `protobuf:"bytes,3,opt,name=artifact,proto3,oneof"`
+}
+
+type DetonateResponse_Done struct {
+	Done *Done `protobuf:"bytes,4,opt,name=done,proto3,oneof"`
+}
+
+func (*DetonateResponse_Progress) isDetonateResponse_Msg() {}
+
+func (*DetonateResponse_Event) isDetonateResponse_Msg() {}
+
+func (*DetonateResponse_Artifact) isDetonateResponse_Msg() {}
+
+func (*DetonateResponse_Done) isDetonateResponse_Msg() {}
+
+type Progress struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Stage         Stage                  `protobuf:"varint,1,opt,name=stage,proto3,enum=urljail.guest.v1.Stage" json:"stage,omitempty"`
+	Message       string                 `protobuf:"bytes,2,opt,name=message,proto3" json:"message,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *Progress) Reset() {
+	*x = Progress{}
+	mi := &file_urljail_guest_v1_guest_proto_msgTypes[4]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *Progress) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*Progress) ProtoMessage() {}
+
+func (x *Progress) ProtoReflect() protoreflect.Message {
+	mi := &file_urljail_guest_v1_guest_proto_msgTypes[4]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use Progress.ProtoReflect.Descriptor instead.
+func (*Progress) Descriptor() ([]byte, []int) {
+	return file_urljail_guest_v1_guest_proto_rawDescGZIP(), []int{4}
+}
+
+func (x *Progress) GetStage() Stage {
+	if x != nil {
+		return x.Stage
+	}
+	return Stage_STAGE_UNSPECIFIED
+}
+
+func (x *Progress) GetMessage() string {
+	if x != nil {
+		return x.Message
+	}
+	return ""
+}
+
+// Event is one raw CDP event, as Chrome sent it.
+type Event struct {
+	state     protoimpl.MessageState `protogen:"open.v1"`
+	Time      *timestamppb.Timestamp `protobuf:"bytes,1,opt,name=time,proto3" json:"time,omitempty"`
+	SessionId string                 `protobuf:"bytes,2,opt,name=session_id,json=sessionId,proto3" json:"session_id,omitempty"`
+	Method    string                 `protobuf:"bytes,3,opt,name=method,proto3" json:"method,omitempty"`
+	// The event's params object, JSON.
+	Params        []byte `protobuf:"bytes,4,opt,name=params,proto3" json:"params,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *Event) Reset() {
+	*x = Event{}
+	mi := &file_urljail_guest_v1_guest_proto_msgTypes[5]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *Event) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*Event) ProtoMessage() {}
+
+func (x *Event) ProtoReflect() protoreflect.Message {
+	mi := &file_urljail_guest_v1_guest_proto_msgTypes[5]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use Event.ProtoReflect.Descriptor instead.
+func (*Event) Descriptor() ([]byte, []int) {
+	return file_urljail_guest_v1_guest_proto_rawDescGZIP(), []int{5}
+}
+
+func (x *Event) GetTime() *timestamppb.Timestamp {
+	if x != nil {
+		return x.Time
+	}
+	return nil
+}
+
+func (x *Event) GetSessionId() string {
+	if x != nil {
+		return x.SessionId
+	}
+	return ""
+}
+
+func (x *Event) GetMethod() string {
+	if x != nil {
+		return x.Method
+	}
+	return ""
+}
+
+func (x *Event) GetParams() []byte {
+	if x != nil {
+		return x.Params
+	}
+	return nil
+}
+
+// Artifact is one chunk of a file; chunks of one artifact arrive in order, the last with last=true.
+type Artifact struct {
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// File name under the run's guest/ directory, e.g. "screenshot.png".
+	Name          string `protobuf:"bytes,1,opt,name=name,proto3" json:"name,omitempty"`
+	Data          []byte `protobuf:"bytes,2,opt,name=data,proto3" json:"data,omitempty"`
+	Last          bool   `protobuf:"varint,3,opt,name=last,proto3" json:"last,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *Artifact) Reset() {
+	*x = Artifact{}
+	mi := &file_urljail_guest_v1_guest_proto_msgTypes[6]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *Artifact) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*Artifact) ProtoMessage() {}
+
+func (x *Artifact) ProtoReflect() protoreflect.Message {
+	mi := &file_urljail_guest_v1_guest_proto_msgTypes[6]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use Artifact.ProtoReflect.Descriptor instead.
+func (*Artifact) Descriptor() ([]byte, []int) {
+	return file_urljail_guest_v1_guest_proto_rawDescGZIP(), []int{6}
+}
+
+func (x *Artifact) GetName() string {
+	if x != nil {
+		return x.Name
+	}
+	return ""
+}
+
+func (x *Artifact) GetData() []byte {
+	if x != nil {
+		return x.Data
+	}
+	return nil
+}
+
+func (x *Artifact) GetLast() bool {
+	if x != nil {
+		return x.Last
+	}
+	return false
+}
+
+type Done struct {
+	state    protoimpl.MessageState `protogen:"open.v1"`
+	FinalUrl string                 `protobuf:"bytes,1,opt,name=final_url,json=finalUrl,proto3" json:"final_url,omitempty"`
+	Title    string                 `protobuf:"bytes,2,opt,name=title,proto3" json:"title,omitempty"`
+	// Set when Page.navigate itself failed (DNS error, refused connection, ...).
+	NavigationError string               `protobuf:"bytes,3,opt,name=navigation_error,json=navigationError,proto3" json:"navigation_error,omitempty"`
+	Dwell           *durationpb.Duration `protobuf:"bytes,4,opt,name=dwell,proto3" json:"dwell,omitempty"`
+	// Why observation stopped: "network idle", "max dwell" or "cancelled".
+	DwellReason string `protobuf:"bytes,5,opt,name=dwell_reason,json=dwellReason,proto3" json:"dwell_reason,omitempty"`
+	// CDP events the agent couldn't forward because its queue was full.
+	DroppedEvents int64 `protobuf:"varint,6,opt,name=dropped_events,json=droppedEvents,proto3" json:"dropped_events,omitempty"`
+	// Set when the detonation failed inside the guest.
+	Error         string `protobuf:"bytes,7,opt,name=error,proto3" json:"error,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *Done) Reset() {
+	*x = Done{}
+	mi := &file_urljail_guest_v1_guest_proto_msgTypes[7]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *Done) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*Done) ProtoMessage() {}
+
+func (x *Done) ProtoReflect() protoreflect.Message {
+	mi := &file_urljail_guest_v1_guest_proto_msgTypes[7]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use Done.ProtoReflect.Descriptor instead.
+func (*Done) Descriptor() ([]byte, []int) {
+	return file_urljail_guest_v1_guest_proto_rawDescGZIP(), []int{7}
+}
+
+func (x *Done) GetFinalUrl() string {
+	if x != nil {
+		return x.FinalUrl
+	}
+	return ""
+}
+
+func (x *Done) GetTitle() string {
+	if x != nil {
+		return x.Title
+	}
+	return ""
+}
+
+func (x *Done) GetNavigationError() string {
+	if x != nil {
+		return x.NavigationError
+	}
+	return ""
+}
+
+func (x *Done) GetDwell() *durationpb.Duration {
+	if x != nil {
+		return x.Dwell
+	}
+	return nil
+}
+
+func (x *Done) GetDwellReason() string {
+	if x != nil {
+		return x.DwellReason
+	}
+	return ""
+}
+
+func (x *Done) GetDroppedEvents() int64 {
+	if x != nil {
+		return x.DroppedEvents
+	}
+	return 0
+}
+
+func (x *Done) GetError() string {
+	if x != nil {
+		return x.Error
+	}
+	return ""
+}
+
 var File_urljail_guest_v1_guest_proto protoreflect.FileDescriptor
 
 const file_urljail_guest_v1_guest_proto_rawDesc = "" +
 	"\n" +
-	"\x1curljail/guest/v1/guest.proto\x12\x10urljail.guest.v1\x1a\x1egoogle/protobuf/duration.proto\"\x0e\n" +
+	"\x1curljail/guest/v1/guest.proto\x12\x10urljail.guest.v1\x1a\x1egoogle/protobuf/duration.proto\x1a\x1fgoogle/protobuf/timestamp.proto\"\x0e\n" +
 	"\fHelloRequest\"\xa8\x01\n" +
 	"\rHelloResponse\x12#\n" +
 	"\ragent_version\x18\x01 \x01(\tR\fagentVersion\x12'\n" +
 	"\x0fbrowser_version\x18\x02 \x01(\tR\x0ebrowserVersion\x12\x16\n" +
 	"\x06kernel\x18\x03 \x01(\tR\x06kernel\x121\n" +
-	"\x06uptime\x18\x04 \x01(\v2\x19.google.protobuf.DurationR\x06uptime2]\n" +
+	"\x06uptime\x18\x04 \x01(\v2\x19.google.protobuf.DurationR\x06uptime\"\xc6\x01\n" +
+	"\x0fDetonateRequest\x12\x10\n" +
+	"\x03url\x18\x01 \x01(\tR\x03url\x126\n" +
+	"\tmin_dwell\x18\x02 \x01(\v2\x19.google.protobuf.DurationR\bminDwell\x126\n" +
+	"\tmax_dwell\x18\x03 \x01(\v2\x19.google.protobuf.DurationR\bmaxDwell\x121\n" +
+	"\x06jitter\x18\x04 \x01(\v2\x19.google.protobuf.DurationR\x06jitter\"\xec\x01\n" +
+	"\x10DetonateResponse\x128\n" +
+	"\bprogress\x18\x01 \x01(\v2\x1a.urljail.guest.v1.ProgressH\x00R\bprogress\x12/\n" +
+	"\x05event\x18\x02 \x01(\v2\x17.urljail.guest.v1.EventH\x00R\x05event\x128\n" +
+	"\bartifact\x18\x03 \x01(\v2\x1a.urljail.guest.v1.ArtifactH\x00R\bartifact\x12,\n" +
+	"\x04done\x18\x04 \x01(\v2\x16.urljail.guest.v1.DoneH\x00R\x04doneB\x05\n" +
+	"\x03msg\"S\n" +
+	"\bProgress\x12-\n" +
+	"\x05stage\x18\x01 \x01(\x0e2\x17.urljail.guest.v1.StageR\x05stage\x12\x18\n" +
+	"\amessage\x18\x02 \x01(\tR\amessage\"\x86\x01\n" +
+	"\x05Event\x12.\n" +
+	"\x04time\x18\x01 \x01(\v2\x1a.google.protobuf.TimestampR\x04time\x12\x1d\n" +
+	"\n" +
+	"session_id\x18\x02 \x01(\tR\tsessionId\x12\x16\n" +
+	"\x06method\x18\x03 \x01(\tR\x06method\x12\x16\n" +
+	"\x06params\x18\x04 \x01(\fR\x06params\"F\n" +
+	"\bArtifact\x12\x12\n" +
+	"\x04name\x18\x01 \x01(\tR\x04name\x12\x12\n" +
+	"\x04data\x18\x02 \x01(\fR\x04data\x12\x12\n" +
+	"\x04last\x18\x03 \x01(\bR\x04last\"\xf5\x01\n" +
+	"\x04Done\x12\x1b\n" +
+	"\tfinal_url\x18\x01 \x01(\tR\bfinalUrl\x12\x14\n" +
+	"\x05title\x18\x02 \x01(\tR\x05title\x12)\n" +
+	"\x10navigation_error\x18\x03 \x01(\tR\x0fnavigationError\x12/\n" +
+	"\x05dwell\x18\x04 \x01(\v2\x19.google.protobuf.DurationR\x05dwell\x12!\n" +
+	"\fdwell_reason\x18\x05 \x01(\tR\vdwellReason\x12%\n" +
+	"\x0edropped_events\x18\x06 \x01(\x03R\rdroppedEvents\x12\x14\n" +
+	"\x05error\x18\a \x01(\tR\x05error*_\n" +
+	"\x05Stage\x12\x15\n" +
+	"\x11STAGE_UNSPECIFIED\x10\x00\x12\x14\n" +
+	"\x10STAGE_NAVIGATING\x10\x01\x12\x13\n" +
+	"\x0fSTAGE_OBSERVING\x10\x02\x12\x14\n" +
+	"\x10STAGE_COLLECTING\x10\x032\xb2\x01\n" +
 	"\x11GuestAgentService\x12H\n" +
-	"\x05Hello\x12\x1e.urljail.guest.v1.HelloRequest\x1a\x1f.urljail.guest.v1.HelloResponseB\xc3\x01\n" +
+	"\x05Hello\x12\x1e.urljail.guest.v1.HelloRequest\x1a\x1f.urljail.guest.v1.HelloResponse\x12S\n" +
+	"\bDetonate\x12!.urljail.guest.v1.DetonateRequest\x1a\".urljail.guest.v1.DetonateResponse0\x01B\xc3\x01\n" +
 	"\x14com.urljail.guest.v1B\n" +
 	"GuestProtoP\x01Z=github.com/KhaledSaeed18/urljail/gen/urljail/guest/v1;guestv1\xa2\x02\x03UGX\xaa\x02\x10Urljail.Guest.V1\xca\x02\x10Urljail\\Guest\\V1\xe2\x02\x1cUrljail\\Guest\\V1\\GPBMetadata\xea\x02\x12Urljail::Guest::V1b\x06proto3"
 
@@ -157,21 +712,42 @@ func file_urljail_guest_v1_guest_proto_rawDescGZIP() []byte {
 	return file_urljail_guest_v1_guest_proto_rawDescData
 }
 
-var file_urljail_guest_v1_guest_proto_msgTypes = make([]protoimpl.MessageInfo, 2)
+var file_urljail_guest_v1_guest_proto_enumTypes = make([]protoimpl.EnumInfo, 1)
+var file_urljail_guest_v1_guest_proto_msgTypes = make([]protoimpl.MessageInfo, 8)
 var file_urljail_guest_v1_guest_proto_goTypes = []any{
-	(*HelloRequest)(nil),        // 0: urljail.guest.v1.HelloRequest
-	(*HelloResponse)(nil),       // 1: urljail.guest.v1.HelloResponse
-	(*durationpb.Duration)(nil), // 2: google.protobuf.Duration
+	(Stage)(0),                    // 0: urljail.guest.v1.Stage
+	(*HelloRequest)(nil),          // 1: urljail.guest.v1.HelloRequest
+	(*HelloResponse)(nil),         // 2: urljail.guest.v1.HelloResponse
+	(*DetonateRequest)(nil),       // 3: urljail.guest.v1.DetonateRequest
+	(*DetonateResponse)(nil),      // 4: urljail.guest.v1.DetonateResponse
+	(*Progress)(nil),              // 5: urljail.guest.v1.Progress
+	(*Event)(nil),                 // 6: urljail.guest.v1.Event
+	(*Artifact)(nil),              // 7: urljail.guest.v1.Artifact
+	(*Done)(nil),                  // 8: urljail.guest.v1.Done
+	(*durationpb.Duration)(nil),   // 9: google.protobuf.Duration
+	(*timestamppb.Timestamp)(nil), // 10: google.protobuf.Timestamp
 }
 var file_urljail_guest_v1_guest_proto_depIdxs = []int32{
-	2, // 0: urljail.guest.v1.HelloResponse.uptime:type_name -> google.protobuf.Duration
-	0, // 1: urljail.guest.v1.GuestAgentService.Hello:input_type -> urljail.guest.v1.HelloRequest
-	1, // 2: urljail.guest.v1.GuestAgentService.Hello:output_type -> urljail.guest.v1.HelloResponse
-	2, // [2:3] is the sub-list for method output_type
-	1, // [1:2] is the sub-list for method input_type
-	1, // [1:1] is the sub-list for extension type_name
-	1, // [1:1] is the sub-list for extension extendee
-	0, // [0:1] is the sub-list for field type_name
+	9,  // 0: urljail.guest.v1.HelloResponse.uptime:type_name -> google.protobuf.Duration
+	9,  // 1: urljail.guest.v1.DetonateRequest.min_dwell:type_name -> google.protobuf.Duration
+	9,  // 2: urljail.guest.v1.DetonateRequest.max_dwell:type_name -> google.protobuf.Duration
+	9,  // 3: urljail.guest.v1.DetonateRequest.jitter:type_name -> google.protobuf.Duration
+	5,  // 4: urljail.guest.v1.DetonateResponse.progress:type_name -> urljail.guest.v1.Progress
+	6,  // 5: urljail.guest.v1.DetonateResponse.event:type_name -> urljail.guest.v1.Event
+	7,  // 6: urljail.guest.v1.DetonateResponse.artifact:type_name -> urljail.guest.v1.Artifact
+	8,  // 7: urljail.guest.v1.DetonateResponse.done:type_name -> urljail.guest.v1.Done
+	0,  // 8: urljail.guest.v1.Progress.stage:type_name -> urljail.guest.v1.Stage
+	10, // 9: urljail.guest.v1.Event.time:type_name -> google.protobuf.Timestamp
+	9,  // 10: urljail.guest.v1.Done.dwell:type_name -> google.protobuf.Duration
+	1,  // 11: urljail.guest.v1.GuestAgentService.Hello:input_type -> urljail.guest.v1.HelloRequest
+	3,  // 12: urljail.guest.v1.GuestAgentService.Detonate:input_type -> urljail.guest.v1.DetonateRequest
+	2,  // 13: urljail.guest.v1.GuestAgentService.Hello:output_type -> urljail.guest.v1.HelloResponse
+	4,  // 14: urljail.guest.v1.GuestAgentService.Detonate:output_type -> urljail.guest.v1.DetonateResponse
+	13, // [13:15] is the sub-list for method output_type
+	11, // [11:13] is the sub-list for method input_type
+	11, // [11:11] is the sub-list for extension type_name
+	11, // [11:11] is the sub-list for extension extendee
+	0,  // [0:11] is the sub-list for field type_name
 }
 
 func init() { file_urljail_guest_v1_guest_proto_init() }
@@ -179,18 +755,25 @@ func file_urljail_guest_v1_guest_proto_init() {
 	if File_urljail_guest_v1_guest_proto != nil {
 		return
 	}
+	file_urljail_guest_v1_guest_proto_msgTypes[3].OneofWrappers = []any{
+		(*DetonateResponse_Progress)(nil),
+		(*DetonateResponse_Event)(nil),
+		(*DetonateResponse_Artifact)(nil),
+		(*DetonateResponse_Done)(nil),
+	}
 	type x struct{}
 	out := protoimpl.TypeBuilder{
 		File: protoimpl.DescBuilder{
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_urljail_guest_v1_guest_proto_rawDesc), len(file_urljail_guest_v1_guest_proto_rawDesc)),
-			NumEnums:      0,
-			NumMessages:   2,
+			NumEnums:      1,
+			NumMessages:   8,
 			NumExtensions: 0,
 			NumServices:   1,
 		},
 		GoTypes:           file_urljail_guest_v1_guest_proto_goTypes,
 		DependencyIndexes: file_urljail_guest_v1_guest_proto_depIdxs,
+		EnumInfos:         file_urljail_guest_v1_guest_proto_enumTypes,
 		MessageInfos:      file_urljail_guest_v1_guest_proto_msgTypes,
 	}.Build()
 	File_urljail_guest_v1_guest_proto = out.File

@@ -9,7 +9,7 @@ RUN apt-get update \
  && DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
       /tmp/chrome.deb \
       ca-certificates \
-      fonts-liberation fonts-dejavu-core fonts-noto-core fonts-noto-color-emoji \
+      fonts-liberation fonts-dejavu-core fonts-noto-core fonts-noto-cjk fonts-noto-color-emoji \
  # No self-updates: the image is rebuilt with a new pinned .deb instead (ADR 0012).
  && rm -f /etc/apt/sources.list.d/google-chrome.list /etc/cron.daily/google-chrome \
  && rm -f /tmp/chrome.deb \

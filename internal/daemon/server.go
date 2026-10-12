@@ -29,6 +29,12 @@ type Config struct {
 	DefaultTimeout time.Duration
 	MaxTimeout     time.Duration
 
+	// Observation per run (open question Q11): at least MinDwell plus up to DwellJitter, then
+	// until the network is idle, MaxDwell at most.
+	MinDwell    time.Duration
+	MaxDwell    time.Duration
+	DwellJitter time.Duration
+
 	// VM settings.
 	Firecracker string       // binary path
 	Image       *image.Image // read-only base; each run gets a reflinked copy of its rootfs

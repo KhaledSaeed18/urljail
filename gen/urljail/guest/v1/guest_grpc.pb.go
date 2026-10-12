@@ -19,7 +19,8 @@ import (
 const _ = grpc.SupportPackageIsVersion9
 
 const (
-	GuestAgentService_Hello_FullMethodName = "/urljail.guest.v1.GuestAgentService/Hello"
+	GuestAgentService_Hello_FullMethodName    = "/urljail.guest.v1.GuestAgentService/Hello"
+	GuestAgentService_Detonate_FullMethodName = "/urljail.guest.v1.GuestAgentService/Detonate"
 )
 
 // GuestAgentServiceClient is the client API for GuestAgentService service.
@@ -31,6 +32,9 @@ const (
 type GuestAgentServiceClient interface {
 	// Hello is the readiness check: the host calls it until the agent answers.
 	Hello(ctx context.Context, in *HelloRequest, opts ...grpc.CallOption) (*HelloResponse, error)
+	// Detonate opens one URL in a fresh Chrome and streams what happens. One at a time.
+	// The stream ends with a Done message.
+	Detonate(ctx context.Context, in *DetonateRequest, opts ...grpc.CallOption) (grpc.ServerStreamingClient[DetonateResponse], error)
 }
 
 type guestAgentServiceClient struct {
@@ -51,6 +55,25 @@ func (c *guestAgentServiceClient) Hello(ctx context.Context, in *HelloRequest, o
 	return out, nil
 }
 
+func (c *guestAgentServiceClient) Detonate(ctx context.Context, in *DetonateRequest, opts ...grpc.CallOption) (grpc.ServerStreamingClient[DetonateResponse], error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	stream, err := c.cc.NewStream(ctx, &GuestAgentService_ServiceDesc.Streams[0], GuestAgentService_Detonate_FullMethodName, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	x := &grpc.GenericClientStream[DetonateRequest, DetonateResponse]{ClientStream: stream}
+	if err := x.ClientStream.SendMsg(in); err != nil {
+		return nil, err
+	}
+	if err := x.ClientStream.CloseSend(); err != nil {
+		return nil, err
+	}
+	return x, nil
+}
+
+// This type alias is provided for backwards compatibility with existing code that references the prior non-generic stream type by name.
+type GuestAgentService_DetonateClient = grpc.ServerStreamingClient[DetonateResponse]
+
 // GuestAgentServiceServer is the server API for GuestAgentService service.
 // All implementations must embed UnimplementedGuestAgentServiceServer
 // for forward compatibility.
@@ -60,6 +83,9 @@ func (c *guestAgentServiceClient) Hello(ctx context.Context, in *HelloRequest, o
 type GuestAgentServiceServer interface {
 	// Hello is the readiness check: the host calls it until the agent answers.
 	Hello(context.Context, *HelloRequest) (*HelloResponse, error)
+	// Detonate opens one URL in a fresh Chrome and streams what happens. One at a time.
+	// The stream ends with a Done message.
+	Detonate(*DetonateRequest, grpc.ServerStreamingServer[DetonateResponse]) error
 	mustEmbedUnimplementedGuestAgentServiceServer()
 }
 
@@ -72,6 +98,9 @@ type UnimplementedGuestAgentServiceServer struct{}
 
 func (UnimplementedGuestAgentServiceServer) Hello(context.Context, *HelloRequest) (*HelloResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method Hello not implemented")
+}
+func (UnimplementedGuestAgentServiceServer) Detonate(*DetonateRequest, grpc.ServerStreamingServer[DetonateResponse]) error {
+	return status.Error(codes.Unimplemented, "method Detonate not implemented")
 }
 func (UnimplementedGuestAgentServiceServer) mustEmbedUnimplementedGuestAgentServiceServer() {}
 func (UnimplementedGuestAgentServiceServer) testEmbeddedByValue()                           {}
@@ -112,6 +141,17 @@ func _GuestAgentService_Hello_Handler(srv interface{}, ctx context.Context, dec 
 	return interceptor(ctx, in, info, handler)
 }
 
+func _GuestAgentService_Detonate_Handler(srv interface{}, stream grpc.ServerStream) error {
+	m := new(DetonateRequest)
+	if err := stream.RecvMsg(m); err != nil {
+		return err
+	}
+	return srv.(GuestAgentServiceServer).Detonate(m, &grpc.GenericServerStream[DetonateRequest, DetonateResponse]{ServerStream: stream})
+}
+
+// This type alias is provided for backwards compatibility with existing code that references the prior non-generic stream type by name.
+type GuestAgentService_DetonateServer = grpc.ServerStreamingServer[DetonateResponse]
+
 // GuestAgentService_ServiceDesc is the grpc.ServiceDesc for GuestAgentService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -124,6 +164,12 @@ var GuestAgentService_ServiceDesc = grpc.ServiceDesc{
 			Handler:    _GuestAgentService_Hello_Handler,
 		},
 	},
-	Streams:  []grpc.StreamDesc{},
+	Streams: []grpc.StreamDesc{
+		{
+			StreamName:    "Detonate",
+			Handler:       _GuestAgentService_Detonate_Handler,
+			ServerStreams: true,
+		},
+	},
 	Metadata: "urljail/guest/v1/guest.proto",
 }

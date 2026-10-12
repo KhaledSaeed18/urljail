@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"log/slog"
 	"os"
+	"sync/atomic"
 
 	"github.com/mdlayher/vsock"
 	"google.golang.org/grpc"
@@ -19,8 +20,10 @@ import (
 
 type agent struct {
 	guestv1.UnimplementedGuestAgentServiceServer
+	log     *slog.Logger
 	browser string
 	kernel  string
+	busy    atomic.Bool
 }
 
 func (a *agent) Hello(context.Context, *guestv1.HelloRequest) (*guestv1.HelloResponse, error) {
@@ -39,7 +42,7 @@ func main() {
 		fmt.Fprintln(os.Stderr, "urljail-agent: vsock listen:", err)
 		os.Exit(1)
 	}
-	a := &agent{browser: guestinfo.PackageVersion(guestinfo.ChromePackage), kernel: guestinfo.Kernel()}
+	a := &agent{log: log, browser: guestinfo.PackageVersion(guestinfo.ChromePackage), kernel: guestinfo.Kernel()}
 	gs := grpc.NewServer()
 	guestv1.RegisterGuestAgentServiceServer(gs, a)
 	log.Info("listening", "vsock_port", guestinfo.AgentPort, "browser", a.browser, "uid", os.Getuid())

@@ -12,7 +12,7 @@
 | M1 | Go module, protobuf API (buf), `urljaild` + `urljail` over gRPC on a Unix socket, URL policy | done |
 | M2 | Hand-written Firecracker client ([ADR 0011](../decisions/0011-hand-written-firecracker-client.md)), dev host networking, cold boot + guaranteed teardown | done |
 | M3 | Debian 13 rootfs with Chrome stable, tiny init + guest agent answering `Hello` over vsock, built rootless | done |
-| M4 | Guest agent drives Chrome over CDP, streams events, screenshot | |
+| M4 | Guest agent drives Chrome over its own pipe CDP client, streams raw events, screenshot + DOM + key log | done |
 | M5 | `report.json`; exit criterion | |
 
 ## Toolchain
@@ -60,5 +60,29 @@ Plan change: the Debian image has no SSH, so the "guest is up" check moved onto 
 **Bug found:** the agent exited with `open /dev/vsock: permission denied`. With no udev, devtmpfs device nodes stay root-only. Init now sets `/dev/vsock` to `root:urljail 0660`. The failure path behaved as designed: agent died → init shut down → daemon reported "VM exited before the guest agent answered".
 
 **Follow-up (hardening, not P2):** the agent and Chrome run as the same uid, so a compromised browser process could use vsock as the agent can. The host already treats everything from the guest as guest-attested, so this doesn't change trust, but a separate uid for Chrome would make a browser exploit one step further from the host channel. Revisit with P5's hardening.
+
+## M4 notes
+
+- **Decision:** own CDP client over the pipe with cdproto types ([ADR 0013](../decisions/0013-own-cdp-client-over-pipe.md)); chromedp's pipe support was days old, and owning the client means owning which CDP domains are enabled.
+- **Flow in the guest:** Chrome (sandboxed, uid 1000) → attach to the startup tab → `Network.enable`, `Page.enable`, lifecycle events, download behavior → `Page.navigate` → observe → screenshot, `DOM.getOuterHTML`, target info → `Browser.close` (flushes the key log) → ship `sslkeys.log` and `chrome.log`. Every CDP event is forwarded raw; the host writes `guest/events.jsonl`, the artifacts, and `guest/done.json`.
+- **Host treats the stream as hostile:** artifact names must be one of four known names (no path from the guest reaches the filesystem), per-artifact and per-run size caps, event params checked with `json.Valid`, method names truncated, event count capped (overflow counted, not silently lost).
+- **Dwell (Q11):** min 3 s + up to 1 s jitter, then stop at network idle (Chrome's `networkIdle` lifecycle event, or no request in flight for 500 ms), max 15 s, shrunk to fit the run's deadline minus an 8 s collection margin. A timeout too short to observe at all is refused with a clear message instead of a half-run.
+- **example.com:** 34 events, 72 KB screenshot, DOM, 13 KB key log; network idle after ~3.2–3.5 s; whole run **~9.6–10.2 s**: boot to agent 1.4 s, **Chrome start ~3.1 s** (the largest single cost: snapshots in P4 remove it), dwell ~3.3 s, collect ~0.5 s, teardown ~1.3 s.
+
+### Bugs and findings
+
+- **Background tab (fidelity bug):** the first version created a new tab with `Target.createTarget`. Chrome treats it as a background tab: first paint only came when the screenshot forced it (3.8 s on example.com; 19.9 s on an error page, which made an NXDOMAIN run take 26.6 s). A background tab also reports `visibilityState: "hidden"` and throttles timers and `requestAnimationFrame`, which pages can check. Fixed by driving the tab Chrome opens at startup: first paint at 0.23 s, NXDOMAIN run 10.3 s.
+- **Missing CJK fonts:** the screenshot showed tofu for the CJK line on example.com. Added `fonts-noto-cjk` (image now 1.6 GiB).
+- **Chrome phones home:** `chrome.log` showed GCM registration attempts despite the policies. `--disable-background-networking` cut most background requests; some GCM remains, as in real Chrome. P3's capture will see it, and the report should label known browser-background destinations rather than hide them.
+- **Test hang, my bug:** a CDP unit test wrote to an `io.Pipe` nobody read, which blocks forever (real OS pipes return EPIPE once Chrome is gone). Then `pkill -f "cdp.test"` matched my own shell (`.` matches `_` in `cdp_test.go`), the same trap as P1. Lesson: `pgrep -x` / exact names only.
+
+### Failure paths (tested)
+
+| Case | Result |
+| ---- | ------ |
+| NXDOMAIN (`does-not-exist.example.com`) | `navigation_error: net::ERR_NAME_NOT_RESOLVED`, run completed with evidence (error page screenshot, events) |
+| Timeout 9 s | Refused before launching Chrome: "not enough time left to observe for 3s" |
+| Client Ctrl-C during observation | Guest RPC cancelled, VM torn down, `status: cancelled` |
+| Back-to-back runs | Each starts from a fresh disk; nothing left over |
 
 **Not recorded yet:** runs refused before a slot is taken (busy, policy) leave no run directory. The report schema has a `refused` status; decide in M5 whether refusals get a record.

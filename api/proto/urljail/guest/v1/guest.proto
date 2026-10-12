@@ -3,12 +3,16 @@ syntax = "proto3";
 package urljail.guest.v1;
 
 import "google/protobuf/duration.proto";
+import "google/protobuf/timestamp.proto";
 
 // GuestAgentService runs inside the microVM and is reached over vsock (ADR 0007).
 // The host treats everything it returns as guest-attested evidence, never as truth.
 service GuestAgentService {
   // Hello is the readiness check: the host calls it until the agent answers.
   rpc Hello(HelloRequest) returns (HelloResponse);
+  // Detonate opens one URL in a fresh Chrome and streams what happens. One at a time.
+  // The stream ends with a Done message.
+  rpc Detonate(DetonateRequest) returns (stream DetonateResponse);
 }
 
 message HelloRequest {}
@@ -21,4 +25,65 @@ message HelloResponse {
   string kernel = 3;
   // Time since guest boot.
   google.protobuf.Duration uptime = 4;
+}
+
+message DetonateRequest {
+  string url = 1;
+  // Observe for at least min_dwell (plus a random jitter of up to jitter), then stop once the
+  // network is idle, or at max_dwell at the latest (open question Q11's resolution).
+  google.protobuf.Duration min_dwell = 2;
+  google.protobuf.Duration max_dwell = 3;
+  google.protobuf.Duration jitter = 4;
+}
+
+message DetonateResponse {
+  oneof msg {
+    Progress progress = 1;
+    Event event = 2;
+    Artifact artifact = 3;
+    Done done = 4;
+  }
+}
+
+enum Stage {
+  STAGE_UNSPECIFIED = 0;
+  STAGE_NAVIGATING = 1;
+  STAGE_OBSERVING = 2;
+  STAGE_COLLECTING = 3;
+}
+
+message Progress {
+  Stage stage = 1;
+  string message = 2;
+}
+
+// Event is one raw CDP event, as Chrome sent it.
+message Event {
+  google.protobuf.Timestamp time = 1;
+  string session_id = 2;
+  string method = 3;
+  // The event's params object, JSON.
+  bytes params = 4;
+}
+
+// Artifact is one chunk of a file; chunks of one artifact arrive in order, the last with last=true.
+message Artifact {
+  // File name under the run's guest/ directory, e.g. "screenshot.png".
+  string name = 1;
+  bytes data = 2;
+  bool last = 3;
+}
+
+message Done {
+  string final_url = 1;
+  string title = 2;
+  // Set when Page.navigate itself failed (DNS error, refused connection, ...).
+  string navigation_error = 3;
+  google.protobuf.Duration dwell = 4;
+  // Why observation stopped: "network idle", "max dwell" or "cancelled".
+  string dwell_reason = 5;
+  // CDP events the agent couldn't forward because its queue was full.
+  int64 dropped_events = 6;
+  // Set when the detonation failed inside the guest.
+  string error = 7;
 }
