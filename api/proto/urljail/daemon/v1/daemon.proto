@@ -76,6 +76,9 @@ message SelfTestResponse {
   // Where selftest.json and the VM's logs were written.
   string run_dir = 3;
   string egress_mode = 4;
+  // The public control failed, so checks that need the internet couldn't be judged:
+  // not passed, but not an isolation failure either. Rerun when the host is online.
+  bool inconclusive = 5;
 }
 
 message Check {

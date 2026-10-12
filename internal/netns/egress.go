@@ -109,7 +109,7 @@ func (e *Egress) Close(ctx context.Context) {
 		e.blocked.nf.Close()
 	}
 	e.hostExitDown(ctx)
-	if err := ip(ctx, "netns", "del", EgressNS); err != nil && !strings.Contains(err.Error(), "No such file") {
+	if err := deleteNS(ctx, EgressNS); err != nil && !strings.Contains(err.Error(), "No such file") {
 		e.log.Warn("deleting egress namespace", "err", err)
 	}
 	e.log.Info("egress namespace down")
@@ -136,7 +136,7 @@ func DeleteAll(ctx context.Context, log *slog.Logger) error {
 	}
 	for _, n := range names {
 		if n == EgressNS || strings.HasPrefix(n, VMPrefix) {
-			log.Warn("removing leftover namespace", "netns", n)
+			log.Warn("removing leftover namespace", "netns", n, "killed", killAll(ctx, n))
 			if err := ip(ctx, "netns", "del", n); err != nil {
 				return err
 			}

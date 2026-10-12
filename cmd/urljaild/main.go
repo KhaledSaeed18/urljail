@@ -122,8 +122,17 @@ func run() error {
 		return err
 	}
 
-	ctx, stop := signal.NotifyContext(context.Background(), syscall.SIGINT, syscall.SIGTERM)
+	sigs := make(chan os.Signal, 2)
+	signal.Notify(sigs, syscall.SIGINT, syscall.SIGTERM)
+	ctx, stop := context.WithCancel(context.Background())
 	defer stop()
+	go func() {
+		<-sigs
+		stop()
+		<-sigs // a second signal: don't wait for teardowns; the next start reaps what's left
+		log.Warn("second signal: exiting without waiting for teardown")
+		os.Exit(1)
+	}()
 
 	daemon.Reap(ctx, cfg, log)
 	var eg *netns.Egress
@@ -159,7 +168,9 @@ func run() error {
 	log.Info("urljaild listening", "version", version.String(), "socket", *socket, "egress", mode,
 		"operator", op.Name, "firecracker", cfg.FirecrackerVersion, "image", cfg.Image.Manifest.Name)
 	err = gs.Serve(l)
-	srv.Wait()
+	if !srv.Wait(30 * time.Second) {
+		log.Warn("teardowns still running after 30s; exiting, the next start reaps what's left")
+	}
 	return err
 }
 

@@ -116,7 +116,7 @@ Docker on this host installs its own iptables-nft rules and sets the FORWARD pol
 | Tap point | What | How |
 | --------- | ---- | --- |
 | `tap0` in VM netns | full pcap | `tcpdump -i tap0 -s 0 -U -w host/capture.pcap -Z <operator> -c 500000` inside the VM netns, started before the VM boots (the daemon waits for "listening"). Writes raw packets only, no dissection. Decrypt offline: `wireshark -o tls.keylog_file:guest/sslkeys.log host/capture.pcap` |
-| `tap0` TCX ingress/egress | flow records: 5-tuple, bytes, packets, first/last seen; TLS ClientHello SNI + ALPN | eBPF (cilium/ebpf, TCX attach; kernel ≥ 6.6), ring buffer → userspace |
+| `tap0` TCX ingress/egress | flow records: 5-tuple, bytes, packets, first/last seen, TCP flags; TLS ClientHello SNI + ALPN, or HTTP Host | eBPF (`internal/capture`: cilium/ebpf, TCX attached inside the VM namespace, observe-only). First 4 outgoing data segments per TCP flow (up to 4 KiB each, since GSO hands over >MTU packets) → ring buffer → reassembled and parsed in Go → `host/flows.jsonl` |
 | unbound | DNS queries/answers | log stream |
 | nftables | dropped-packet counters/logs | `log group 2` → NFLOG socket opened inside `uj-egress` (setns on a locked thread) → per-packet reason/src/dst/port, routed by source to `host/blocked.jsonl` (capped at 20 000 per run). Commented rules give per-reason counters |
 

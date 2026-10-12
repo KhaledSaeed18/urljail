@@ -64,9 +64,7 @@ func Build(runDir string) (*reportv0.Report, error) {
 		Artifacts:  artifacts(runDir),
 	}
 
-	// The current limits of P2, always true until the later phases lift them.
 	r.Gaps = append(r.Gaps,
-		"No host-side network capture yet (P3): every network observation is guest-attested (source guest.cdp)",
 		"No interaction simulated: content behind clicks, CAPTCHAs or other gates was not reached",
 		"QUIC, Encrypted Client Hello and DNS-over-HTTPS are disabled by browser policy",
 	)
@@ -90,13 +88,16 @@ func Build(runDir string) (*reportv0.Report, error) {
 	evs, err := readEvents(filepath.Join(runDir, "guest", "events.jsonl"))
 	if err != nil {
 		r.Gaps = append(r.Gaps, "No guest events (guest/events.jsonl missing or unreadable)")
-		return r, nil
+		evs = nil // host records are still worth reporting, especially when the guest failed
 	}
 	b := newBuilder()
 	for _, e := range evs {
 		b.add(e)
 	}
 	b.finish(r)
+	if !addHost(r, runDir) {
+		r.Gaps = append(r.Gaps, "No host-side records (run from before P3): every network observation is guest-attested (source guest.cdp)")
+	}
 	return r, nil
 }
 

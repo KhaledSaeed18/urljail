@@ -401,8 +401,11 @@ type SelfTestResponse struct {
 	Checks []*Check               `protobuf:"bytes,1,rep,name=checks,proto3" json:"checks,omitempty"`
 	Passed bool                   `protobuf:"varint,2,opt,name=passed,proto3" json:"passed,omitempty"`
 	// Where selftest.json and the VM's logs were written.
-	RunDir        string `protobuf:"bytes,3,opt,name=run_dir,json=runDir,proto3" json:"run_dir,omitempty"`
-	EgressMode    string `protobuf:"bytes,4,opt,name=egress_mode,json=egressMode,proto3" json:"egress_mode,omitempty"`
+	RunDir     string `protobuf:"bytes,3,opt,name=run_dir,json=runDir,proto3" json:"run_dir,omitempty"`
+	EgressMode string `protobuf:"bytes,4,opt,name=egress_mode,json=egressMode,proto3" json:"egress_mode,omitempty"`
+	// The public control failed, so checks that need the internet couldn't be judged:
+	// not passed, but not an isolation failure either. Rerun when the host is online.
+	Inconclusive  bool `protobuf:"varint,5,opt,name=inconclusive,proto3" json:"inconclusive,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -463,6 +466,13 @@ func (x *SelfTestResponse) GetEgressMode() string {
 		return x.EgressMode
 	}
 	return ""
+}
+
+func (x *SelfTestResponse) GetInconclusive() bool {
+	if x != nil {
+		return x.Inconclusive
+	}
+	return false
 }
 
 type Check struct {
@@ -559,13 +569,14 @@ const file_urljail_daemon_v1_daemon_proto_rawDesc = "" +
 	"\amessage\x18\x04 \x01(\tR\amessage\x12\x17\n" +
 	"\arun_dir\x18\x05 \x01(\tR\x06runDir\x12\x14\n" +
 	"\x05error\x18\x06 \x01(\tR\x05error\"\x11\n" +
-	"\x0fSelfTestRequest\"\x96\x01\n" +
+	"\x0fSelfTestRequest\"\xba\x01\n" +
 	"\x10SelfTestResponse\x120\n" +
 	"\x06checks\x18\x01 \x03(\v2\x18.urljail.daemon.v1.CheckR\x06checks\x12\x16\n" +
 	"\x06passed\x18\x02 \x01(\bR\x06passed\x12\x17\n" +
 	"\arun_dir\x18\x03 \x01(\tR\x06runDir\x12\x1f\n" +
 	"\vegress_mode\x18\x04 \x01(\tR\n" +
-	"egressMode\"k\n" +
+	"egressMode\x12\"\n" +
+	"\finconclusive\x18\x05 \x01(\bR\finconclusive\"k\n" +
 	"\x05Check\x12\x12\n" +
 	"\x04name\x18\x01 \x01(\tR\x04name\x12\x1a\n" +
 	"\bexpected\x18\x02 \x01(\tR\bexpected\x12\x1a\n" +

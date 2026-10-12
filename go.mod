@@ -15,6 +15,7 @@ require (
 
 require (
 	github.com/chromedp/sysutil v1.1.0 // indirect
+	github.com/cilium/ebpf v0.22.0 // indirect
 	github.com/florianl/go-nflog/v2 v2.3.0 // indirect
 	github.com/google/go-cmp v0.7.0 // indirect
 	github.com/mdlayher/netlink v1.9.1-0.20260312172110-2a932c0fc1ae // indirect

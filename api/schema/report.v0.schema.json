@@ -57,6 +57,82 @@
       "title": "Artifacts",
       "type": "object"
     },
+    "urljail.report.v0.Blocked.schema.json": {
+      "$schema": "https://json-schema.org/draft/2020-12/schema",
+      "additionalProperties": false,
+      "patternProperties": {
+        "^(dstIp)$": {
+          "default": "",
+          "type": "string"
+        },
+        "^(dstPort)$": {
+          "anyOf": [
+            {
+              "maximum": 4294967295,
+              "minimum": 0,
+              "type": "integer"
+            },
+            {
+              "pattern": "^[0-9]+$",
+              "type": "string"
+            }
+          ],
+          "default": 0
+        }
+      },
+      "properties": {
+        "count": {
+          "anyOf": [
+            {
+              "maximum": 4294967295,
+              "minimum": 0,
+              "type": "integer"
+            },
+            {
+              "pattern": "^[0-9]+$",
+              "type": "string"
+            }
+          ],
+          "default": 0
+        },
+        "dst_ip": {
+          "default": "",
+          "type": "string"
+        },
+        "dst_port": {
+          "anyOf": [
+            {
+              "maximum": 4294967295,
+              "minimum": 0,
+              "type": "integer"
+            },
+            {
+              "pattern": "^[0-9]+$",
+              "type": "string"
+            }
+          ],
+          "default": 0
+        },
+        "first": {
+          "$ref": "#/$defs/google.protobuf.Timestamp.schema.json"
+        },
+        "proto": {
+          "default": "",
+          "type": "string"
+        },
+        "reason": {
+          "default": "",
+          "description": "\"private\", \"quic\", \"other\" or \"input\".",
+          "type": "string"
+        },
+        "source": {
+          "default": "",
+          "type": "string"
+        }
+      },
+      "title": "Blocked",
+      "type": "object"
+    },
     "urljail.report.v0.Dialog.schema.json": {
       "$schema": "https://json-schema.org/draft/2020-12/schema",
       "additionalProperties": false,
@@ -80,6 +156,42 @@
         }
       },
       "title": "Dialog",
+      "type": "object"
+    },
+    "urljail.report.v0.DnsQuery.schema.json": {
+      "$schema": "https://json-schema.org/draft/2020-12/schema",
+      "additionalProperties": false,
+      "properties": {
+        "cached": {
+          "default": false,
+          "type": "boolean"
+        },
+        "label": {
+          "default": "",
+          "description": "\"page\", \"browser-background\" or \"unexplained\" (see Reconciliation).",
+          "type": "string"
+        },
+        "qname": {
+          "default": "",
+          "type": "string"
+        },
+        "qtype": {
+          "default": "",
+          "type": "string"
+        },
+        "rcode": {
+          "default": "",
+          "type": "string"
+        },
+        "source": {
+          "default": "",
+          "type": "string"
+        },
+        "time": {
+          "$ref": "#/$defs/google.protobuf.Timestamp.schema.json"
+        }
+      },
+      "title": "Dns Query",
       "type": "object"
     },
     "urljail.report.v0.Domain.schema.json": {
@@ -155,6 +267,214 @@
         }
       },
       "title": "Egress",
+      "type": "object"
+    },
+    "urljail.report.v0.Flow.schema.json": {
+      "$schema": "https://json-schema.org/draft/2020-12/schema",
+      "additionalProperties": false,
+      "patternProperties": {
+        "^(bytesIn)$": {
+          "anyOf": [
+            {
+              "maximum": 4294967295,
+              "minimum": 0,
+              "type": "integer"
+            },
+            {
+              "pattern": "^[0-9]+$",
+              "type": "string"
+            }
+          ],
+          "default": 0
+        },
+        "^(bytesOut)$": {
+          "anyOf": [
+            {
+              "maximum": 4294967295,
+              "minimum": 0,
+              "type": "integer"
+            },
+            {
+              "pattern": "^[0-9]+$",
+              "type": "string"
+            }
+          ],
+          "default": 0
+        },
+        "^(dstIp)$": {
+          "default": "",
+          "description": "Destination as the guest addressed it (before NAT).",
+          "type": "string"
+        },
+        "^(dstPort)$": {
+          "anyOf": [
+            {
+              "maximum": 4294967295,
+              "minimum": 0,
+              "type": "integer"
+            },
+            {
+              "pattern": "^[0-9]+$",
+              "type": "string"
+            }
+          ],
+          "default": 0
+        },
+        "^(httpHost)$": {
+          "default": "",
+          "description": "Host header of a plain-HTTP request (the HTTP counterpart of sni).",
+          "type": "string"
+        },
+        "^(packetsIn)$": {
+          "anyOf": [
+            {
+              "maximum": 4294967295,
+              "minimum": 0,
+              "type": "integer"
+            },
+            {
+              "pattern": "^[0-9]+$",
+              "type": "string"
+            }
+          ],
+          "default": 0
+        },
+        "^(packetsOut)$": {
+          "anyOf": [
+            {
+              "maximum": 4294967295,
+              "minimum": 0,
+              "type": "integer"
+            },
+            {
+              "pattern": "^[0-9]+$",
+              "type": "string"
+            }
+          ],
+          "default": 0
+        },
+        "^(tcpFlagsOut)$": {
+          "default": "",
+          "type": "string"
+        }
+      },
+      "properties": {
+        "alpn": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "bytes_in": {
+          "anyOf": [
+            {
+              "maximum": 4294967295,
+              "minimum": 0,
+              "type": "integer"
+            },
+            {
+              "pattern": "^[0-9]+$",
+              "type": "string"
+            }
+          ],
+          "default": 0
+        },
+        "bytes_out": {
+          "anyOf": [
+            {
+              "maximum": 4294967295,
+              "minimum": 0,
+              "type": "integer"
+            },
+            {
+              "pattern": "^[0-9]+$",
+              "type": "string"
+            }
+          ],
+          "default": 0
+        },
+        "dst_ip": {
+          "default": "",
+          "description": "Destination as the guest addressed it (before NAT).",
+          "type": "string"
+        },
+        "dst_port": {
+          "anyOf": [
+            {
+              "maximum": 4294967295,
+              "minimum": 0,
+              "type": "integer"
+            },
+            {
+              "pattern": "^[0-9]+$",
+              "type": "string"
+            }
+          ],
+          "default": 0
+        },
+        "first": {
+          "$ref": "#/$defs/google.protobuf.Timestamp.schema.json"
+        },
+        "http_host": {
+          "default": "",
+          "description": "Host header of a plain-HTTP request (the HTTP counterpart of sni).",
+          "type": "string"
+        },
+        "label": {
+          "default": "",
+          "description": "\"page\" (matches a guest request), \"browser-background\" (Chrome's own traffic, not\n requested by the page), \"dns\" (to our resolver, including the guest's ICMP errors for late\n replies), \"no-data\" (no payload exchanged:\n preconnects, blocked attempts) or \"unexplained\".",
+          "type": "string"
+        },
+        "last": {
+          "$ref": "#/$defs/google.protobuf.Timestamp.schema.json"
+        },
+        "packets_in": {
+          "anyOf": [
+            {
+              "maximum": 4294967295,
+              "minimum": 0,
+              "type": "integer"
+            },
+            {
+              "pattern": "^[0-9]+$",
+              "type": "string"
+            }
+          ],
+          "default": 0
+        },
+        "packets_out": {
+          "anyOf": [
+            {
+              "maximum": 4294967295,
+              "minimum": 0,
+              "type": "integer"
+            },
+            {
+              "pattern": "^[0-9]+$",
+              "type": "string"
+            }
+          ],
+          "default": 0
+        },
+        "proto": {
+          "default": "",
+          "type": "string"
+        },
+        "sni": {
+          "default": "",
+          "description": "From the TLS ClientHello, read outside the guest.",
+          "type": "string"
+        },
+        "source": {
+          "default": "",
+          "type": "string"
+        },
+        "tcp_flags_out": {
+          "default": "",
+          "type": "string"
+        }
+      },
+      "title": "Flow",
       "type": "object"
     },
     "urljail.report.v0.Hop.schema.json": {
@@ -276,10 +596,31 @@
       "$schema": "https://json-schema.org/draft/2020-12/schema",
       "additionalProperties": false,
       "properties": {
+        "blocked": {
+          "description": "Packets the egress firewall dropped, grouped by destination (source host.fw).",
+          "items": {
+            "$ref": "#/$defs/urljail.report.v0.Blocked.schema.json"
+          },
+          "type": "array"
+        },
+        "dns": {
+          "description": "Every DNS reply our resolver sent the VM (source host.dns).",
+          "items": {
+            "$ref": "#/$defs/urljail.report.v0.DnsQuery.schema.json"
+          },
+          "type": "array"
+        },
         "domains": {
           "description": "Hosts contacted, grouped by registrable domain (eTLD+1).",
           "items": {
             "$ref": "#/$defs/urljail.report.v0.Domain.schema.json"
+          },
+          "type": "array"
+        },
+        "flows": {
+          "description": "Every connection on the VM's TAP, from the guest's side (source host.ebpf).",
+          "items": {
+            "$ref": "#/$defs/urljail.report.v0.Flow.schema.json"
           },
           "type": "array"
         },
@@ -320,6 +661,119 @@
       "title": "Page",
       "type": "object"
     },
+    "urljail.report.v0.Reconciliation.schema.json": {
+      "$schema": "https://json-schema.org/draft/2020-12/schema",
+      "additionalProperties": false,
+      "patternProperties": {
+        "^(backgroundFlows)$": {
+          "anyOf": [
+            {
+              "maximum": 4294967295,
+              "minimum": 0,
+              "type": "integer"
+            },
+            {
+              "pattern": "^[0-9]+$",
+              "type": "string"
+            }
+          ],
+          "default": 0
+        },
+        "^(guestOnlyRequests)$": {
+          "description": "Guest requests that should have crossed the network (not cached, with a remote address)\n but match no host flow: served some other way, or reported falsely.",
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "^(pageFlows)$": {
+          "anyOf": [
+            {
+              "maximum": 4294967295,
+              "minimum": 0,
+              "type": "integer"
+            },
+            {
+              "pattern": "^[0-9]+$",
+              "type": "string"
+            }
+          ],
+          "default": 0
+        },
+        "^(unexplainedDns)$": {
+          "description": "DNS names the host resolved for the VM that no guest request explains.",
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "^(unexplainedFlows)$": {
+          "description": "Connections the host saw that the guest's browser never reported and that aren't known\n browser-background traffic.",
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        }
+      },
+      "properties": {
+        "background_flows": {
+          "anyOf": [
+            {
+              "maximum": 4294967295,
+              "minimum": 0,
+              "type": "integer"
+            },
+            {
+              "pattern": "^[0-9]+$",
+              "type": "string"
+            }
+          ],
+          "default": 0
+        },
+        "consistent": {
+          "default": false,
+          "description": "True when every host flow is explained (page, background, dns, no-data) and every guest\n request that should have crossed the network was seen by the host.",
+          "type": "boolean"
+        },
+        "guest_only_requests": {
+          "description": "Guest requests that should have crossed the network (not cached, with a remote address)\n but match no host flow: served some other way, or reported falsely.",
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "page_flows": {
+          "anyOf": [
+            {
+              "maximum": 4294967295,
+              "minimum": 0,
+              "type": "integer"
+            },
+            {
+              "pattern": "^[0-9]+$",
+              "type": "string"
+            }
+          ],
+          "default": 0
+        },
+        "unexplained_dns": {
+          "description": "DNS names the host resolved for the VM that no guest request explains.",
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "unexplained_flows": {
+          "description": "Connections the host saw that the guest's browser never reported and that aren't known\n browser-background traffic.",
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        }
+      },
+      "title": "Reconciliation",
+      "type": "object"
+    },
     "urljail.report.v0.Report.schema.json": {
       "$schema": "https://json-schema.org/draft/2020-12/schema",
       "additionalProperties": false,
@@ -343,6 +797,10 @@
         },
         "page": {
           "$ref": "#/$defs/urljail.report.v0.Page.schema.json"
+        },
+        "reconciliation": {
+          "$ref": "#/$defs/urljail.report.v0.Reconciliation.schema.json",
+          "description": "The host's view of the network against the guest's (design goal G2)."
         },
         "run": {
           "$ref": "#/$defs/urljail.report.v0.Run.schema.json"

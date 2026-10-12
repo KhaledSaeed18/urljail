@@ -166,10 +166,23 @@ func cmdSelfTest(ctx context.Context, c daemonv1.DaemonServiceClient) error {
 		fmt.Printf("  %-4s  %-44s %s\n        %-44s %s\n", mark, ch.GetName(), "expect: "+ch.GetExpected(), "", ch.GetObserved())
 	}
 	fmt.Printf("\n  details: %s\n", filepath.Join(res.GetRunDir(), "selftest.json"))
+	if res.GetInconclusive() && !hasFail(res) {
+		fmt.Println("\nINCONCLUSIVE: no internet through the exit; isolation checks that ran passed. Rerun when the host is online.")
+		return exitError(2)
+	}
 	if !res.GetPassed() {
 		fmt.Println("\nFAILED: do not use live mode")
 		return exitError(1)
 	}
 	fmt.Println("\nall checks passed")
 	return nil
+}
+
+func hasFail(res *daemonv1.SelfTestResponse) bool {
+	for _, c := range res.GetChecks() {
+		if c.GetResult() == "fail" {
+			return true
+		}
+	}
+	return false
 }

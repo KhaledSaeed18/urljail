@@ -62,8 +62,21 @@ type Server struct {
 	active sync.WaitGroup // running detonations, so shutdown can wait for their teardown
 }
 
-// Wait blocks until every running detonation has finished its teardown.
-func (s *Server) Wait() { s.active.Wait() }
+// Wait blocks until every running detonation has finished its teardown, or timeout passes.
+// It reports whether everything finished.
+func (s *Server) Wait(timeout time.Duration) bool {
+	done := make(chan struct{})
+	go func() {
+		s.active.Wait()
+		close(done)
+	}()
+	select {
+	case <-done:
+		return true
+	case <-time.After(timeout):
+		return false
+	}
+}
 
 // New returns a Server. With a nil egress, Detonate stops after preflight.
 func New(cfg Config, egress *netns.Egress, log *slog.Logger) *Server {

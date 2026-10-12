@@ -17,7 +17,7 @@ type VM struct {
 func (e *Egress) AddVM(ctx context.Context, n, uid, gid int) (*VM, error) {
 	ns, veth := VMNS(n), egressVeth(n)
 	// The slot is ours, so a namespace with its name is a leftover.
-	if err := ip(ctx, "netns", "del", ns); err == nil {
+	if err := deleteNS(ctx, ns); err == nil {
 		e.log.Warn("removed stale VM namespace", "netns", ns)
 	}
 	vm := &VM{Slot: n, NS: ns}
@@ -73,6 +73,9 @@ func (e *Egress) RemoveVM(ctx context.Context, vm *VM) {
 	e.mu.Lock()
 	delete(e.vmHashes, vm.Slot)
 	e.mu.Unlock()
+	if pids := killAll(ctx, vm.NS); len(pids) > 0 {
+		e.log.Warn("killed processes left in the VM namespace", "netns", vm.NS, "pids", pids)
+	}
 	if err := ip(ctx, "netns", "del", vm.NS); err != nil {
 		e.log.Warn("deleting VM namespace", "netns", vm.NS, "err", err)
 	}

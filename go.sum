@@ -2,6 +2,8 @@ github.com/chromedp/cdproto v0.0.0-20260922220944-a19bff23514f h1:8PK9FM4bE0C8GM
 github.com/chromedp/cdproto v0.0.0-20260922220944-a19bff23514f/go.mod h1:3v4FIp5njIUyPDvqXsxEOxnB34lijG0up98/5kM1KaE=
 github.com/chromedp/sysutil v1.1.0 h1:PUFNv5EcprjqXZD9nJb9b/c9ibAbxiYo4exNWZyipwM=
 github.com/chromedp/sysutil v1.1.0/go.mod h1:WiThHUdltqCNKGc4gaU50XgYjwjYIhKWoHGPTUfWTJ8=
+github.com/cilium/ebpf v0.22.0 h1:v2ktp0roffpMOj2MMf3idtCQZOsAoC4BJbAJN+ke2bY=
+github.com/cilium/ebpf v0.22.0/go.mod h1:CDzZbe2hC5JjlDC+CY3KFCzlYwN4gbxppYM+Z10bQt4=
 github.com/florianl/go-nflog/v2 v2.3.0 h1:mghOcw09/XPs9dEoR1ffKPNC/tsNRCuhq/2BTz2GRjQ=
 github.com/florianl/go-nflog/v2 v2.3.0/go.mod h1:ob11SI7TLgZJVZj356/kiD5DtTzKLw/caENAKeVSgSM=
 github.com/go-json-experiment/json v0.0.0-20260820222146-c27c302e5fc3 h1:UADEEmDKgfXbtnGJZ97beY5XLo9ZechG1nlU4KnRrkE=

@@ -12,8 +12,8 @@
 | M1 | Root daemon ([ADR 0014](../decisions/0014-root-daemon-unprivileged-vmm.md)); per-VM + egress namespaces; nftables rulesets with hash check; unbound with rebind protection; per-run DNS log | done |
 | M2 | Isolation test plan automated: `urljail selftest`, guest `Probe` RPC + host drop counters / DNS log | done |
 | M3 | Blocked attempts from NFLOG (per packet); pcap via tcpdump; self-test requires per-destination evidence | done |
-| M4 | eBPF (TCX) flow records + TLS ClientHello SNI/ALPN | |
-| M5 | Host-side report sections, host/guest reconciliation, background-traffic labels, `urljail doctor` | |
+| M4 | eBPF (TCX) flow records + SNI/ALPN (and HTTP Host); host sections + reconciliation in the report | done |
+| M5 | `urljail doctor`, reconciliation in the CLI summary, exit criterion | |
 
 ## M1 notes
 
@@ -63,3 +63,17 @@ Adding the `ComponentUpdatesEnabled: false` policy cut it from 11 to 8 names; th
 - **Self-test tightened:** every egress drop check now also needs its own destination and port in the blocked log with the right reason, fixing M2's shared-counter weakness. All checks pass with per-destination evidence (e.g. `private tcp 192.168.0.1:80`, `quic udp 1.1.1.1:443`).
 - **pcap:** tcpdump in the VM namespace on `tap0`, started before the VM boots, writing raw packets only, after dropping to the operator (`-Z`), capped at 500 000 packets. example.com: 847 packets, 633 KB; the ClientHellos show SNI in clear (ECH is off by policy): `example.com` plus the Google hosts from the DNS log. tcpdump creates the file `0644`; teardown makes it `0600` like the rest of the run.
 - **Not verified yet:** offline TLS decryption with the key log (no Wireshark/tshark on this host). The pieces are there (`host/capture.pcap` + `guest/sslkeys.log`).
+
+## M4 notes
+
+- **eBPF on the TAP** (`internal/capture`, C + bpf2go, cilium/ebpf v0.22.0, generated object committed): TCX ingress (guest → out) and egress (→ guest) on `tap0`, attached from inside the VM namespace (ifindexes are per namespace; same `setns` helper as NFLOG). It only observes: always `TCX_NEXT`. Per flow (oriented from the guest): packets, bytes, first/last seen, TCP flags. The first 4 outgoing data segments of each TCP flow go to a ring buffer; Go reassembles them by sequence number and parses the TLS ClientHello (SNI, ALPN) or, for plain HTTP, the `Host` header. Parsers are tested against real Go ClientHellos: whole, split out of order with a retransmission, truncated at every byte. Compiled with `-mcpu=v3` (the fetch-add needs `BPF_FETCH`).
+- **Report:** new host sections `network.dns` (host.dns), `network.flows` (host.ebpf), `network.blocked` (host.fw, grouped by destination), and `reconciliation`. Each host flow gets a label: `page` (matches a guest request by remote address or SNI/Host), `browser-background` (known Chrome endpoint, `internal/report/background.go`, only when the page didn't request that host), `dns`, `no-data` (preconnects, dropped attempts, ICMP only received), or `unexplained`. A run is `consistent` when nothing is unexplained and every guest request that should have crossed the network was seen by the host. Host sections are reported even when the guest failed.
+- **Result on example.com/.org:** consistent; 2–3 page flows (SNI `example.com`/`example.org`, ALPN `h2,http/1.1`), 7–12 browser-background flows, plain-HTTP `clients2.google.com` identified by its Host header.
+
+### Bugs and findings
+
+- **Teardown hung on the ring buffer** (left a root daemon wedged): a deadline set while `ringbuf.Reader.Read` is already blocked doesn't wake it. Reads now poll with a 200 ms deadline; closing the probe is bounded at 2 s (then the reader is closed); daemon shutdown waits at most 30 s for teardowns, and a second signal exits at once.
+- **Orphaned unbound:** after the wedged daemon was killed, unbound kept running in the deleted egress namespace. Privilege-dropping children (unbound, tcpdump) lose their parent-death signal. Fix: before any urljail namespace is deleted, every process still in it is killed (`ip netns pids`), at start and at each VM teardown. Verified: the next start killed the orphan and rebuilt cleanly.
+- **SNI empty at first:** Chrome 155's ClientHello (post-quantum key share) is 1729–1745 bytes and, with TSO/GSO, reaches the TAP as one packet larger than the MTU; the program copied only 1600 bytes. Now 4096 bytes, and the parser reads whatever extensions a truncated hello still has.
+- **Home LAN address leaked to the guest (dev mode):** during an internet outage the host sent ICMP "host unreachable" for forwarded packets, sourced from its LAN address `192.168.0.116`, and the eBPF records showed them reaching the guest. A compromised guest (A3) could learn the home address. Fix: the egress namespace drops anything arriving from the exit with a private source, before the established/related accept (ICMP errors are "related"). Live mode doesn't route through the host, so it's dev-only, but the rule applies in both.
+- **Flaky internet during the session:** the host lost its upstream twice. The self-test then failed only the checks that need the internet (every isolation check still passed). It now reports those as inconclusive when its public control fails (exit code 2), instead of an isolation failure; `doctor` (M5) checks the exit's connectivity directly.

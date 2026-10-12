@@ -38,6 +38,10 @@ table inet urljail {
 
 	chain forward {
 		type filter hook forward priority filter; policy drop;
+		# Nothing from the internet has a private source. In dev mode the host's own ICMP errors
+		# do (they'd tell a guest the home LAN address, found in P3), and they're "related", so
+		# this comes before the established/related accept.
+		iifname "{{.Exit}}" ip saddr @private4 counter drop comment "exit-private-src"
 		ct state established,related accept
 		iifname "veth-eg-*" ip daddr @private4 log prefix "uj private " group {{.LogGroup}} counter drop comment "private"
 		# QUIC: forces TCP so SNI and TLS stay observable.

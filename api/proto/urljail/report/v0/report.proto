@@ -19,6 +19,8 @@ message Report {
   Artifacts artifacts = 6;
   // What could not be observed in this run, stated explicitly (design goal G4).
   repeated string gaps = 7;
+  // The host's view of the network against the guest's (design goal G2).
+  Reconciliation reconciliation = 8;
 }
 
 message Run {
@@ -71,6 +73,75 @@ message Network {
   repeated Tls tls = 2;
   // Hosts contacted, grouped by registrable domain (eTLD+1).
   repeated Domain domains = 3;
+  // Every DNS reply our resolver sent the VM (source host.dns).
+  repeated DnsQuery dns = 4;
+  // Every connection on the VM's TAP, from the guest's side (source host.ebpf).
+  repeated Flow flows = 5;
+  // Packets the egress firewall dropped, grouped by destination (source host.fw).
+  repeated Blocked blocked = 6;
+}
+
+message DnsQuery {
+  string qname = 1;
+  string qtype = 2;
+  string rcode = 3;
+  bool cached = 4;
+  google.protobuf.Timestamp time = 5;
+  // "page", "browser-background" or "unexplained" (see Reconciliation).
+  string label = 6;
+  string source = 7;
+}
+
+message Flow {
+  string proto = 1;
+  // Destination as the guest addressed it (before NAT).
+  string dst_ip = 2;
+  uint32 dst_port = 3;
+  // From the TLS ClientHello, read outside the guest.
+  string sni = 4;
+  repeated string alpn = 5;
+  uint32 packets_out = 6;
+  uint32 bytes_out = 7;
+  uint32 packets_in = 8;
+  uint32 bytes_in = 9;
+  google.protobuf.Timestamp first = 10;
+  google.protobuf.Timestamp last = 11;
+  string tcp_flags_out = 12;
+  // "page" (matches a guest request), "browser-background" (Chrome's own traffic, not
+  // requested by the page), "dns" (to our resolver, including the guest's ICMP errors for late
+  // replies), "no-data" (no payload exchanged:
+  // preconnects, blocked attempts) or "unexplained".
+  string label = 13;
+  string source = 14;
+  // Host header of a plain-HTTP request (the HTTP counterpart of sni).
+  string http_host = 15;
+}
+
+message Blocked {
+  // "private", "quic", "other" or "input".
+  string reason = 1;
+  string proto = 2;
+  string dst_ip = 3;
+  uint32 dst_port = 4;
+  uint32 count = 5;
+  google.protobuf.Timestamp first = 6;
+  string source = 7;
+}
+
+message Reconciliation {
+  // True when every host flow is explained (page, background, dns, no-data) and every guest
+  // request that should have crossed the network was seen by the host.
+  bool consistent = 1;
+  uint32 page_flows = 2;
+  uint32 background_flows = 3;
+  // Connections the host saw that the guest's browser never reported and that aren't known
+  // browser-background traffic.
+  repeated string unexplained_flows = 4;
+  // DNS names the host resolved for the VM that no guest request explains.
+  repeated string unexplained_dns = 5;
+  // Guest requests that should have crossed the network (not cached, with a remote address)
+  // but match no host flow: served some other way, or reported falsely.
+  repeated string guest_only_requests = 6;
 }
 
 message Request {

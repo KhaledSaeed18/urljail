@@ -115,7 +115,7 @@ runs/<run-id>/
   host/capture.pcap    # full packet capture on the VM's TAP (tcpdump writes pcap, not pcapng)
   host/dns.jsonl       # resolver replies to this VM
   host/blocked.jsonl   # packets of this VM the egress ruleset dropped (NFLOG)
-  host/flows.jsonl     # (P3 M4) eBPF flow + SNI records
+  host/flows.jsonl     # eBPF flow records with SNI/ALPN or HTTP Host
   downloads/<sha256>   # (later) never executed
 ```
 

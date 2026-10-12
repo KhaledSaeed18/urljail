@@ -31,6 +31,7 @@ type isolationCheck struct {
 	probe    *guestv1.ProbeSpec // nil: a host-only check
 	outcomes []string           // guest outcomes that pass
 	counter  string             // drop counter that must increase ("" = none); "vm-*" are in the VM netns
+	internet bool               // needs working internet through the exit to be judged
 	dnsName  string             // name that must appear in the host's DNS log
 	host     func() (bool, string)
 }
@@ -116,6 +117,7 @@ func (s *Server) SelfTest(ctx context.Context, _ *daemonv1.SelfTestRequest) (*da
 		byID[res.GetId()] = res
 	}
 	out := &daemonv1.SelfTestResponse{Passed: true, RunDir: runDir, EgressMode: string(s.cfg.Policy.Mode)}
+	online := byID["public-https"].GetOutcome() == "connected"
 	for _, c := range checks {
 		row := &daemonv1.Check{Name: c.name, Expected: c.expected}
 		pass := true
@@ -155,7 +157,13 @@ func (s *Server) SelfTest(ctx context.Context, _ *daemonv1.SelfTestRequest) (*da
 		}
 		row.Observed = strings.Join(obs, "; ")
 		row.Result = "pass"
-		if !pass {
+		switch {
+		case !pass && c.internet && !online:
+			row.Result = "skip"
+			row.Observed += "; inconclusive: no internet through the exit (public control failed)"
+			out.Passed = false
+			out.Inconclusive = true
+		case !pass:
 			row.Result = "fail"
 			out.Passed = false
 		}
@@ -189,7 +197,7 @@ func (s *Server) isolationPlan(runID string) []isolationCheck {
 
 	checks := []isolationCheck{
 		{name: "Public HTTPS reachable (control)", expected: "connected",
-			probe: tcp("public-https", "example.com:443"), outcomes: []string{"connected"}},
+			probe: tcp("public-https", "example.com:443"), outcomes: []string{"connected"}, internet: true},
 		{name: "Public non-web port", expected: "dropped (other)",
 			probe: tcp("public-22", "1.1.1.1:22"), outcomes: dropped, counter: "other"},
 		{name: "Cloud metadata 169.254.169.254", expected: "dropped (private)",
@@ -208,13 +216,13 @@ func (s *Server) isolationPlan(runID string) []isolationCheck {
 		{name: "DNS to 8.8.8.8 answered by our resolver", expected: "answered, in host DNS log",
 			probe: &guestv1.ProbeSpec{Id: "dns-hijack", Kind: &guestv1.ProbeSpec_DnsVia{
 				DnsVia: &guestv1.DNSVia{Name: hijackName, Server: "8.8.8.8:53"}}},
-			outcomes: []string{"no answer", "resolved"}, dnsName: hijackName},
+			outcomes: []string{"no answer", "resolved"}, dnsName: hijackName, internet: true},
 		{name: "Rebind control: public answer passes", expected: "resolved 1.1.1.1",
-			probe: dns("rebind-control", "1.1.1.1.nip.io"), outcomes: []string{"resolved"}},
+			probe: dns("rebind-control", "1.1.1.1.nip.io"), outcomes: []string{"resolved"}, internet: true},
 		{name: "Rebind to RFC 1918 refused", expected: "no answer",
-			probe: dns("rebind-private", "192.168.1.1.nip.io"), outcomes: []string{"no answer"}},
+			probe: dns("rebind-private", "192.168.1.1.nip.io"), outcomes: []string{"no answer"}, internet: true},
 		{name: "Rebind to loopback refused", expected: "no answer",
-			probe: dns("rebind-loopback", "127.0.0.1.nip.io"), outcomes: []string{"no answer"}},
+			probe: dns("rebind-loopback", "127.0.0.1.nip.io"), outcomes: []string{"no answer"}, internet: true},
 		{name: "Dev mode refuses a non-allowlisted URL", expected: "refused by policy",
 			host: func() (bool, string) {
 				_, err := s.cfg.Policy.Check("https://phish.test/login")

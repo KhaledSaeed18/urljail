@@ -19,6 +19,7 @@ import (
 
 	daemonv1 "github.com/KhaledSaeed18/urljail/gen/urljail/daemon/v1"
 	guestv1 "github.com/KhaledSaeed18/urljail/gen/urljail/guest/v1"
+	"github.com/KhaledSaeed18/urljail/internal/capture"
 	"github.com/KhaledSaeed18/urljail/internal/guestinfo"
 	"github.com/KhaledSaeed18/urljail/internal/netns"
 	"github.com/KhaledSaeed18/urljail/internal/report"
@@ -172,6 +173,22 @@ func (s *Server) bootVM(ctx context.Context, r *run, slot int, runDir string, ad
 		if n := dns.close() + blocked.close(); n > 0 {
 			r.log.Warn("host records over the limit were dropped", "count", n)
 		}
+	})
+	probe, err := capture.Attach(netVM.NS, netns.TapName, r.log)
+	if err != nil {
+		return nil, err
+	}
+	addCleanup(func(context.Context) {
+		flows := probe.Close()
+		fl, err := newJSONLog(filepath.Join(runDir, "host", "flows.jsonl"), maxHostRecords)
+		if err != nil {
+			r.log.Warn("writing flows", "err", err)
+			return
+		}
+		for _, f := range flows {
+			fl.write(f)
+		}
+		fl.close()
 	})
 	pcap := filepath.Join(runDir, "host", "capture.pcap")
 	if err := op.Chown(filepath.Join(runDir, "host")); err != nil {
