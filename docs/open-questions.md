@@ -14,7 +14,6 @@ Decided in principle; each needs a fact confirmed on the real stack.
 
 | # | Question | Plan | When |
 | - | -------- | ---- | ---- |
-| Q13 | Do feed terms of use (OpenPhish, URLhaus, PhishTank) permit research detonation? | Researched ([research/feeds.md](./research/feeds.md)): OpenPhish allows independent research but its free feed is 12 h stale; URLhaus allows not-for-profit use but is malware; PhishTank registration closed. **Decided 2026-10-12: free feeds first** (OpenPhish Community + URLhaus); a fresher phishing source later for cloaking statistics | [feeds.md](./research/feeds.md), [feed-ingestion.md](./feed-ingestion.md) |
 
 ## Resolved
 
@@ -32,6 +31,7 @@ Decided in principle; each needs a fact confirmed on the real stack.
 | Q10 | Interaction simulation | None in v1; a research variable in P6 | [research/anti-cloaking.md](./research/anti-cloaking.md) |
 | Q11 | Dwell time per run | Network idle, bounded by min/max, plus jitter | [architecture.md](./architecture.md#detonation-lifecycle) |
 | Q12 | Artifact retention | Rotate pcaps after N days (configurable) with a total disk cap; keep reports | [architecture.md](./architecture.md#storage-layout-per-run) |
+| Q13 | Feed terms of use and source | Free feeds first (OpenPhish Community + URLhaus), within their terms; a fresher phishing source later for cloaking statistics (2026-10-12) | [research/feeds.md](./research/feeds.md), [feed-ingestion.md](./feed-ingestion.md) |
 | Q14 | Run IDs | UUIDv7 | [ADR 0008](./decisions/0008-protobuf-report-schema.md) |
 | Q15 | Display server for headful Chromium | `--headless=new` baseline; headful (Xvfb / cage) as a P6 profile, cost measured then | [ADR 0009](./decisions/0009-debian-guest-ci-kernel.md) |
 | Q16 | Use `linkopsy` as the name of the report or subcommand? | Parked: keep `urljail detonate` | — |
