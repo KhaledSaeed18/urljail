@@ -13,6 +13,7 @@ const (
 
 	// Inside every VM namespace (so snapshot clones work unchanged in P4).
 	TapName  = "tap0"
+	TapMAC   = "06:00:AC:10:00:01" // fixed, so a restored guest's ARP entry for its gateway stays valid
 	TapIP    = "172.16.0.1"
 	GuestIP  = "172.16.0.2"
 	GuestMAC = "06:00:AC:10:00:02"

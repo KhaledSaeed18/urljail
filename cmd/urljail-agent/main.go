@@ -7,11 +7,14 @@ import (
 	"fmt"
 	"log/slog"
 	"os"
+	"sync"
 	"sync/atomic"
 
 	"github.com/mdlayher/vsock"
+	"golang.org/x/sys/unix"
 	"google.golang.org/grpc"
 	"google.golang.org/protobuf/types/known/durationpb"
+	"google.golang.org/protobuf/types/known/timestamppb"
 
 	guestv1 "github.com/KhaledSaeed18/urljail/gen/urljail/guest/v1"
 	"github.com/KhaledSaeed18/urljail/internal/guestinfo"
@@ -24,14 +27,25 @@ type agent struct {
 	browser string
 	kernel  string
 	busy    atomic.Bool
+
+	mu       sync.Mutex
+	prepared *browserSession
 }
 
 func (a *agent) Hello(context.Context, *guestv1.HelloRequest) (*guestv1.HelloResponse, error) {
+	random := make([]byte, 16)
+	_, _ = unix.Getrandom(random, 0)
+	a.mu.Lock()
+	prepared := a.prepared != nil
+	a.mu.Unlock()
 	return &guestv1.HelloResponse{
 		AgentVersion:   version.String(),
 		BrowserVersion: a.browser,
 		Kernel:         a.kernel,
 		Uptime:         durationpb.New(guestinfo.Uptime()),
+		Time:           timestamppb.Now(),
+		Random:         random,
+		Prepared:       prepared,
 	}, nil
 }
 

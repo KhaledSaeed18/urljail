@@ -38,22 +38,26 @@ type APIError struct {
 }
 
 func (e *APIError) Error() string {
-	return fmt.Sprintf("firecracker PUT %s: %d %s", e.Path, e.Status, e.Fault)
+	return fmt.Sprintf("firecracker %s: %d %s", e.Path, e.Status, e.Fault)
 }
 
 func (c *Client) put(ctx context.Context, path string, body any) error {
+	return c.do(ctx, http.MethodPut, path, body)
+}
+
+func (c *Client) do(ctx context.Context, method, path string, body any) error {
 	b, err := json.Marshal(body)
 	if err != nil {
 		return err
 	}
-	req, err := http.NewRequestWithContext(ctx, http.MethodPut, "http://localhost"+path, bytes.NewReader(b))
+	req, err := http.NewRequestWithContext(ctx, method, "http://localhost"+path, bytes.NewReader(b))
 	if err != nil {
 		return err
 	}
 	req.Header.Set("Content-Type", "application/json")
 	resp, err := c.http.Do(req)
 	if err != nil {
-		return fmt.Errorf("firecracker PUT %s: %w", path, err)
+		return fmt.Errorf("firecracker %s %s: %w", method, path, err)
 	}
 	defer resp.Body.Close()
 	if resp.StatusCode/100 == 2 {
@@ -66,7 +70,7 @@ func (c *Client) put(ctx context.Context, path string, body any) error {
 	if json.Unmarshal(raw, &fault) != nil || fault.FaultMessage == "" {
 		fault.FaultMessage = string(raw)
 	}
-	return &APIError{Path: path, Status: resp.StatusCode, Fault: fault.FaultMessage}
+	return &APIError{Path: method + " " + path, Status: resp.StatusCode, Fault: fault.FaultMessage}
 }
 
 // Logger is PUT /logger.
@@ -134,4 +138,38 @@ func (c *Client) Action(ctx context.Context, action string) error {
 	return c.put(ctx, "/actions", struct {
 		ActionType string `json:"action_type"`
 	}{action})
+}
+
+// SetState is PATCH /vm: "Paused" or "Resumed".
+func (c *Client) SetState(ctx context.Context, state string) error {
+	return c.do(ctx, http.MethodPatch, "/vm", struct {
+		State string `json:"state"`
+	}{state})
+}
+
+// CreateSnapshot is PUT /snapshot/create (a full snapshot of a paused VM).
+func (c *Client) CreateSnapshot(ctx context.Context, vmstate, mem string) error {
+	return c.put(ctx, "/snapshot/create", struct {
+		SnapshotType string `json:"snapshot_type"`
+		SnapshotPath string `json:"snapshot_path"`
+		MemFilePath  string `json:"mem_file_path"`
+	}{"Full", vmstate, mem})
+}
+
+// LoadSnapshot is PUT /snapshot/load.
+type LoadSnapshot struct {
+	SnapshotPath string `json:"snapshot_path"`
+	MemBackend   struct {
+		BackendType string `json:"backend_type"`
+		BackendPath string `json:"backend_path"`
+	} `json:"mem_backend"`
+	ResumeVM      bool `json:"resume_vm"`
+	ClockRealtime bool `json:"clock_realtime"`
+	VsockOverride *struct {
+		UDSPath string `json:"uds_path"`
+	} `json:"vsock_override,omitempty"`
+}
+
+func (c *Client) LoadSnapshot(ctx context.Context, l LoadSnapshot) error {
+	return c.put(ctx, "/snapshot/load", l)
 }

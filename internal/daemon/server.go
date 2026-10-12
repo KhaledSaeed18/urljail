@@ -39,14 +39,15 @@ type Config struct {
 	DwellJitter time.Duration
 
 	// VM settings.
-	Firecracker string            // binary path
-	Image       *image.Image      // read-only base; each run gets a reflinked copy of its rootfs
-	Operator    operator.Operator // owns run directories and runs the VMMs
-	SocketDir   string            // Firecracker API sockets (short paths: Unix sockets are limited to 108 bytes)
-	WorkDir     string            // per-run scratch (disk clones), deleted at teardown
-	MaxVMs      int
-	VCPUs       int
-	MemMiB      int
+	Firecracker  string            // binary path
+	Image        *image.Image      // read-only base; each run gets a reflinked copy of its rootfs
+	Operator     operator.Operator // owns run directories and runs the VMMs
+	SocketDir    string            // Firecracker API sockets (short paths: Unix sockets are limited to 108 bytes)
+	SnapshotsDir string            // built snapshots; empty: cold boot every run
+	WorkDir      string            // per-run scratch (disk clones), deleted at teardown
+	MaxVMs       int
+	VCPUs        int
+	MemMiB       int
 
 	// Pinned component versions, reported by Version and recorded per run.
 	FirecrackerVersion string
@@ -58,6 +59,7 @@ type Server struct {
 	cfg    Config
 	log    *slog.Logger
 	net    *netns.Egress // nil: no VM lifecycle (tests of the API only)
+	snap   *snapshot     // nil: cold boot
 	slots  *slots
 	active sync.WaitGroup // running detonations, so shutdown can wait for their teardown
 }

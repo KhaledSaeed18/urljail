@@ -18,6 +18,11 @@ type Config struct {
 	Socket      string // API socket path (keep it short: Unix socket paths are limited to 108 bytes)
 	LogDir      string // receives serial.log and firecracker.log
 
+	// Dir is Firecracker's working directory. Relative paths (Rootfs, VsockUDS) resolve there,
+	// which is how snapshot clones each get their own disk: a snapshot records the paths it was
+	// taken with, and they must resolve "at the same relative paths" on restore.
+	Dir string
+
 	Kernel   string
 	BootArgs string
 	Rootfs   string // writable, owned by this VM alone
@@ -49,23 +54,81 @@ type Machine struct {
 // Start launches Firecracker, configures the VM over the API and boots it.
 // On error, nothing is left running.
 func Start(ctx context.Context, cfg Config) (*Machine, error) {
-	if err := os.MkdirAll(cfg.LogDir, 0o700); err != nil {
+	m, fcLog, err := launch(cfg)
+	if err != nil {
 		return nil, err
 	}
-	if err := os.MkdirAll(filepath.Dir(cfg.Socket), 0o700); err != nil {
+	if err := m.configure(ctx, fcLog); err != nil {
+		m.Kill()
 		return nil, err
+	}
+	return m, nil
+}
+
+// Snapshot is a full snapshot's files.
+type Snapshot struct {
+	VMState string
+	Mem     string // mapped MAP_PRIVATE: clones share its pages through the page cache
+}
+
+// Restore launches Firecracker and resumes snap in it. cfg.Dir must hold the snapshot's disk
+// at the relative path it was taken with; cfg.VsockUDS replaces the snapshot's vsock socket.
+// The guest clock is advanced to now (kvmclock, KVM_CLOCK_REALTIME).
+func Restore(ctx context.Context, cfg Config, snap Snapshot) (*Machine, error) {
+	m, fcLog, err := launch(cfg)
+	if err != nil {
+		return nil, err
+	}
+	err = func() error {
+		if err := m.waitSocket(ctx); err != nil {
+			return err
+		}
+		if err := m.client.PutLogger(ctx, Logger{LogPath: fcLog, Level: "Info", ShowLevel: true}); err != nil {
+			return err
+		}
+		l := LoadSnapshot{SnapshotPath: snap.VMState, ResumeVM: true, ClockRealtime: true}
+		l.MemBackend.BackendType, l.MemBackend.BackendPath = "File", snap.Mem
+		if cfg.VsockUDS != "" {
+			l.VsockOverride = &struct {
+				UDSPath string `json:"uds_path"`
+			}{cfg.VsockUDS}
+		}
+		return m.client.LoadSnapshot(ctx, l)
+	}()
+	if err != nil {
+		m.Kill()
+		return nil, err
+	}
+	return m, nil
+}
+
+// Pause pauses the VM's vCPUs.
+func (m *Machine) Pause(ctx context.Context) error { return m.client.SetState(ctx, "Paused") }
+
+// TakeSnapshot writes a full snapshot of the paused VM.
+func (m *Machine) TakeSnapshot(ctx context.Context, snap Snapshot) error {
+	return m.client.CreateSnapshot(ctx, snap.VMState, snap.Mem)
+}
+
+// launch starts the Firecracker process and returns it with its log file path.
+func launch(cfg Config) (*Machine, string, error) {
+	if err := os.MkdirAll(cfg.LogDir, 0o700); err != nil {
+		return nil, "", err
+	}
+	if err := os.MkdirAll(filepath.Dir(cfg.Socket), 0o700); err != nil {
+		return nil, "", err
 	}
 	_ = os.Remove(cfg.Socket)
 
 	serial, err := os.OpenFile(filepath.Join(cfg.LogDir, "serial.log"), os.O_CREATE|os.O_WRONLY|os.O_TRUNC, 0o600)
 	if err != nil {
-		return nil, err
+		return nil, "", err
 	}
 	defer serial.Close() // the child keeps its own copy of the fd
 
 	fcLog := filepath.Join(cfg.LogDir, "firecracker.log")
 	if err := os.WriteFile(fcLog, nil, 0o600); err != nil {
-		return nil, err
+		return nil, "", err
 	}
 
 	fcArgs := []string{"--api-sock", cfg.Socket, "--enable-pci"}
@@ -76,7 +139,7 @@ func Start(ctx context.Context, cfg Config) (*Machine, error) {
 		argv := []string{"netns", "exec", cfg.NetNS}
 		if c := cfg.RunAs; c != nil {
 			if err := os.Chown(fcLog, c.UID, c.GID); err != nil {
-				return nil, err
+				return nil, "", err
 			}
 			argv = append(argv, "setpriv", "--reuid="+strconv.Itoa(c.UID), "--regid="+strconv.Itoa(c.GID),
 				"--clear-groups", "--no-new-privs", "--")
@@ -84,6 +147,7 @@ func Start(ctx context.Context, cfg Config) (*Machine, error) {
 		cmd = exec.Command("ip", append(append(argv, cfg.Firecracker), fcArgs...)...)
 	}
 	cmd.Stdout, cmd.Stderr = serial, serial // the guest's serial console
+	cmd.Dir = cfg.Dir
 	cmd.SysProcAttr = &syscall.SysProcAttr{
 		Setsid: true, // signals to the daemon's terminal don't reach the VMM; the daemon decides
 		// If the daemon dies, its VMMs die with it. Linux ties this to the forking OS thread,
@@ -92,19 +156,14 @@ func Start(ctx context.Context, cfg Config) (*Machine, error) {
 		Pdeathsig: syscall.SIGKILL,
 	}
 	if err := cmd.Start(); err != nil {
-		return nil, fmt.Errorf("starting firecracker: %w", err)
+		return nil, "", fmt.Errorf("starting firecracker: %w", err)
 	}
 	m := &Machine{cfg: cfg, cmd: cmd, client: NewClient(cfg.Socket), done: make(chan struct{})}
 	go func() {
 		m.err = cmd.Wait() // Go tracks the child with a pidfd on Linux, so Kill can't hit a reused PID
 		close(m.done)
 	}()
-
-	if err := m.configure(ctx, fcLog); err != nil {
-		m.Kill()
-		return nil, err
-	}
-	return m, nil
+	return m, fcLog, nil
 }
 
 func (m *Machine) configure(ctx context.Context, fcLog string) error {
@@ -197,7 +256,10 @@ func (m *Machine) Kill() {
 
 func (m *Machine) removeSockets() {
 	_ = os.Remove(m.cfg.Socket)
-	if m.cfg.VsockUDS != "" {
-		_ = os.Remove(m.cfg.VsockUDS)
+	if v := m.cfg.VsockUDS; v != "" {
+		if !filepath.IsAbs(v) {
+			v = filepath.Join(m.cfg.Dir, v)
+		}
+		_ = os.Remove(v)
 	}
 }

@@ -53,6 +53,7 @@ func run() error {
 	minDwell := flag.Duration("min-dwell", 3*time.Second, "minimum observation after navigation")
 	maxDwell := flag.Duration("max-dwell", 15*time.Second, "maximum observation after navigation")
 	jitter := flag.Duration("dwell-jitter", time.Second, "random extra minimum observation, up to this")
+	useSnapshots := flag.Bool("snapshots", true, "restore runs from a snapshot (false: cold boot every run)")
 	flag.Parse()
 
 	log := slog.New(slog.NewTextHandler(os.Stderr, nil))
@@ -108,6 +109,7 @@ func run() error {
 		Operator:       op,
 		SocketDir:      socketDir,
 		WorkDir:        filepath.Join(dataDir, "work"),
+		SnapshotsDir:   filepath.Join(dataDir, "snapshots"),
 		MaxVMs:         *maxVMs,
 		VCPUs:          *vcpus,
 		MemMiB:         *mem,
@@ -147,6 +149,14 @@ func run() error {
 	}
 
 	srv := daemon.New(cfg, eg, log)
+	if *useSnapshots && eg != nil {
+		if err := op.MkdirAll(cfg.SnapshotsDir, 0o700); err != nil {
+			return err
+		}
+		if err := srv.EnsureSnapshot(ctx); err != nil {
+			return err
+		}
+	}
 	l, err := daemon.Listen(*socket)
 	if err != nil {
 		return err

@@ -103,7 +103,12 @@ func (s *Server) detonate(ctx context.Context, r *run, u *url.URL, profile strin
 		}
 	}()
 
-	if err := r.send(daemonv1.RunState_RUN_STATE_BOOTING, "cold boot (no snapshots before P4)"); err != nil {
+	if s.snap != nil {
+		err = r.send(daemonv1.RunState_RUN_STATE_RESTORING, "restoring "+s.snap.manifest.Name)
+	} else {
+		err = r.send(daemonv1.RunState_RUN_STATE_BOOTING, "cold boot (no snapshot)")
+	}
+	if err != nil {
 		return err
 	}
 
@@ -138,7 +143,11 @@ func (s *Server) bootVM(ctx context.Context, r *run, slot int, runDir string, ad
 	}
 	addCleanup(func(context.Context) { os.RemoveAll(workDir) })
 	rootfs := filepath.Join(workDir, "rootfs.ext4")
-	if err := vm.CloneFile(img.Rootfs, rootfs); err != nil {
+	base := img.Rootfs
+	if s.snap != nil {
+		base = s.snap.rootfs // the disk the snapshot's page cache expects
+	}
+	if err := vm.CloneFile(base, rootfs); err != nil {
 		return nil, fmt.Errorf("cloning rootfs: %w", err)
 	}
 	if err := op.Chown(rootfs); err != nil { // Firecracker opens it as the operator
@@ -204,13 +213,13 @@ func (s *Server) bootVM(ctx context.Context, r *run, slot int, runDir string, ad
 	})
 
 	vsockUDS := filepath.Join(s.cfg.SocketDir, r.id+".vsock")
-	t0 := time.Now()
-	machine, err := vm.Start(ctx, vm.Config{
+	vmCfg := vm.Config{
 		Firecracker: s.cfg.Firecracker,
 		Socket:      filepath.Join(s.cfg.SocketDir, r.id+".sock"),
+		Dir:         workDir,
 		LogDir:      filepath.Join(runDir, "host"),
 		Kernel:      img.Kernel,
-		BootArgs:    "console=ttyS0 reboot=k panic=1 init=" + img.Manifest.Init + " " + netns.GuestBootArgs(),
+		BootArgs:    s.bootArgs(),
 		Rootfs:      rootfs,
 		NetNS:       netVM.NS,
 		RunAs:       &vm.Credential{UID: op.UID, GID: op.GID},
@@ -219,7 +228,14 @@ func (s *Server) bootVM(ctx context.Context, r *run, slot int, runDir string, ad
 		VsockUDS:    vsockUDS,
 		VCPUs:       s.cfg.VCPUs,
 		MemMiB:      s.cfg.MemMiB,
-	})
+	}
+	t0 := time.Now()
+	var machine *vm.Machine
+	if s.snap != nil {
+		machine, err = vm.Restore(ctx, vmCfg, s.snap.files)
+	} else {
+		machine, err = vm.Start(ctx, vmCfg)
+	}
 	if err != nil {
 		return nil, err
 	}
@@ -244,9 +260,23 @@ func (s *Server) bootVM(ctx context.Context, r *run, slot int, runDir string, ad
 		r.log.Warn("guest reports a different browser than the image manifest",
 			"guest", hello.GetBrowserVersion(), "manifest", img.Manifest.Browser.Version)
 	}
+	how := "cold boot"
+	if s.snap != nil {
+		how = "restored " + s.snap.manifest.Name
+		if !hello.GetPrepared() {
+			r.log.Warn("restored guest has no prepared browser; it will launch one")
+		}
+	}
+	skew := time.Since(hello.GetTime().AsTime())
+	if skew < 0 {
+		skew = -skew
+	}
+	if skew > 2*time.Second {
+		r.log.Warn("guest clock is off after start", "skew", skew)
+	}
 	if err := r.send(daemonv1.RunState_RUN_STATE_NET_READY,
-		fmt.Sprintf("guest agent up %d ms after start (Chrome %s, kernel %s)",
-			time.Since(t0).Milliseconds(), hello.GetBrowserVersion(), hello.GetKernel())); err != nil {
+		fmt.Sprintf("guest agent up %d ms after start (%s; Chrome %s; guest clock within %s)",
+			time.Since(t0).Milliseconds(), how, hello.GetBrowserVersion(), skew.Round(time.Millisecond))); err != nil {
 		return nil, err
 	}
 	return agent, nil
@@ -349,4 +379,12 @@ func (l *jsonLog) close() int {
 		l.f = nil
 	}
 	return l.dropped
+}
+
+// bootArgs is the guest kernel command line, the same for cold boots and snapshot builds.
+// clocksource=kvm-clock keeps the guest on the clock Firecracker advances on restore
+// (clock_realtime): left alone, Linux switches to tsc and a restored guest's wall clock
+// resumes from snapshot time (found in P4).
+func (s *Server) bootArgs() string {
+	return "console=ttyS0 reboot=k panic=1 clocksource=kvm-clock init=" + s.cfg.Image.Manifest.Init + " " + netns.GuestBootArgs()
 }

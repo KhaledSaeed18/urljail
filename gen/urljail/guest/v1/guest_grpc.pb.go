@@ -22,6 +22,7 @@ const (
 	GuestAgentService_Hello_FullMethodName    = "/urljail.guest.v1.GuestAgentService/Hello"
 	GuestAgentService_Detonate_FullMethodName = "/urljail.guest.v1.GuestAgentService/Detonate"
 	GuestAgentService_Probe_FullMethodName    = "/urljail.guest.v1.GuestAgentService/Probe"
+	GuestAgentService_Prepare_FullMethodName  = "/urljail.guest.v1.GuestAgentService/Prepare"
 )
 
 // GuestAgentServiceClient is the client API for GuestAgentService service.
@@ -40,6 +41,9 @@ type GuestAgentServiceClient interface {
 	// (docs/network.md#isolation-test-plan-must-pass-before-live-mode-is-enabled).
 	// The host judges the outcome; the guest only reports what happened.
 	Probe(ctx context.Context, in *ProbeRequest, opts ...grpc.CallOption) (*ProbeResponse, error)
+	// Prepare launches and sets up Chrome ahead of time, so a snapshot taken afterwards holds a
+	// ready browser (P4). The next Detonate uses it.
+	Prepare(ctx context.Context, in *PrepareRequest, opts ...grpc.CallOption) (*PrepareResponse, error)
 }
 
 type guestAgentServiceClient struct {
@@ -89,6 +93,16 @@ func (c *guestAgentServiceClient) Probe(ctx context.Context, in *ProbeRequest, o
 	return out, nil
 }
 
+func (c *guestAgentServiceClient) Prepare(ctx context.Context, in *PrepareRequest, opts ...grpc.CallOption) (*PrepareResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(PrepareResponse)
+	err := c.cc.Invoke(ctx, GuestAgentService_Prepare_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // GuestAgentServiceServer is the server API for GuestAgentService service.
 // All implementations must embed UnimplementedGuestAgentServiceServer
 // for forward compatibility.
@@ -105,6 +119,9 @@ type GuestAgentServiceServer interface {
 	// (docs/network.md#isolation-test-plan-must-pass-before-live-mode-is-enabled).
 	// The host judges the outcome; the guest only reports what happened.
 	Probe(context.Context, *ProbeRequest) (*ProbeResponse, error)
+	// Prepare launches and sets up Chrome ahead of time, so a snapshot taken afterwards holds a
+	// ready browser (P4). The next Detonate uses it.
+	Prepare(context.Context, *PrepareRequest) (*PrepareResponse, error)
 	mustEmbedUnimplementedGuestAgentServiceServer()
 }
 
@@ -123,6 +140,9 @@ func (UnimplementedGuestAgentServiceServer) Detonate(*DetonateRequest, grpc.Serv
 }
 func (UnimplementedGuestAgentServiceServer) Probe(context.Context, *ProbeRequest) (*ProbeResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method Probe not implemented")
+}
+func (UnimplementedGuestAgentServiceServer) Prepare(context.Context, *PrepareRequest) (*PrepareResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method Prepare not implemented")
 }
 func (UnimplementedGuestAgentServiceServer) mustEmbedUnimplementedGuestAgentServiceServer() {}
 func (UnimplementedGuestAgentServiceServer) testEmbeddedByValue()                           {}
@@ -192,6 +212,24 @@ func _GuestAgentService_Probe_Handler(srv interface{}, ctx context.Context, dec 
 	return interceptor(ctx, in, info, handler)
 }
 
+func _GuestAgentService_Prepare_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(PrepareRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(GuestAgentServiceServer).Prepare(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: GuestAgentService_Prepare_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(GuestAgentServiceServer).Prepare(ctx, req.(*PrepareRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // GuestAgentService_ServiceDesc is the grpc.ServiceDesc for GuestAgentService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -206,6 +244,10 @@ var GuestAgentService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "Probe",
 			Handler:    _GuestAgentService_Probe_Handler,
+		},
+		{
+			MethodName: "Prepare",
+			Handler:    _GuestAgentService_Prepare_Handler,
 		},
 	},
 	Streams: []grpc.StreamDesc{

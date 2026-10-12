@@ -6,6 +6,7 @@ Status: **design draft**. What runs inside the microVM, and how the snapshot is 
 
 | Piece | Choice (draft) | Notes |
 | ----- | -------------- | ----- |
+| Boot args | `console=ttyS0 reboot=k panic=1 clocksource=kvm-clock init=/sbin/urljail-init ip=...` | `clocksource=kvm-clock`: Linux otherwise switches to `tsc` and a restored guest's wall clock resumes from snapshot time (found in P4) |
 | Kernel | Minimal x86_64 config based on Firecracker's recommended guest config | Needs virtio-net, virtio-block, virtio-vsock, `CONFIG_VMGENID` (Firecracker v1.17.0 exposes VMGenID; confirmed in P1), `CONFIG_PTP_1588_CLOCK_VMCLOCK`. Firecracker CI kernel for P1–P3, this config from P4 ([ADR 0009](./decisions/0009-debian-guest-ci-kernel.md)). A **Linux ≥ 7.0** base is wanted in P4: VMClock's `vm_generation_counter` and `poll()` for userspace landed in 7.0, and they let the guest agent detect a restore (see [snapshot entropy](./research/snapshot-entropy.md)) |
 | Rootfs | Debian 13 ("trixie") slim (ext4 image), read-only base + per-run writable overlay | Debian packages Chromium and its many deps reliably; Alpine/musl is smaller but Chromium on musl adds risk |
 | Init | Tiny init (or systemd-free shell init) | Fast boot; no extra listeners. For scale: the CI Ubuntu image with systemd took 629 ms of userspace boot in P1 |
@@ -39,6 +40,18 @@ Enterprise policy (`/etc/opt/chrome/policies/managed/urljail.json`) + flags.
 No GPU device exists in Firecracker, so WebGL is software-rendered (SwiftShader). This is a known bot signal and a planned research variable, not something to hide in v1.
 
 ## Snapshot procedure (Phase 4)
+
+As built (P4 M1, `internal/daemon/snapshot.go`; the daemon builds it at start when missing or stale):
+
+1. Reflink the image's rootfs into `snapshots/<image>-baseline.build/rootfs.ext4`.
+2. Boot in an **isolated** namespace `uj-vm-build`: `tap0` configured exactly as in every VM namespace (same address, same fixed MAC `06:00:AC:10:00:01`), but no link out. Whatever the guest sends goes nowhere (34 packets during a build: DNS attempts and Chrome's startup requests).
+3. Agent `Prepare`: launch Chrome, attach to its startup tab, enable `Network`/`Page`/lifecycle, set download behavior. Wait 2 s for Chrome to settle.
+4. Pause, full snapshot (`vmstate`, `mem`), kill. The disk as it is now becomes the snapshot's `rootfs.ext4`; files `0600`.
+5. Manifest: image name and rootfs SHA-256, Firecracker version, vCPUs, memory, boot args. Any difference at daemon start means a rebuild.
+
+**Restore per run** (`vm.Restore`): reflink the snapshot's disk into the run's work directory and start Firecracker *in that directory*: the snapshot recorded `rootfs.ext4` and `v.sock` as relative paths, which Firecracker resolves "at the same relative paths" on restore, so each clone opens its own disk. `vsock_override` gives each clone its own socket; `clock_realtime` advances kvmclock to now; the memory file is mapped `MAP_PRIVATE` and shared through the page cache.
+
+Original plan:
 
 ```
 1. Cold-boot VM (kernel + rootfs) with the fixed per-clone network config (172.16.0.2/30, fixed MAC)

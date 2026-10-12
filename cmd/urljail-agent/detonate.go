@@ -11,7 +11,6 @@ import (
 	"time"
 
 	"github.com/chromedp/cdproto"
-	cdpbrowser "github.com/chromedp/cdproto/browser"
 	cdpctx "github.com/chromedp/cdproto/cdp"
 	"github.com/chromedp/cdproto/dom"
 	"github.com/chromedp/cdproto/network"
@@ -65,10 +64,18 @@ func (a *agent) Detonate(req *guestv1.DetonateRequest, stream guestv1.GuestAgent
 
 func (a *agent) detonate(ctx context.Context, req *guestv1.DetonateRequest, out *sender) (*guestv1.Done, error) {
 	done := &guestv1.Done{}
-	ch, err := launchChrome()
-	if err != nil {
-		return done, err
+	b := a.takePrepared()
+	if b == nil {
+		var err error
+		if b, err = startBrowser(ctx); err != nil {
+			return done, err
+		}
+	} else {
+		b.discardQueued() // events from about:blank before the snapshot aren't this run's
 	}
+	ch, targetID := b.ch, b.targetID
+	bctx := cdpctx.WithExecutor(ctx, b.browser)
+	pctx := cdpctx.WithExecutor(ctx, b.page)
 	defer func() {
 		ch.close()
 		// Ship the key log and Chrome's own log even when the run failed: they're evidence.
@@ -78,37 +85,6 @@ func (a *agent) detonate(ctx context.Context, req *guestv1.DetonateRequest, out 
 			}
 		}
 	}()
-
-	bctx := cdpctx.WithExecutor(ctx, ch.conn.Browser())
-	// Drive the tab Chrome opened at startup: it is the foreground tab. A tab created with
-	// Target.createTarget is a background tab, which reports visibilityState "hidden",
-	// throttles timers and doesn't paint (found in M4: first paint only came when the
-	// screenshot forced it).
-	targetID, err := initialTab(bctx)
-	if err != nil {
-		return done, err
-	}
-	sessionID, err := target.AttachToTarget(targetID).WithFlatten(true).Do(bctx)
-	if err != nil {
-		return done, err
-	}
-	pctx := cdpctx.WithExecutor(ctx, ch.conn.Session(sessionID))
-
-	// The only domains enabled (ADR 0013). No Runtime.enable: it is a well-known way for
-	// pages to detect automation, and nothing here needs it.
-	for _, step := range []func() error{
-		func() error { return network.Enable().Do(pctx) },
-		func() error { return page.Enable().Do(pctx) },
-		func() error { return page.SetLifecycleEventsEnabled(true).Do(pctx) },
-		func() error {
-			return cdpbrowser.SetDownloadBehavior(cdpbrowser.SetDownloadBehaviorBehaviorAllowAndName).
-				WithDownloadPath(downloadDir).WithEventsEnabled(true).Do(bctx)
-		},
-	} {
-		if err := step(); err != nil {
-			return done, err
-		}
-	}
 
 	act := newActivity()
 	fwdCtx, stopFwd := context.WithCancel(ctx)

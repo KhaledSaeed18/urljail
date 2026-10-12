@@ -25,6 +25,7 @@ func (e *Egress) AddVM(ctx context.Context, n, uid, gid int) (*VM, error) {
 		{"netns", "add", ns},
 		{"-n", ns, "link", "set", "lo", "up"},
 		{"-n", ns, "tuntap", "add", "dev", TapName, "mode", "tap", "user", strconv.Itoa(uid), "group", strconv.Itoa(gid)},
+		{"-n", ns, "link", "set", TapName, "address", TapMAC},
 		{"-n", ns, "addr", "add", TapIP + "/30", "dev", TapName},
 		{"-n", ns, "link", "set", TapName, "up"},
 		{"-n", ns, "link", "add", vmVeth, "type", "veth", "peer", "name", veth, "netns", EgressNS},
@@ -80,3 +81,31 @@ func (e *Egress) RemoveVM(ctx context.Context, vm *VM) {
 		e.log.Warn("deleting VM namespace", "netns", vm.NS, "err", err)
 	}
 }
+
+// BuildNS is the namespace snapshots are built in.
+const BuildNS = VMPrefix + "build"
+
+// AddIsolated creates a VM namespace with tap0 configured exactly like AddVM's, but with no link
+// to the egress namespace: whatever the guest sends goes nowhere. Snapshots are built in it,
+// so the snapshot holds no network state (docs/guest-image.md#snapshot-procedure-phase-4).
+func AddIsolated(ctx context.Context, ns string, uid, gid int) (*VM, error) {
+	_ = deleteNS(ctx, ns)
+	vm := &VM{Slot: -1, NS: ns}
+	for _, s := range [][]string{
+		{"netns", "add", ns},
+		{"-n", ns, "link", "set", "lo", "up"},
+		{"-n", ns, "tuntap", "add", "dev", TapName, "mode", "tap", "user", strconv.Itoa(uid), "group", strconv.Itoa(gid)},
+		{"-n", ns, "link", "set", TapName, "address", TapMAC},
+		{"-n", ns, "addr", "add", TapIP + "/30", "dev", TapName},
+		{"-n", ns, "link", "set", TapName, "up"},
+	} {
+		if err := ip(ctx, s...); err != nil {
+			_ = deleteNS(ctx, ns)
+			return nil, err
+		}
+	}
+	return vm, nil
+}
+
+// RemoveIsolated deletes a namespace made by AddIsolated.
+func RemoveIsolated(ctx context.Context, vm *VM) error { return deleteNS(ctx, vm.NS) }

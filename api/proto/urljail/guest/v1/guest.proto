@@ -17,6 +17,15 @@ service GuestAgentService {
   // (docs/network.md#isolation-test-plan-must-pass-before-live-mode-is-enabled).
   // The host judges the outcome; the guest only reports what happened.
   rpc Probe(ProbeRequest) returns (ProbeResponse);
+  // Prepare launches and sets up Chrome ahead of time, so a snapshot taken afterwards holds a
+  // ready browser (P4). The next Detonate uses it.
+  rpc Prepare(PrepareRequest) returns (PrepareResponse);
+}
+
+message PrepareRequest {}
+
+message PrepareResponse {
+  google.protobuf.Duration took = 1;
 }
 
 message HelloRequest {}
@@ -29,6 +38,12 @@ message HelloResponse {
   string kernel = 3;
   // Time since guest boot.
   google.protobuf.Duration uptime = 4;
+  // The guest's wall clock, to check it after a snapshot restore.
+  google.protobuf.Timestamp time = 5;
+  // 16 bytes from getrandom(2), to check that restored clones don't share kernel RNG state.
+  bytes random = 6;
+  // A browser prepared by Prepare is waiting.
+  bool prepared = 7;
 }
 
 message DetonateRequest {
