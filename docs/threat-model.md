@@ -1,6 +1,6 @@
 # Threat model
 
-Status: **design draft**. Revisit before enabling `live` egress mode.
+Status: **reviewed against the built system on 2026-10-12** (live gate); see [the review](#review-against-the-built-system-2026-10-12) at the end. Revisit when any layer changes.
 
 urljail deliberately loads hostile content. The question isn't *whether* the guest gets attacked but how many layers must fail before something we care about is hurt.
 
@@ -28,9 +28,11 @@ urljail deliberately loads hostile content. The question isn't *whether* the gue
 ## Layers (from page outward)
 
 ```
- page JS ─► Chromium sandbox ─► guest user ─► guest kernel ─► KVM + Firecracker (minimal devices)
-        ─► jailer (chroot, unprivileged uid, cgroup v2 limits, seccomp, own netns)
-        ─► SELinux (enforcing) ─► host netns policy (nftables) ─► egress netns (VPN only)
+ page JS ─► Chromium sandbox ─► guest user ─► guest kernel ─► KVM + Firecracker (minimal devices, rate limits)
+        ─► jailer (chroot, per-slot uid, own mount/PID/net namespace, cgroup v2 limits, seccomp)
+        ─► SELinux urljail_vmm_t (enforcing)
+ network: guest ─► VM netns (DNAT DNS, forward only to egress) ─► egress netns (nftables, resolver,
+          WireGuard as the only route in live mode); the host's own namespace holds no urljail policy
 ```
 
 ## Threats and mitigations
@@ -47,7 +49,7 @@ urljail deliberately loads hostile content. The question isn't *whether* the gue
 | VMM escape | A4 | Firecracker's minimal device model; every VMM jailed ([ADR 0016](./decisions/0016-every-vmm-jailed.md)): chroot with only its own files, own mount and PID namespace (PID 1), per-slot uid 64000+ with no capabilities and NoNewPrivs, cgroup memory/pids/cpu limits, seccomp filters; SELinux: confined in `urljail_vmm_t` (enforcing; may touch only its jail, read images/snapshots, append to its console); keep Firecracker updated | Low probability, high impact |
 | Cross-run contamination | A1–A3 | Fresh clone per run; separate netns; snapshot taken pre-network (no shared cookies/caches) | Identical RNG state across clones: see [research/snapshot-entropy.md](./research/snapshot-entropy.md) |
 | Credentials typed into phishing page | A5 | Detonation never types real credentials; form interaction (if ever) uses generated canary values only | — |
-| Malicious download executed | A1 | Downloads hashed and stored, never executed; stored outside any exec path, `noexec` mount | — |
+| Malicious download executed | A1 | Downloads land on a `noexec` tmpfs in the guest (`/run/urljail/downloads`) and are destroyed with the VM; the report lists them from CDP. They are **not** collected or hashed yet | — |
 | Leaked VM keeps running | A5 | Teardown always runs (each step with its own deadline; shutdown bounded); daemon reaps orphan VMMs and namespaces at startup, killing every process still inside a urljail namespace first (privilege-dropping children like unbound and tcpdump outlive a killed daemon, found in P3); `doctor` lists leftovers. VMMs are tracked by pidfd | — |
 | Any process running as the operator gains root through the dev sudo rule | A5 | `/etc/sudoers.d/urljail-dev` grants NOPASSWD `ip`, `firewall-cmd`, `nft`, `sysctl` and (from P3) the user-writable `bin/urljaild` for development; each is root-equivalent. Remove it before the live gate; `urljaild` becomes the single privileged component instead | Accepted for P1–P5 on this laptop only |
 
@@ -65,3 +67,44 @@ urljail deliberately loads hostile content. The question isn't *whether* the gue
 3. Feeds are untrusted input: URLs from feeds are data, never shell arguments.
 4. Keep Firecracker, guest kernel and Chromium updated; record versions in every run's `meta.json`.
 5. No passwordless sudo rule survives the live gate: `/etc/sudoers.d/urljail-dev` is a development convenience only.
+
+## Review against the built system (2026-10-12)
+
+Each threat above, against what exists after P1–P5 and the live-gate work. *Verified* means tested on this host with the evidence named; *built* means implemented but not exercised end to end.
+
+| Threat | State | Evidence |
+| ------ | ----- | -------- |
+| Page scans/attacks LAN | verified | Self-test: router, host address, Docker bridge, metadata, other VMs, the exit's host side, the namespaces themselves: each dropped, with the exact destination in the host's blocked log (P3 M3) |
+| DNS rebinding to loopback / private | verified | Self-test with a positive control (`1.1.1.1.nip.io` resolves; `127.0.0.1.nip.io`, `192.168.1.1.nip.io` don't); CDP over a pipe, no debug port |
+| Guest learns the home LAN address | fixed, dev only | Found in P3 (host ICMP errors); the exit drops private-source packets |
+| Detonation leaks home IP | built; live-test verified | `wg0` is the only route in live mode; *VPN down ⇒ no egress* passed (`network is unreachable`); interlock refuses live without handshake / self-test / with the dev sudo rule. **Pending:** a run with the real VPN, where the exit-IP check must pass |
+| Browser exploit → guest compromise | built | Disposable clone per run; Chrome sandboxed (uid 1000, namespaces, seccomp in the guest); Chrome pinned and rebuilt per release |
+| Guest lies in report | verified | Host-attested DNS, flows (SNI/ALPN/Host), blocked attempts and pcap, reconciled against CDP per run; `consistent` flag; screenshot/DOM labeled guest-attested |
+| Guest floods host | verified | cgroup limits read on a live VMM; rate limits read back from the VMM on every run (fail closed); caps table in the P5 journal |
+| VMM escape | verified | Every run checks its VMM's uid, NoNewPrivs, seccomp, cgroup, chroot and `urljail_vmm_t` and refuses otherwise; `doctor` flags any unjailed Firecracker on the host (negative test passed); SELinux enforcing, zero denials |
+| Cross-run contamination | verified (kernel), open (userspace) | Fresh reflinked disk and namespace per run; snapshot built with no network; VMGenID reseed logged per clone; 25/25 distinct ClientHello randoms across 3 clones; Chrome's userspace RNG state is cloned (R2) |
+| Credentials typed into a page | holds | No interaction is simulated at all |
+| Malicious download executed | holds | `noexec` in the guest, destroyed with the VM (claim above corrected: not collected) |
+| Leaked VM keeps running | built, one gap | Teardown bounded per step; startup reaping kills everything in urljail namespaces and cgroups. **Gap:** if the daemon *crashes* in live mode, its VMMs keep running (parent-death signal is cleared when they drop privileges) and keep browsing until the daemon restarts |
+| Dev sudo rule | pending removal | Service install replaces it; live mode refuses to start while it exists |
+
+### New threats found while building
+
+| Threat | Adversary | Current mitigation | Recommendation |
+| ------ | --------- | ------------------ | -------------- |
+| **The root daemon parses guest-controlled data**: the gRPC/HTTP2 stream over vsock, CDP event JSON, artifacts, ClientHello and HTTP bytes from eBPF, and the report built from all of it | A3 | Go (memory-safe); artifact name allowlist; size, count and record caps; tolerant parsers that skip bad input; parsers unit-tested with truncated input | **Before live:** fuzz the ClientHello, HTTP-Host and report parsers (Go native fuzzing). **Later:** build reports in an unprivileged helper process instead of the root daemon |
+| **unbound parses attacker-controlled DNS answers** (a phishing domain's own nameservers) | A1 | Runs as user `unbound` in the egress namespace, forwarding only | **Should:** confine it in SELinux (it runs as `unconfined_t` when the daemon starts it, not `named_t`) |
+| **Root executing operator-writable binaries** (`bin/urljaild`, `~/.local/bin/{jailer,firecracker}`) | A5 | Only in dev | **Before live:** the service install (root-owned copies) |
+| **Daemon crash leaves live VMs browsing** | A5 | Restart reaps them; the systemd unit restarts on failure after 5 s | **Should:** put VM cgroups under the service's delegated cgroup so systemd kills them with the daemon |
+| **Agent and Chrome share a uid in the guest** | A2 | Host treats all guest output as guest-attested | **Later:** separate uid for Chrome |
+| **live-test exits from the home IP** | A5 | URL policy stays the dev allowlist in live-test | — |
+| **Images and snapshots are operator-writable** | A5 | Operator is trusted; the root daemon only reflinks and links them; VMMs can't write them (DAC and SELinux) | Accepted (single operator) |
+| **WireGuard private key on disk** | — | Live mode refuses a config not `0600` | — |
+
+### Before enabling live mode
+
+1. Install the daemon as a service from root-owned binaries, then delete `/etc/sudoers.d/urljail-dev` (the daemon enforces the second).
+2. A real VPN config; the self-test's exit-IP check must pass (the daemon enforces this at start).
+3. Fuzz the parsers that run as root on guest data.
+4. Feed terms decided (Q13) and ingestion designed with URLs strictly as data.
+5. Re-read this table if any layer changes.
