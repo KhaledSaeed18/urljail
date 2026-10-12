@@ -22,13 +22,19 @@ Startup self-test passed through the tunnel, including **VPN down ⇒ no egress:
 - **MTU:** `wg0` has MTU 1420, the guest 1500, so the egress namespace sent ICMP "need to frag" for most connections. Path-MTU discovery coped here, but VPN paths often drop that ICMP. Clamping only outgoing SYNs (`rt mtu`) wasn't enough: the guest takes its segment size from the server's SYN-ACK. Now SYNs both ways across the exit are clamped to the exit MTU − 40 (1380 on WireGuard, 1460 on the dev exit): zero "need to frag" afterwards.
 - **IP fragments counted as flows:** a run showed 365 flows, 345 of them to random ports. Non-first IP fragments carry no TCP/UDP header, and the BPF program read their payload as ports. It now skips L4 parsing for fragments: back to 23–25 flows.
 
-## Running as a service (prepared; not yet installed)
+## Running as a service (installed and verified 2026-10-12)
 
 The dev sudoers rule has to go before live mode, and with it passwordless `sudo bin/urljaild`. Replacement: `deploy/urljaild.service` plus `scripts/install-daemon.sh` (run once with sudo, and again after each rebuild).
 
 - **Root never executes operator-writable binaries:** in dev, the root daemon ran `bin/urljaild`, `~/.local/bin/jailer` and `~/.local/bin/firecracker`, all writable by the operator account, which made them root-equivalent like the sudoers rule. The script installs root-owned copies (`/usr/local/sbin/urljaild`, `/usr/local/libexec/urljail/{jailer,firecracker}`) and the policy module (`/usr/local/share/urljail/`); the unit runs only those. Settings live in `/etc/urljail/urljaild.env` (`0600`): operator, egress mode, extra flags such as `-wg-config /etc/urljail/wg0.conf`.
 - **SELinux:** started by systemd, the daemon runs as `unconfined_service_t`, not `unconfined_t`, so the policy (1.2.0) defines the VMM transition from both. Without that, every run would have been refused by the per-run confinement check: failing closed, but unusable.
-- **Not tested yet:** installing needs the operator's sudo. To do with the operator: install, start, `urljail doctor`, a detonation, the self-test.
+- **Verified as a service:** the daemon runs from `/usr/local/sbin` as `system_u:system_r:unconfined_service_t`; `doctor` healthy (SELinux enforcing, VMMs in `urljail_vmm_t`, zero denials); detonation (navigate ~210–290 ms, consistent report); self-test passes, with the VMM confined via the new transition from `unconfined_service_t`.
+
+### Bug: a second daemon broke the first one's network
+
+- When the service was first enabled, a dev daemon (started with sudo) was still running. The service crash-looped on "another urljaild is listening", but each attempt first ran its whole setup, which **deletes and rebuilds the namespaces**, breaking the running daemon's network on every restart. The socket check came far too late.
+- **Fix:** an exclusive `flock` on `/run/urljail/urljaild.lock`, taken right after argument parsing and before anything is touched. Verified with the service holding it: a second daemon exits at once ("lock … held") and the service stays healthy.
+- **My mistake while fixing it:** I tested the fix against the running service *before* the service had the fix. The old binary held no lock, so the test daemon took it, rebuilt the namespaces and wiped the service's egress namespace. The service failed closed (preflight refused runs: "egress ruleset changed or unreadable", no run directory) until the operator reinstalled and restarted it. Lesson: a mutual-exclusion fix protects nothing until both sides run it.
 
 ## Fuzzing (from the threat-model review)
 
@@ -42,7 +48,7 @@ Go native fuzz targets for every parser the root daemon runs on guest-controlled
 | ---- | ----- |
 | WireGuard-in-netns egress working; `live` mode interlock in the daemon | done with the test peer; needs a run with the real VPN config |
 | Full isolation test plan in `live` mode, incl. "VPN down ⇒ no egress" | passes in live-test; the exit-IP check needs the real VPN |
-| Dev sudo rule removed | pending (operator): install the service first (`sudo scripts/install-daemon.sh`), then `sudo rm /etc/sudoers.d/urljail-dev` |
+| Dev sudo rule removed | service installed and verified; pending: `sudo rm /etc/sudoers.d/urljail-dev` (operator) |
 | Threat model reviewed against what was built | draft done ([review](../threat-model.md#review-against-the-built-system-2026-10-12)): one false claim corrected (downloads), diagram fixed, 8 new threats; adds "fuzz the root parsers" before live |
 | Feed terms of use checked (Q13) | researched ([feeds.md](../research/feeds.md)); choosing a source is the operator's decision |
 | Feed ingestion design, URLs strictly as data | pending |
