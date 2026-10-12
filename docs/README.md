@@ -16,7 +16,8 @@
 | 6 | [report-schema.md](./report-schema.md) | Draft `report.json` with per-observation sources |
 | 7 | [roadmap.md](./roadmap.md) | Phases P0–P7, exit criteria, the live gate |
 | 8 | [environment.md](./environment.md) | This host's hardware/OS facts and expected friction |
-| 9 | [open-questions.md](./open-questions.md) | Remaining open question, verification tasks, and resolved questions with links to where each was recorded |
+| 9 | [feed-ingestion.md](./feed-ingestion.md) | Design: feeds as untrusted data, unprivileged ingestion, provenance |
+| 10 | [open-questions.md](./open-questions.md) | Remaining open question, verification tasks, and resolved questions with links to where each was recorded |
 
 ## Folders
 
