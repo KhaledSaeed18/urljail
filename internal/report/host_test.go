@@ -158,3 +158,16 @@ func TestDNSProbeOnlyOnDNSError(t *testing.T) {
 		}
 	}
 }
+
+func TestHostOfQuery(t *testing.T) {
+	for in, want := range map[string]string{
+		"_6987._https.fcl.example.test.": "fcl.example.test.",
+		"example.test.":                  "example.test.",
+		"_dmarc.example.test.":           "_dmarc.example.test.",
+		"_x._https.example.test.":        "_x._https.example.test.",
+	} {
+		if got := hostOfQuery(in); got != want {
+			t.Errorf("hostOfQuery(%q) = %q, want %q", in, got, want)
+		}
+	}
+}

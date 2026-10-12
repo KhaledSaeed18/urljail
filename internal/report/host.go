@@ -163,8 +163,9 @@ func addHost(r *reportv0.Report, runDir string, reportHosts map[string]bool) boo
 	seenName := map[string]bool{}
 	for _, q := range dns {
 		label := "unexplained"
+		host := hostOfQuery(q.Name)
 		switch {
-		case isPageHost(q.Name):
+		case isPageHost(host):
 			label = "page"
 		case isHintHost(q.Name):
 			label = "page-hint"
@@ -230,4 +231,16 @@ func portOf(u *url.URL) string {
 		return "80"
 	}
 	return "443"
+}
+
+// hostOfQuery is the host a DNS query is about. For a non-default port Chrome looks up the
+// HTTPS record as "_<port>._https.<host>" (RFC 9460 port-prefix naming; found in P6 for a
+// script on port 6987).
+func hostOfQuery(name string) string {
+	if rest, ok := strings.CutPrefix(name, "_"); ok {
+		if port, h, ok := strings.Cut(rest, "._https."); ok && port != "" && strings.Trim(port, "0123456789") == "" {
+			return h
+		}
+	}
+	return name
 }
