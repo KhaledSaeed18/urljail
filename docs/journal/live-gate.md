@@ -22,13 +22,21 @@ Startup self-test passed through the tunnel, including **VPN down ⇒ no egress:
 - **MTU:** `wg0` has MTU 1420, the guest 1500, so the egress namespace sent ICMP "need to frag" for most connections. Path-MTU discovery coped here, but VPN paths often drop that ICMP. Clamping only outgoing SYNs (`rt mtu`) wasn't enough: the guest takes its segment size from the server's SYN-ACK. Now SYNs both ways across the exit are clamped to the exit MTU − 40 (1380 on WireGuard, 1460 on the dev exit): zero "need to frag" afterwards.
 - **IP fragments counted as flows:** a run showed 365 flows, 345 of them to random ports. Non-first IP fragments carry no TCP/UDP header, and the BPF program read their payload as ports. It now skips L4 parsing for fragments: back to 23–25 flows.
 
+## Running as a service (prepared; not yet installed)
+
+The dev sudoers rule has to go before live mode, and with it passwordless `sudo bin/urljaild`. Replacement: `deploy/urljaild.service` plus `scripts/install-daemon.sh` (run once with sudo, and again after each rebuild).
+
+- **Root never executes operator-writable binaries:** in dev, the root daemon ran `bin/urljaild`, `~/.local/bin/jailer` and `~/.local/bin/firecracker`, all writable by the operator account, which made them root-equivalent like the sudoers rule. The script installs root-owned copies (`/usr/local/sbin/urljaild`, `/usr/local/libexec/urljail/{jailer,firecracker}`) and the policy module (`/usr/local/share/urljail/`); the unit runs only those. Settings live in `/etc/urljail/urljaild.env` (`0600`): operator, egress mode, extra flags such as `-wg-config /etc/urljail/wg0.conf`.
+- **SELinux:** started by systemd, the daemon runs as `unconfined_service_t`, not `unconfined_t`, so the policy (1.2.0) defines the VMM transition from both. Without that, every run would have been refused by the per-run confinement check: failing closed, but unusable.
+- **Not tested yet:** installing needs the operator's sudo. To do with the operator: install, start, `urljail doctor`, a detonation, the self-test.
+
 ## Checklist
 
 | Item | State |
 | ---- | ----- |
 | WireGuard-in-netns egress working; `live` mode interlock in the daemon | done with the test peer; needs a run with the real VPN config |
 | Full isolation test plan in `live` mode, incl. "VPN down ⇒ no egress" | passes in live-test; the exit-IP check needs the real VPN |
-| Dev sudo rule removed | pending (operator); the daemon needs another way to start first (systemd unit) |
+| Dev sudo rule removed | pending (operator): install the service first (`sudo scripts/install-daemon.sh`), then `sudo rm /etc/sudoers.d/urljail-dev` |
 | Threat model reviewed against what was built | pending |
 | Feed terms of use checked (Q13) | pending (operator decision) |
 | Feed ingestion design, URLs strictly as data | pending |

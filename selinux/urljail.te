@@ -1,4 +1,4 @@
-policy_module(urljail, 1.1.1)
+policy_module(urljail, 1.2.0)
 
 # SELinux confinement for urljail's VMMs (P5). The jailer runs unconfined (it's started by the
 # root daemon) and execs the Firecracker copy it placed in the jail; that exec moves the VMM into
@@ -30,18 +30,21 @@ type urljail_vmm_tmpfs_t;
 files_tmpfs_file(urljail_vmm_tmpfs_t)
 
 require {
-	type unconfined_t;
-	role unconfined_r;
+	type unconfined_t, unconfined_service_t;
+	role unconfined_r, system_r;
 }
 
 ########################################
-# The transition
+# The transition, from the daemon's domain: unconfined_t when started with sudo,
+# unconfined_service_t when started by systemd (deploy/urljaild.service).
 
 type_transition unconfined_t urljail_jail_t:process urljail_vmm_t;
-allow unconfined_t urljail_vmm_t:process transition;
+type_transition unconfined_service_t urljail_jail_t:process urljail_vmm_t;
+allow { unconfined_t unconfined_service_t } urljail_vmm_t:process transition;
 # The jailer sets no_new_privs, which forbids transitions unless explicitly allowed.
-allow unconfined_t urljail_vmm_t:process2 { nnp_transition nosuid_transition };
+allow { unconfined_t unconfined_service_t } urljail_vmm_t:process2 { nnp_transition nosuid_transition };
 role unconfined_r types urljail_vmm_t;
+role system_r types urljail_vmm_t;
 
 ########################################
 # The VMM
@@ -59,7 +62,7 @@ allow urljail_vmm_t self:unix_stream_socket { create_stream_socket_perms connect
 # Attaching to its TAP (TUNSETIFF) relabels the tun socket from the device's context (the
 # daemon, unconfined, created the TAP) to the VMM's.
 allow urljail_vmm_t self:tun_socket { create attach_queue relabelfrom relabelto };
-allow urljail_vmm_t unconfined_t:tun_socket relabelfrom;
+allow urljail_vmm_t { unconfined_t unconfined_service_t }:tun_socket relabelfrom;
 
 manage_files_pattern(urljail_vmm_t, urljail_vmm_tmpfs_t, urljail_vmm_tmpfs_t)
 allow urljail_vmm_t urljail_vmm_tmpfs_t:file map;
@@ -69,5 +72,5 @@ fs_tmpfs_filetrans(urljail_vmm_t, urljail_vmm_tmpfs_t, file)
 allow urljail_vmm_t urljail_run_t:file { getattr write append ioctl };
 
 # The serial console and stdio are inherited from the daemon.
-allow urljail_vmm_t unconfined_t:fd use;
-allow urljail_vmm_t unconfined_t:process sigchld;
+allow urljail_vmm_t { unconfined_t unconfined_service_t }:fd use;
+allow urljail_vmm_t { unconfined_t unconfined_service_t }:process sigchld;

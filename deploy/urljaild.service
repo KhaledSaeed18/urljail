@@ -1,0 +1,23 @@
+# urljaild as a system service (live gate: replaces the dev sudoers rule).
+# Installed by scripts/install-daemon.sh; settings in /etc/urljail/urljaild.env.
+[Unit]
+Description=urljail host agent (Firecracker URL detonation)
+Documentation=file:///usr/local/share/urljail/README.md
+After=network-online.target firewalld.service
+Wants=network-online.target
+
+[Service]
+Type=simple
+EnvironmentFile=/etc/urljail/urljaild.env
+# Root-owned copies only: root must never execute a binary a non-root user can replace.
+ExecStart=/usr/local/sbin/urljaild -operator ${URLJAIL_OPERATOR} -egress ${URLJAIL_EGRESS} \
+    -firecracker /usr/local/libexec/urljail/firecracker -jailer /usr/local/libexec/urljail/jailer \
+    -selinux-module /usr/local/share/urljail/urljail.pp $URLJAIL_EXTRA_ARGS
+# The daemon tears its VMs down itself on SIGTERM (bounded); a second signal makes it exit.
+KillMode=mixed
+TimeoutStopSec=60
+Restart=on-failure
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target
