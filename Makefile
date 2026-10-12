@@ -1,4 +1,4 @@
-.PHONY: all gen build test lint clean image
+.PHONY: all gen build test lint clean image selinux
 
 all: lint test build
 
@@ -13,6 +13,10 @@ build:
 
 image:
 	images/debian-chrome/build.sh
+
+# Needs selinux-policy-devel. The built module is committed, like the eBPF object.
+selinux:
+	cd selinux && $(MAKE) -f /usr/share/selinux/devel/Makefile urljail.pp && rm -rf tmp
 
 test:
 	go test ./...

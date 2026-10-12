@@ -39,17 +39,20 @@ type Config struct {
 	DwellJitter time.Duration
 
 	// VM settings.
-	Firecracker  string            // binary path (resolved: its file name names jail directories)
-	Jailer       string            // jailer binary
-	JailDir      string            // jail base: root-owned, same filesystem as images and snapshots
-	Image        *image.Image      // read-only base; each run gets a reflinked copy of its rootfs
-	Operator     operator.Operator // owns run directories and runs the VMMs
-	SocketDir    string            // Firecracker API sockets (short paths: Unix sockets are limited to 108 bytes)
-	SnapshotsDir string            // built snapshots; empty: cold boot every run
-	WorkDir      string            // per-run scratch (disk clones), deleted at teardown
-	MaxVMs       int
-	VCPUs        int
-	MemMiB       int
+	Firecracker   string            // binary path (resolved: its file name names jail directories)
+	Jailer        string            // jailer binary
+	JailDir       string            // jail base: root-owned, same filesystem as images and snapshots
+	SELinuxModule string            // built policy module (urljail.pp); "" when SELinux is off
+	DataDir       string            // relabeled with the module's file contexts
+	Started       time.Time         // daemon start, for "denials since start"
+	Image         *image.Image      // read-only base; each run gets a reflinked copy of its rootfs
+	Operator      operator.Operator // owns run directories and runs the VMMs
+	SocketDir     string            // Firecracker API sockets (short paths: Unix sockets are limited to 108 bytes)
+	SnapshotsDir  string            // built snapshots; empty: cold boot every run
+	WorkDir       string            // per-run scratch (disk clones), deleted at teardown
+	MaxVMs        int
+	VCPUs         int
+	MemMiB        int
 
 	// Pinned component versions, reported by Version and recorded per run.
 	FirecrackerVersion string

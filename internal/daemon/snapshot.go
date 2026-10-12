@@ -143,9 +143,19 @@ func (s *Server) buildSnapshot(ctx context.Context) (*snapshot, error) {
 
 	ctx, cancel := context.WithTimeout(ctx, 2*time.Minute)
 	defer cancel()
+	// Build logs go with the run logs (urljail_run_t), not into the snapshot (read-only to VMMs).
+	logDir := filepath.Join(s.cfg.DataDir, "logs", "snapshot-build")
+	if err := op.MkdirAll(logDir, 0o700); err != nil {
+		return nil, err
+	}
+	if s.cfg.SELinuxModule != "" {
+		if err := Relabel(logDir); err != nil {
+			return nil, err
+		}
+	}
 	m, err := vm.Start(ctx, vm.Config{
 		Jail:     jail,
-		LogDir:   tmp,
+		LogDir:   logDir,
 		Kernel:   img.Kernel,
 		BootArgs: s.bootArgs(),
 		Rootfs:   rootfs,
@@ -209,6 +219,9 @@ func (s *Server) buildSnapshot(ctx context.Context) (*snapshot, error) {
 	if err := op.ChownTree(tmp); err != nil {
 		return nil, err
 	}
+	if err := op.ChownTree(logDir); err != nil {
+		return nil, err
+	}
 	// Clones link the snapshot into their jails and run as jail uids in jailGID: they may read
 	// it, not change it. The disk is only ever reflinked, by the daemon.
 	for _, f := range []string{files.VMState, files.Mem, filepath.Join(tmp, rootfs)} {
@@ -225,6 +238,12 @@ func (s *Server) buildSnapshot(ctx context.Context) (*snapshot, error) {
 	}
 	if err := os.Rename(tmp, final); err != nil {
 		return nil, err
+	}
+	// The files were created in the jail (urljail_jail_t); snapshots are read-only to VMMs.
+	if s.cfg.SELinuxModule != "" {
+		if err := Relabel(final); err != nil {
+			return nil, err
+		}
 	}
 	ok = true
 	s.log.Info("snapshot built", "name", man.Name, "took", man.BuildTook, "guest_packets", man.GuestPacketsDuringBuild)

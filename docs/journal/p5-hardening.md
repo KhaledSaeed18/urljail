@@ -11,7 +11,7 @@
 | - | --------- | ----- |
 | M1 | Every VMM (runs and snapshot builder) under the jailer: chroot, per-slot uid, own PID namespace, cgroup v2 limits, seccomp | done |
 | M2 | Firecracker rate limiters (net, block), verified on every run; pcap byte cap; resource caps review | done |
-| M3 | SELinux: denials checked by the daemon; confinement decision | |
+| M3 | SELinux: custom policy module confines every VMM in `urljail_vmm_t` (enforcing), installed by the daemon; denials reported by `doctor` | done |
 | M4 | `doctor` proves no VMM outside a jail; isolation re-run; exit criterion | |
 
 ## M1 notes
@@ -52,3 +52,20 @@
 | Concurrency | 3 VMs | daemon slots |
 
 Not capped yet: the number and total size of run directories (retention is P7), and snapshots (one per image).
+
+## M3 notes
+
+Before: the daemon, every VMM and unbound ran as `unconfined_t`, and jail files were `data_home_t`; "SELinux enforcing" protected nothing around the VMMs. Decision (asked): a custom domain, installed by the daemon.
+
+- **Policy module** `selinux/urljail.{te,fc,if}` (built with `make selinux`, needs `selinux-policy-devel`; the `.pp` is committed like the eBPF object). The jailer (unconfined, started by the daemon) execs the Firecracker copy in the jail (`urljail_jail_t`), which transitions to **`urljail_vmm_t`**. The jailer sets no_new_privs, so the transition needs `nnp_transition` (policy capability `nnp_nosuid_transition` is on).
+- **Types:** `urljail_jail_t` (jail trees: the VMM's disk, sockets, log, and the `/dev/kvm` and `/dev/net/tun` nodes the jailer mknods there), `urljail_image_t` (`ci/`, `images/`, `snapshots/`: read-only to VMMs; hard links into jails keep it), `urljail_run_t` (`runs/`, `logs/`: the VMM may only write/append to the serial console fd it inherits), `urljail_vmm_tmpfs_t` (the VMM's own memfds, via a tmpfs type transition instead of access to generic `tmpfs_t`).
+- **The VMM may:** manage its jail's files and sockets, use its jail's device nodes, read and map images and snapshots, create unix sockets, create/attach its tun socket (relabelling it from the daemon-created TAP's context), use its memfds, use fds and send SIGCHLD to its unconfined parent. Nothing else: no home files, no network sockets of its own, no other domains.
+- **The daemon installs it** at start when its SHA-256 changes (`semodule -i`, ~8 s), then `restorecon -R -F` on the data directories, and relabels each new snapshot. If SELinux is on and the module can't be loaded, the daemon refuses to start. `doctor` reports whether the domain is enforcing and every AVC involving urljail types since the daemon started, with the path.
+- **Result: enforcing, zero denials** across a snapshot build (cold boot), restored detonations and the self-test.
+
+### How it was developed, and what that taught
+
+1. Permissive first: the first runs logged `tmpfs_t` read/write/map (memfds), `data_home_t` write (the inherited serial log), and tun-socket relabels. Each became a narrow rule or its own type, not a broad allow.
+2. **Permissive mode logs each distinct denial once**, then caches it as allowed until the policy reloads. Runs without a module reinstall showed "no denials" that proved nothing. Enforcing logs every denial and makes missing permissions fail visibly; that's where the last one surfaced.
+3. **The last denial was a layout bug, not a missing rule:** the snapshot builder's serial console lived inside `snapshots/` (read-only to VMMs), so enforcing mode blocked it. Build logs moved to `logs/snapshot-build/` (`urljail_run_t`).
+4. The AVC summary needed the file path (`name=` or `path=`) to tell which file a denial was about.

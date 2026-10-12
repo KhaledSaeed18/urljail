@@ -46,6 +46,7 @@ func run() error {
 	imageDir := flag.String("image", "", "guest image directory (default ~operator/.local/share/urljail/images/default)")
 	firecracker := flag.String("firecracker", "", "firecracker binary (default ~operator/.local/bin/firecracker)")
 	jailer := flag.String("jailer", "", "jailer binary (default ~operator/.local/bin/jailer)")
+	selinuxModule := flag.String("selinux-module", "", "SELinux policy module (default: selinux/urljail.pp next to bin/)")
 	maxVMs := flag.Int("max-vms", 3, "concurrent VMs (snapshot clones share memory: ~125 MiB each here)")
 	vcpus := flag.Int("vcpus", 2, "vCPUs per VM")
 	mem := flag.Int("mem", 1024, "guest memory per VM, MiB")
@@ -114,6 +115,8 @@ func run() error {
 		Firecracker:    *firecracker,
 		Jailer:         *jailer,
 		JailDir:        filepath.Join(dataDir, "jail"),
+		DataDir:        dataDir,
+		Started:        time.Now(),
 		Operator:       op,
 		SocketDir:      socketDir,
 		WorkDir:        filepath.Join(dataDir, "work"),
@@ -158,6 +161,26 @@ func run() error {
 	// After the namespace cleanup above, which kills whatever was left inside them.
 	if err := daemon.SetupJails(cfg); err != nil {
 		return err
+	}
+	// SELinux: confine the VMMs in urljail_vmm_t. Fail closed if SELinux is on but the
+	// module can't be loaded.
+	if daemon.SELinuxEnabled() {
+		if *selinuxModule == "" {
+			exe, _ := os.Executable()
+			*selinuxModule = filepath.Join(filepath.Dir(filepath.Dir(exe)), "selinux", "urljail.pp")
+		}
+		installed, err := daemon.EnsurePolicy(*selinuxModule)
+		if err != nil {
+			return err
+		}
+		if installed {
+			log.Info("SELinux policy module installed", "module", *selinuxModule)
+		}
+		if err := daemon.Relabel(filepath.Join(dataDir, "jail"), filepath.Join(dataDir, "ci"),
+			filepath.Join(dataDir, "images"), filepath.Join(dataDir, "snapshots"), filepath.Join(dataDir, "runs")); err != nil {
+			return err
+		}
+		cfg.SELinuxModule = *selinuxModule
 	}
 
 	srv := daemon.New(cfg, eg, log)

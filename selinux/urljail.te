@@ -1,0 +1,73 @@
+policy_module(urljail, 1.1.1)
+
+# SELinux confinement for urljail's VMMs (P5). The jailer runs unconfined (it's started by the
+# root daemon) and execs the Firecracker copy it placed in the jail; that exec moves the VMM into
+# urljail_vmm_t, which may use KVM, its TAP and its own jail's files, read images and snapshots,
+# and nothing else on the host.
+
+########################################
+# Declarations
+
+type urljail_vmm_t;
+domain_type(urljail_vmm_t)
+
+# Files inside jails: the Firecracker copy (the entrypoint), the run's disk, sockets, log, and
+# the /dev/kvm and /dev/net/tun nodes the jailer creates with mknod.
+type urljail_jail_t;
+files_type(urljail_jail_t)
+domain_entry_file(urljail_vmm_t, urljail_jail_t)
+
+# Images, kernels and snapshots: read-only to VMMs. Hard links into jails keep this label.
+type urljail_image_t;
+files_type(urljail_image_t)
+
+# Run directories and logs: the VMM only appends to the serial console it inherits.
+type urljail_run_t;
+files_type(urljail_run_t)
+
+# The VMM's own memfds (guest memory, buffers) get their own type, not the generic tmpfs_t.
+type urljail_vmm_tmpfs_t;
+files_tmpfs_file(urljail_vmm_tmpfs_t)
+
+require {
+	type unconfined_t;
+	role unconfined_r;
+}
+
+########################################
+# The transition
+
+type_transition unconfined_t urljail_jail_t:process urljail_vmm_t;
+allow unconfined_t urljail_vmm_t:process transition;
+# The jailer sets no_new_privs, which forbids transitions unless explicitly allowed.
+allow unconfined_t urljail_vmm_t:process2 { nnp_transition nosuid_transition };
+role unconfined_r types urljail_vmm_t;
+
+########################################
+# The VMM
+
+manage_dirs_pattern(urljail_vmm_t, urljail_jail_t, urljail_jail_t)
+manage_files_pattern(urljail_vmm_t, urljail_jail_t, urljail_jail_t)
+manage_sock_files_pattern(urljail_vmm_t, urljail_jail_t, urljail_jail_t)
+allow urljail_vmm_t urljail_jail_t:file { map execute execute_no_trans };
+allow urljail_vmm_t urljail_jail_t:chr_file { getattr open read write ioctl map };
+
+read_files_pattern(urljail_vmm_t, urljail_image_t, urljail_image_t)
+allow urljail_vmm_t urljail_image_t:file map;
+
+allow urljail_vmm_t self:unix_stream_socket { create_stream_socket_perms connectto };
+# Attaching to its TAP (TUNSETIFF) relabels the tun socket from the device's context (the
+# daemon, unconfined, created the TAP) to the VMM's.
+allow urljail_vmm_t self:tun_socket { create attach_queue relabelfrom relabelto };
+allow urljail_vmm_t unconfined_t:tun_socket relabelfrom;
+
+manage_files_pattern(urljail_vmm_t, urljail_vmm_tmpfs_t, urljail_vmm_tmpfs_t)
+allow urljail_vmm_t urljail_vmm_tmpfs_t:file map;
+fs_tmpfs_filetrans(urljail_vmm_t, urljail_vmm_tmpfs_t, file)
+
+# Inherited serial console: append only, no open.
+allow urljail_vmm_t urljail_run_t:file { getattr write append ioctl };
+
+# The serial console and stdio are inherited from the daemon.
+allow urljail_vmm_t unconfined_t:fd use;
+allow urljail_vmm_t unconfined_t:process sigchld;

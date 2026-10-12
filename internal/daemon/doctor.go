@@ -110,6 +110,23 @@ func (s *Server) Doctor(ctx context.Context, _ *daemonv1.DoctorRequest) (*daemon
 	default:
 		add("SELinux", "warn", "permissive")
 	}
+	if pp := s.cfg.SELinuxModule; pp != "" {
+		switch {
+		case !moduleLoaded("urljail"):
+			add("VMM confinement", "fail", "urljail policy module not loaded")
+		case domainPermissive(pp):
+			add("VMM confinement", "warn", "urljail_vmm_t is permissive (development): denials are logged, not enforced")
+		default:
+			add("VMM confinement", "ok", "VMMs run confined in urljail_vmm_t")
+		}
+		if avcs, err := urljailAVCs(s.cfg.Started); err != nil {
+			add("SELinux denials", "warn", err.Error())
+		} else if len(avcs) == 0 {
+			add("SELinux denials", "ok", "none for urljail types since the daemon started")
+		} else {
+			add("SELinux denials", "warn", fmt.Sprintf("%d kinds since the daemon started:\n    %s", len(avcs), strings.Join(avcs, "\n    ")))
+		}
+	}
 	if vms, err := netns.VMNamespaces(ctx); err != nil {
 		add("Leftovers", "warn", err.Error())
 	} else if n := s.slots.inUse(); len(vms) > n {
