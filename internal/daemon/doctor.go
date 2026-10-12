@@ -127,6 +127,23 @@ func (s *Server) Doctor(ctx context.Context, _ *daemonv1.DoctorRequest) (*daemon
 			add("SELinux denials", "warn", fmt.Sprintf("%d kinds since the daemon started:\n    %s", len(avcs), strings.Join(avcs, "\n    ")))
 		}
 	}
+	// No VMM may run outside a jail: check every Firecracker process on the host.
+	var unjailed []string
+	vmms := allVMMs()
+	for _, pid := range vmms {
+		c, err := readConfinement(pid)
+		if err != nil {
+			continue // exited meanwhile
+		}
+		if bad := c.check(-1, "", s.cfg.SELinuxModule != ""); bad != "" {
+			unjailed = append(unjailed, fmt.Sprintf("pid %d: %s", pid, bad))
+		}
+	}
+	if len(unjailed) > 0 {
+		add("VMMs jailed", "fail", strings.Join(unjailed, "; "))
+	} else {
+		add("VMMs jailed", "ok", fmt.Sprintf("%d Firecracker processes on the host, all jailed and confined", len(vmms)))
+	}
 	if vms, err := netns.VMNamespaces(ctx); err != nil {
 		add("Leftovers", "warn", err.Error())
 	} else if n := s.slots.inUse(); len(vms) > n {

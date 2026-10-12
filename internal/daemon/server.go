@@ -181,6 +181,8 @@ type run struct {
 	mu    sync.Mutex
 	marks map[string]int64 // step → ms since start
 	gaps  []string         // host-side limits hit during the run, for the report
+
+	confinement string // what the VMM was verified to run with
 }
 
 // gap records something the host couldn't observe in this run.

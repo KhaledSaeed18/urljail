@@ -1,7 +1,8 @@
 # P5: Jailer and hardening
 
-- Status: **in progress**
+- Status: **closed**
 - Started: 2026-10-12
+- Closed: 2026-10-12
 - Roadmap: [P5](../roadmap.md#p5-jailer--hardening-next)
 - Exit: no VMM runs outside the jailer; SELinux enforcing with no unexplained denials.
 
@@ -12,7 +13,7 @@
 | M1 | Every VMM (runs and snapshot builder) under the jailer: chroot, per-slot uid, own PID namespace, cgroup v2 limits, seccomp | done |
 | M2 | Firecracker rate limiters (net, block), verified on every run; pcap byte cap; resource caps review | done |
 | M3 | SELinux: custom policy module confines every VMM in `urljail_vmm_t` (enforcing), installed by the daemon; denials reported by `doctor` | done |
-| M4 | `doctor` proves no VMM outside a jail; isolation re-run; exit criterion | |
+| M4 | Every run verifies its VMM's confinement (fail closed); `doctor` checks every Firecracker on the host; exit criterion | done |
 
 ## M1 notes
 
@@ -69,3 +70,24 @@ Before: the daemon, every VMM and unbound ran as `unconfined_t`, and jail files 
 2. **Permissive mode logs each distinct denial once**, then caches it as allowed until the policy reloads. Runs without a module reinstall showed "no denials" that proved nothing. Enforcing logs every denial and makes missing permissions fail visibly; that's where the last one surfaced.
 3. **The last denial was a layout bug, not a missing rule:** the snapshot builder's serial console lived inside `snapshots/` (read-only to VMMs), so enforcing mode blocked it. Build logs moved to `logs/snapshot-build/` (`urljail_run_t`).
 4. The AVC summary needed the file path (`name=` or `path=`) to tell which file a denial was about.
+
+## M4 notes
+
+- **Per run, fail closed:** right after the VMM starts, the daemon reads `/proc/<pid>` and refuses the run unless the process has the jail's uid, `NoNewPrivs`, seccomp filter mode, its own `/urljail/<jail id>` cgroup, a root that isn't the host's (`stat` of `/proc/<pid>/root` against `/`), and the `urljail_vmm_t` context. The self-test reports what it verified, e.g. `pid 108406: uid 64000, no_new_privs, seccomp filter, cgroup /urljail/s0-fdaceed3d6a9, chrooted, urljail_vmm_t`.
+- **`doctor` checks every Firecracker process on the host**, found by executable name, not only urljail's. Negative test: an unjailed Firecracker started by the operator during a jailed run was flagged on every property (`uid 1000 is not a jail uid, no_new_privs off, seccomp mode 0, cgroup /user.slice/…, not chrooted, SELinux domain unconfined_t`) while the jailed one passed; `doctor` exited 1, then healthy again once it was gone.
+- Test slip: the first rogue VMM exited at once because its socket path (in the scratchpad) was over the 108-byte limit, which would have made the negative test pass vacuously. Check the negative case is really running before trusting it.
+
+## Exit criterion
+
+*No VMM runs outside the jailer; SELinux enforcing with no unexplained denials.* **Met.**
+
+- Every VMM (detonations, self-test, snapshot builder) is jailed; each run verifies it and refuses otherwise; `doctor` checks the whole host.
+- SELinux enforcing, the VMM domain `urljail_vmm_t` enforcing, zero AVCs for urljail types across builds, restores and the self-test.
+- Isolation self-test passes under the jailer.
+
+## Follow-ups (not P5)
+
+- Inside the guest, the agent and Chrome still share uid 1000 (P2 note): a separate uid for Chrome.
+- The daemon runs as full root ([ADR 0014](../decisions/0014-root-daemon-unprivileged-vmm.md)); a capability-bounded daemon is possible but `CAP_SYS_ADMIN` (namespaces, mounts for the jailer) keeps it close to root.
+- Per-VM SELinux MCS categories (as libvirt does) would add a second separation between VMs on top of the per-slot uids.
+- The dev sudoers rule must go before the live gate.

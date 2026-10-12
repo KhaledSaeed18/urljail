@@ -1,6 +1,6 @@
 # Roadmap
 
-Status: **P0–P4 done; P5 in progress**. Each phase ends with a written note in [`docs/journal/`](./journal/): what worked, what broke, what changed in the design.
+Status: **P0–P5 done; the live gate next**. Each phase ends with a written note in [`docs/journal/`](./journal/): what worked, what broke, what changed in the design.
 
 The order is deliberate: **safety before live URLs, a working end-to-end slice before optimization, the familiar web stack last.**
 
@@ -63,15 +63,15 @@ The whole pipeline, as simple as possible, **cold boot** (no snapshots yet).
 
 **Exit:** p50 restore-to-navigation < 1 s; 2–3 concurrent clones within RAM budget. **Met:** p50 202 ms, 3 clones in +370 MiB ([journal](./journal/p4-snapshots.md)). Pool, SyncClock, Reseed and the ≥ 7.0 kernel were resolved differently: [ADR 0015](./decisions/0015-restore-on-demand.md).
 
-## P5: Jailer & hardening (next)
+## P5: Jailer & hardening (done 2026-10-12)
 - Run every VMM under the jailer: chroot, unprivileged uid/gid, cgroup v2 limits, own netns, seccomp
 - SELinux: custom policy module / contexts for jailer paths (Fedora, enforcing; never `setenforce 0` as the fix)
 - Firecracker rate limiters on net/block; artifact size caps; wall-clock kill
 - Re-run isolation tests under the jailer
 
-**Exit:** no VMM runs outside the jailer; SELinux enforcing with no unexplained denials.
+**Exit:** no VMM runs outside the jailer; SELinux enforcing with no unexplained denials. **Met:** [P5 journal](./journal/p5-hardening.md); jail design [ADR 0016](./decisions/0016-every-vmm-jailed.md).
 
-## LIVE GATE (before P6)
+## LIVE GATE (before P6) (next)
 - [ ] WireGuard-in-netns egress working; `live` mode interlock in the daemon
 - [ ] Full isolation test plan passes in `live` mode, including "VPN down ⇒ no egress"
 - [ ] Threat model reviewed against what was actually built

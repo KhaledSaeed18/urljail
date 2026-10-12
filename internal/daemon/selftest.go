@@ -169,6 +169,8 @@ func (s *Server) SelfTest(ctx context.Context, _ *daemonv1.SelfTestRequest) (*da
 		}
 		out.Checks = append(out.Checks, row)
 	}
+	out.Checks = append(out.Checks, &daemonv1.Check{Name: "VMM jailed and confined", Expected: "jail uid, seccomp, cgroup, chroot, urljail_vmm_t",
+		Observed: "host: " + r.confinement, Result: "pass"}) // bootVM refuses to continue otherwise
 	if clone != nil { // clone safety (P4)
 		row := &daemonv1.Check{Name: "Guest clock after restore", Expected: "within 2s of the host",
 			Observed: fmt.Sprintf("guest: %d ms off", clone.GuestClockSkewMs), Result: "pass"}

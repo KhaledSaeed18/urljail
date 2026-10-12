@@ -2,7 +2,7 @@
 
 **Detonate suspicious URLs in disposable Firecracker microVMs and report what they actually do.**
 
-> **Status: Phase 5 next.** `urljail detonate` restores a Firecracker snapshot (Chrome already running; ~0.2 s to navigation) in its own network namespace, drives sandboxed Chrome over a CDP pipe, captures DNS, flows (with SNI), blocked attempts and a pcap on the host, and writes a report that reconciles the host's view with the guest's. `urljail selftest` runs the isolation test plan; `urljail doctor` checks the host. Dev mode only: benign allowlisted URLs, egress via the home IP until the live gate. See the [roadmap](docs/roadmap.md).
+> **Status: live gate next.** `urljail detonate` restores a Firecracker snapshot (Chrome already running; ~0.2 s to navigation) in its own network namespace, drives sandboxed Chrome over a CDP pipe, captures DNS, flows (with SNI), blocked attempts and a pcap on the host, and writes a report that reconciles the host's view with the guest's. Every VMM runs under Firecracker's jailer as its own uid, with cgroup and rate limits, confined by an SELinux policy module. `urljail selftest` runs the isolation test plan; `urljail doctor` checks the host. Dev mode only: benign allowlisted URLs, egress via the home IP until the live gate. See the [roadmap](docs/roadmap.md).
 
 ## What it does
 

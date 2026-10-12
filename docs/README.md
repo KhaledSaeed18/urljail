@@ -2,7 +2,7 @@
 
 > Detonate suspicious URLs in disposable Firecracker microVMs and report what they actually do.
 
-**Status:** P4 done: every run restores a snapshot with Chrome prepared (request → navigate p50 202 ms), clone safety checked per run. P5 (jailer and hardening) next. No code yet. Last updated 2026-10-12.
+**Status:** P5 done: every VMM jailed (own uid, chroot, PID namespace, cgroup limits, seccomp, rate limits) and confined by SELinux (`urljail_vmm_t`, enforcing), verified on every run. The live gate is next. No code yet. Last updated 2026-10-12.
 
 ## Reading order
 

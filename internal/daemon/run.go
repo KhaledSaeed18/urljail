@@ -267,6 +267,19 @@ func (s *Server) bootVM(ctx context.Context, r *run, slot int, runDir string, ad
 		machine.Kill()
 		return nil, nil, fmt.Errorf("preflight: %w", err)
 	}
+	// Fail closed: the process must actually be jailed and confined (P5's exit criterion,
+	// checked on every run rather than assumed).
+	conf, err := readConfinement(machine.PID())
+	if err == nil {
+		if bad := conf.check(jail.UID, "/"+cgroupParent+"/"+jail.ID, s.cfg.SELinuxModule != ""); bad != "" {
+			err = fmt.Errorf("VMM is not confined: %s", bad)
+		}
+	}
+	if err != nil {
+		machine.Kill()
+		return nil, nil, fmt.Errorf("preflight: %w", err)
+	}
+	r.confinement = conf.String()
 	r.mark("vmm")
 	addCleanup(func(ctx context.Context) {
 		gctx, gcancel := context.WithTimeout(ctx, shutdownGrace)
