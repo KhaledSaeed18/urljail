@@ -30,7 +30,7 @@ func startServer(t *testing.T) daemonv1.DaemonServiceClient {
 		Policy:         policy.Policy{Mode: policy.EgressDev, Allowlist: policy.DefaultDevAllowlist},
 		DefaultTimeout: 30 * time.Second,
 		MaxTimeout:     time.Minute,
-	}, slog.New(slog.NewTextHandler(io.Discard, nil))))
+	}, nil, slog.New(slog.NewTextHandler(io.Discard, nil))))
 	go gs.Serve(l)
 	t.Cleanup(gs.Stop)
 
@@ -70,7 +70,7 @@ func TestDetonateStates(t *testing.T) {
 	}{
 		{"refused by dev allowlist", "https://evil.test/", "not on the allowlist"},
 		{"bad scheme", "file:///etc/passwd", "scheme"},
-		{"allowlisted reaches lifecycle", "https://example.com/", "not implemented"},
+		{"allowlisted passes preflight", "https://example.com/", "no VM backend"},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {

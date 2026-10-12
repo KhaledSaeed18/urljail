@@ -6,6 +6,8 @@ import (
 	"errors"
 	"fmt"
 	"log/slog"
+	"path/filepath"
+	"sync"
 	"time"
 
 	"github.com/google/uuid"
@@ -14,6 +16,7 @@ import (
 	"google.golang.org/protobuf/types/known/timestamppb"
 
 	daemonv1 "github.com/KhaledSaeed18/urljail/gen/urljail/daemon/v1"
+	"github.com/KhaledSaeed18/urljail/internal/hostnet"
 	"github.com/KhaledSaeed18/urljail/internal/policy"
 	"github.com/KhaledSaeed18/urljail/internal/version"
 )
@@ -25,21 +28,42 @@ type Config struct {
 	DefaultTimeout time.Duration
 	MaxTimeout     time.Duration
 
+	// VM settings.
+	Firecracker string // binary path
+	Kernel      string
+	Rootfs      string // read-only base image; each run gets a reflinked copy
+	SocketDir   string // Firecracker API sockets (short paths: Unix sockets are limited to 108 bytes)
+	WorkDir     string // per-run scratch (disk clones), deleted at teardown
+	MaxVMs      int
+	VCPUs       int
+	MemMiB      int
+
 	// Pinned component versions, reported by Version and recorded per run.
 	FirecrackerVersion string
 	GuestKernel        string
+	RootfsName         string
 }
 
 // Server implements daemonv1.DaemonServiceServer.
 type Server struct {
 	daemonv1.UnimplementedDaemonServiceServer
-	cfg Config
-	log *slog.Logger
+	cfg    Config
+	log    *slog.Logger
+	egress *hostnet.Egress // nil: no VM lifecycle (tests of the API only)
+	slots  *slots
+	active sync.WaitGroup // running detonations, so shutdown can wait for their teardown
 }
 
-// New returns a Server.
-func New(cfg Config, log *slog.Logger) *Server {
-	return &Server{cfg: cfg, log: log}
+// Wait blocks until every running detonation has finished its teardown.
+func (s *Server) Wait() { s.active.Wait() }
+
+// New returns a Server. With a nil egress, Detonate stops after preflight.
+func New(cfg Config, egress *hostnet.Egress, log *slog.Logger) *Server {
+	n := cfg.MaxVMs
+	if n < 1 {
+		n = 1
+	}
+	return &Server{cfg: cfg, log: log, egress: egress, slots: newSlots(n)}
 }
 
 // Version implements DaemonService.Version.
@@ -54,6 +78,9 @@ func (s *Server) Version(context.Context, *daemonv1.VersionRequest) (*daemonv1.V
 
 // Detonate implements DaemonService.Detonate.
 func (s *Server) Detonate(req *daemonv1.DetonateRequest, stream daemonv1.DaemonService_DetonateServer) error {
+	s.active.Add(1)
+	defer s.active.Done()
+
 	id, err := uuid.NewV7()
 	if err != nil {
 		return status.Errorf(codes.Internal, "run id: %v", err)
@@ -66,14 +93,22 @@ func (s *Server) Detonate(req *daemonv1.DetonateRequest, stream daemonv1.DaemonS
 	if err := r.send(daemonv1.RunState_RUN_STATE_PREFLIGHT, "checking URL against egress policy"); err != nil {
 		return err
 	}
-	if _, err := s.cfg.Policy.Check(req.GetUrl()); err != nil {
+	u, err := s.cfg.Policy.Check(req.GetUrl())
+	if err != nil {
 		return r.fail(err)
 	}
-	if _, err := s.timeout(req); err != nil {
+	timeout, err := s.timeout(req)
+	if err != nil {
 		return r.fail(err)
+	}
+	if s.egress == nil {
+		return r.fail(errors.New("daemon has no VM backend configured"))
 	}
 
-	return r.fail(errors.New("VM lifecycle not implemented yet (P2 milestone M2)"))
+	if err := s.detonate(stream.Context(), r, u, req.GetProfile(), timeout); err != nil {
+		return r.fail(err)
+	}
+	return r.done(filepath.Join(s.cfg.RunsDir, r.id))
 }
 
 func (s *Server) timeout(req *daemonv1.DetonateRequest) (time.Duration, error) {
@@ -101,6 +136,16 @@ func (r *run) send(state daemonv1.RunState, msg string) error {
 		State:   state,
 		Time:    timestamppb.Now(),
 		Message: msg,
+	})
+}
+
+func (r *run) done(runDir string) error {
+	r.log.Info("run done", "dir", runDir)
+	return r.stream.Send(&daemonv1.DetonateResponse{
+		RunId:  r.id,
+		State:  daemonv1.RunState_RUN_STATE_DONE,
+		Time:   timestamppb.Now(),
+		RunDir: runDir,
 	})
 }
 
