@@ -56,7 +56,7 @@ What a page saw from the baseline browser, measured live on a public bot-detecti
 | Exit network | datacenter ASN (Datacamp, Proton free) | none with one free exit |
 | Plugins, languages, `window.chrome`, permissions, window size | passed | — |
 
-Profiles: `baseline`, `stealth` (UA + webdriver + time zone), and ablations `stealth-no-ua`, `stealth-no-webdriver`, `stealth-no-tz`. `urljail feeds run` opens each URL under every profile at once.
+Profiles: `baseline`, `stealth` (UA + webdriver + time zone), `stealth-headful` (stealth with a virtual display, Xvfb, instead of headless mode; added after M4 showed Cloudflare challenges independent of the first three countermeasures), and ablations `stealth-no-ua`, `stealth-no-webdriver`, `stealth-no-tz`. `urljail feeds run` opens each URL under every profile at once.
 
 ## Data sources
 

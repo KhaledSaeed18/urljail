@@ -59,6 +59,20 @@ func TestCompareFactor(t *testing.T) {
 	if !c.Differs || c.Factor != "" {
 		t.Errorf("baseline-only split: factor %q", c.Factor)
 	}
+	// One headful run out of line: noise until its control agrees.
+	six := func(extra ...Outcome) []Outcome {
+		return append([]Outcome{at(login, "baseline"), at(login, "stealth"), at(login, "stealth-no-ua"),
+			at(login, "stealth-no-webdriver"), at(login, "stealth-no-tz"), at(forbidden, "stealth-headful")}, extra...)
+	}
+	if c := Compare("u", six()); !c.Differs || c.Factor != "" {
+		t.Errorf("single headful run: factor %q", c.Factor)
+	}
+	if c := Compare("u", six(at(forbidden, "stealth-headful~control"))); c.Factor != "headful" {
+		t.Errorf("headful with agreeing control: factor %q", c.Factor)
+	}
+	if c := Compare("u", six(at(login, "stealth-headful~control"))); c.Factor != "" {
+		t.Errorf("headful with disagreeing control: factor %q", c.Factor)
+	}
 	same := Compare("u", []Outcome{at(login, "baseline"), at(login, "stealth")})
 	if same.Differs || !same.Reached {
 		t.Errorf("same: %+v", same)

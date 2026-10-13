@@ -130,7 +130,9 @@ type BrowserProfile struct {
 	// IANA time zone for the browser, e.g. "America/Chicago"; empty: the guest's (UTC).
 	Timezone string `protobuf:"bytes,3,opt,name=timezone,proto3" json:"timezone,omitempty"`
 	// UI and Accept-Language, e.g. "en-US"; empty: Chrome's default.
-	Language      string `protobuf:"bytes,4,opt,name=language,proto3" json:"language,omitempty"`
+	Language string `protobuf:"bytes,4,opt,name=language,proto3" json:"language,omitempty"`
+	// Run Chrome with a display (a virtual X server, Xvfb) instead of --headless=new.
+	Headful       bool `protobuf:"varint,5,opt,name=headful,proto3" json:"headful,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -191,6 +193,13 @@ func (x *BrowserProfile) GetLanguage() string {
 		return x.Language
 	}
 	return ""
+}
+
+func (x *BrowserProfile) GetHeadful() bool {
+	if x != nil {
+		return x.Headful
+	}
+	return false
 }
 
 type PrepareResponse struct {
@@ -1206,12 +1215,13 @@ const file_urljail_guest_v1_guest_proto_rawDesc = "" +
 	"\n" +
 	"\x1curljail/guest/v1/guest.proto\x12\x10urljail.guest.v1\x1a\x1egoogle/protobuf/duration.proto\x1a\x1fgoogle/protobuf/timestamp.proto\"L\n" +
 	"\x0ePrepareRequest\x12:\n" +
-	"\aprofile\x18\x01 \x01(\v2 .urljail.guest.v1.BrowserProfileR\aprofile\"\x9d\x01\n" +
+	"\aprofile\x18\x01 \x01(\v2 .urljail.guest.v1.BrowserProfileR\aprofile\"\xb7\x01\n" +
 	"\x0eBrowserProfile\x12,\n" +
 	"\x12desktop_user_agent\x18\x01 \x01(\bR\x10desktopUserAgent\x12%\n" +
 	"\x0ehide_webdriver\x18\x02 \x01(\bR\rhideWebdriver\x12\x1a\n" +
 	"\btimezone\x18\x03 \x01(\tR\btimezone\x12\x1a\n" +
-	"\blanguage\x18\x04 \x01(\tR\blanguage\"@\n" +
+	"\blanguage\x18\x04 \x01(\tR\blanguage\x12\x18\n" +
+	"\aheadful\x18\x05 \x01(\bR\aheadful\"@\n" +
 	"\x0fPrepareResponse\x12-\n" +
 	"\x04took\x18\x01 \x01(\v2\x19.google.protobuf.DurationR\x04took\"\x0e\n" +
 	"\fHelloRequest\"\x8c\x02\n" +

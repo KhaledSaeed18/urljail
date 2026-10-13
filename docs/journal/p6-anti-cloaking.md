@@ -97,3 +97,11 @@ Decision (2026-10-13): find candidates in Certificate Transparency instead of wa
 
 **Where this leaves R1:** across 103 fresh URLs with five profiles each (both watch runs), two differences were explained by one countermeasure, both the User-Agent, neither on a phishing site. No phishing kit was seen cloaking on User-Agent, `navigator.webdriver` or time zone. The barriers seen are infrastructure-level: Cloudflare challenges (independent of the three countermeasures) and Cloudflare's own phishing takedowns within minutes.
 
+## M5: headful profile
+
+Decision (2026-10-13): test headless mode itself, the largest browser-side signal left, to find out whether the Cloudflare challenges that hit every profile come from headless Chrome or from the exit.
+
+- `BrowserProfile.headful`: the agent starts Xvfb (`:99`, 1920×1080×24, no TCP) and launches Chrome without `--headless`, on X11; both are in the snapshot. Software rendering as before (no GPU). Guest init creates `/tmp/.X11-unix` (root, sticky).
+- Profile `stealth-headful`: stealth's webdriver and time-zone countermeasures, headful, no User-Agent override (a headful browser's UA is already the desktop one).
+- **Attribution tightened:** a countermeasure explains a split only with at least two runs on each side, all agreeing; control runs count on their twin's side. `stealth-headful` is alone on its side, so `watch` now runs controls for `baseline` and `stealth-headful` by default (8 runs per URL). The two User-Agent attributions from M4 still hold under the stricter rule.
+

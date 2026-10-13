@@ -37,6 +37,8 @@ message BrowserProfile {
   string timezone = 3;
   // UI and Accept-Language, e.g. "en-US"; empty: Chrome's default.
   string language = 4;
+  // Run Chrome with a display (a virtual X server, Xvfb) instead of --headless=new.
+  bool headful = 5;
 }
 
 message PrepareResponse {

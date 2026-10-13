@@ -38,12 +38,21 @@ func profiles(exitTimezone string) []browserProfile {
 	if exitTimezone != "" {
 		ps = append(ps, browserProfile{"stealth-no-tz", stealth(true, true, false)})
 	}
+	// Stealth with a (virtual) display instead of headless mode. Its User-Agent is already the
+	// desktop one, so no override.
+	headful := stealth(false, true, true)
+	headful.Headful = true
+	ps = append(ps, browserProfile{"stealth-headful", headful})
 	return ps
 }
 
 // describe is the profile's settings as recorded in its snapshot manifest; a change means a
 // rebuild.
 func describe(p *guestv1.BrowserProfile) string {
-	return fmt.Sprintf("ua=%t webdriver=%t tz=%q lang=%q",
+	s := fmt.Sprintf("ua=%t webdriver=%t tz=%q lang=%q",
 		p.GetDesktopUserAgent(), p.GetHideWebdriver(), p.GetTimezone(), p.GetLanguage())
+	if p.GetHeadful() { // only when set: existing snapshots' descriptions stay valid
+		s += " headful=true"
+	}
+	return s
 }

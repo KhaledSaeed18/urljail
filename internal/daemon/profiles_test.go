@@ -15,10 +15,10 @@ func TestProfiles(t *testing.T) {
 		}
 		seen[p.name], seen[d] = true, true
 	}
-	if len(ps) != 5 {
-		t.Errorf("%d profiles with a timezone, want 5", len(ps))
+	if len(ps) != 6 {
+		t.Errorf("%d profiles with a timezone, want 6", len(ps))
 	}
-	if n := len(profiles("")); n != 4 {
-		t.Errorf("%d profiles without a timezone, want 4 (no stealth-no-tz)", n)
+	if n := len(profiles("")); n != 5 {
+		t.Errorf("%d profiles without a timezone, want 5 (no stealth-no-tz)", n)
 	}
 }

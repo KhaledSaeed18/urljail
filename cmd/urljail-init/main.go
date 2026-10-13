@@ -89,6 +89,11 @@ func mountAll() {
 	}
 	_ = os.Chmod("/dev/vsock", 0o660)
 
+	// X server sockets for the headful profile (Xvfb runs as the agent): root-owned and sticky,
+	// as X expects, on the fresh /tmp.
+	_ = os.Mkdir("/tmp/.X11-unix", 0o755)
+	_ = os.Chmod("/tmp/.X11-unix", 0o1777)
+
 	// Agent-owned working area: downloads land here and are never executed.
 	for _, d := range []string{"/run/urljail", "/run/urljail/downloads"} {
 		_ = os.MkdirAll(d, 0o750)

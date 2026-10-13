@@ -6,7 +6,7 @@ import (
 )
 
 // Countermeasures are the factors the stealth profiles switch (daemon profiles.go).
-var Countermeasures = []string{"ua", "webdriver", "tz"}
+var Countermeasures = []string{"ua", "webdriver", "tz", "headful"}
 
 // countermeasures returns which factors a profile applies, from its name: baseline none,
 // stealth all, stealth-no-<f> all but f. Unknown names: nil, false.
@@ -16,6 +16,8 @@ func countermeasures(profile string) (map[string]bool, bool) {
 		return map[string]bool{}, true
 	case profile == "stealth":
 		return map[string]bool{"ua": true, "webdriver": true, "tz": true}, true
+	case profile == "stealth-headful": // a headful browser's User-Agent is the desktop one
+		return map[string]bool{"ua": true, "webdriver": true, "tz": true, "headful": true}, true
 	case strings.HasPrefix(profile, "stealth-no-"):
 		f := strings.TrimPrefix(profile, "stealth-no-")
 		if !slices.Contains(Countermeasures, f) {
@@ -97,10 +99,11 @@ func Compare(u string, all []Outcome) Comparison {
 		return c
 	}
 	c.Differs = true
-	// Failed runs say nothing about the page: leave them out of the attribution.
+	// Failed runs say nothing about the page: leave them out of the attribution. Controls
+	// count on their twin's side, so a side of one profile needs its control to agree.
 	var known []Outcome
-	for _, o := range outs {
-		if _, ok := countermeasures(o.Profile); ok && o.Label != Failed {
+	for _, o := range all {
+		if _, ok := countermeasures(strings.TrimSuffix(o.Profile, ControlSuffix)); ok && o.Label != Failed {
 			known = append(known, o)
 		}
 	}
@@ -116,18 +119,22 @@ func Compare(u string, all []Outcome) Comparison {
 	return c
 }
 
-// splitsBy reports whether outcomes are the same exactly when factor f's presence is.
+// splitsBy reports whether outcomes are the same exactly when factor f's presence is, with at
+// least two runs on each side: one run alone can't be told from noise (4% in P6 M4).
 func splitsBy(outs []Outcome, f string) bool {
 	with, without := map[string]bool{}, map[string]bool{}
+	nWith, nWithout := 0, 0
 	for _, o := range outs {
-		cm, _ := countermeasures(o.Profile)
+		cm, _ := countermeasures(strings.TrimSuffix(o.Profile, ControlSuffix))
 		if cm[f] {
 			with[key(o)] = true
+			nWith++
 		} else {
 			without[key(o)] = true
+			nWithout++
 		}
 	}
-	if len(with) != 1 || len(without) != 1 {
+	if len(with) != 1 || len(without) != 1 || nWith < 2 || nWithout < 2 {
 		return false
 	}
 	for k := range with {

@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"os"
 	"os/exec"
@@ -28,7 +29,6 @@ const (
 // covers QUIC, ECH, DoH, Safe Browsing and telemetry; flags cover what policy can't.
 func chromeArgs(profile string, bp *guestv1.BrowserProfile, browserVersion string) []string {
 	args := []string{
-		"--headless=new",          // the real browser, not the old headless shell (ADR 0009)
 		"--remote-debugging-pipe", // CDP on fds 3/4: no debugging port for a page to reach
 		"--user-data-dir=" + profile,
 		"--no-first-run",
@@ -38,6 +38,11 @@ func chromeArgs(profile string, bp *guestv1.BrowserProfile, browserVersion strin
 		// the host's capture. Pages can't observe this flag (docs/guest-image.md).
 		"--disable-background-networking",
 		"--window-size=1920,1080",
+	}
+	if bp.GetHeadful() {
+		args = append(args, "--ozone-platform=x11", "--window-position=0,0") // on Xvfb (display)
+	} else {
+		args = append(args, "--headless=new") // the real browser, not the old headless shell (ADR 0009)
 	}
 	// The experimental condition (P6). Only flags a page can't see as flags.
 	if bp.GetDesktopUserAgent() {
@@ -77,6 +82,7 @@ func desktopUserAgent(browserVersion string) string {
 
 // chrome is one running browser with its CDP connection.
 type chrome struct {
+	xvfb    *exec.Cmd // headful profile only
 	cmd     *exec.Cmd
 	conn    *cdp.Conn
 	profile string
@@ -103,10 +109,19 @@ func launchChrome(bp *guestv1.BrowserProfile, browserVersion string) (*chrome, e
 	}
 	defer logf.Close()
 
+	var xvfb *exec.Cmd
+	if bp.GetHeadful() {
+		if xvfb, err = startXvfb(); err != nil {
+			return nil, err
+		}
+	}
 	cmd := exec.Command(chromeBin, chromeArgs(profile, bp, browserVersion)...)
 	cmd.ExtraFiles = []*os.File{cmdR, outW} // fd 3, fd 4
 	cmd.Stdout, cmd.Stderr = logf, logf
 	cmd.Env = append(os.Environ(), "SSLKEYLOGFILE="+keyLogPath)
+	if xvfb != nil {
+		cmd.Env = append(cmd.Env, "DISPLAY="+xDisplay)
+	}
 	if tz := bp.GetTimezone(); validTimezone.MatchString(tz) {
 		cmd.Env = append(cmd.Env, "TZ="+tz) // Chrome's ICU has its own zone data
 	}
@@ -117,7 +132,7 @@ func launchChrome(bp *guestv1.BrowserProfile, browserVersion string) (*chrome, e
 	cmdR.Close()
 	outW.Close()
 
-	c := &chrome{cmd: cmd, conn: cdp.New(cmdW, outR), profile: profile, exited: make(chan struct{})}
+	c := &chrome{xvfb: xvfb, cmd: cmd, conn: cdp.New(cmdW, outR), profile: profile, exited: make(chan struct{})}
 	go func() {
 		_ = cmd.Wait()
 		cmdW.Close()
@@ -137,5 +152,32 @@ func (c *chrome) close() {
 	}
 	_ = syscall.Kill(-c.cmd.Process.Pid, syscall.SIGKILL)
 	<-c.exited
+	if c.xvfb != nil {
+		_ = c.xvfb.Process.Kill()
+		_ = c.xvfb.Wait()
+	}
 	_ = os.RemoveAll(c.profile)
+}
+
+const (
+	xDisplay = ":99"
+	xSocket  = "/tmp/.X11-unix/X99"
+)
+
+// startXvfb starts a virtual display for headful Chrome and waits for its socket. No GPU:
+// Chrome renders in software, as headless does.
+func startXvfb() (*exec.Cmd, error) {
+	cmd := exec.Command("/usr/bin/Xvfb", xDisplay, "-screen", "0", "1920x1080x24", "-nolisten", "tcp", "-noreset")
+	cmd.SysProcAttr = &syscall.SysProcAttr{Setpgid: true}
+	if err := cmd.Start(); err != nil {
+		return nil, fmt.Errorf("starting Xvfb: %w", err)
+	}
+	for deadline := time.Now().Add(5 * time.Second); time.Now().Before(deadline); time.Sleep(50 * time.Millisecond) {
+		if _, err := os.Stat(xSocket); err == nil {
+			return cmd, nil
+		}
+	}
+	_ = cmd.Process.Kill()
+	_ = cmd.Wait()
+	return nil, errors.New("Xvfb didn't create its socket within 5 s")
 }

@@ -15,6 +15,13 @@ func TestChromeArgsProfile(t *testing.T) {
 			t.Errorf("baseline has %q", a)
 		}
 	}
+	if !slices.Contains(base, "--headless=new") || slices.Contains(base, "--ozone-platform=x11") {
+		t.Error("baseline must be headless")
+	}
+	hf := chromeArgs("/tmp/p", &guestv1.BrowserProfile{Headful: true}, "155.0.8059.39-1")
+	if slices.Contains(hf, "--headless=new") || !slices.Contains(hf, "--ozone-platform=x11") {
+		t.Errorf("headful args %v", hf)
+	}
 	if base[len(base)-1] != "about:blank" {
 		t.Errorf("last arg %q", base[len(base)-1])
 	}

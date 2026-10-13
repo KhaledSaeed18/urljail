@@ -89,7 +89,7 @@ func cmdFeeds(ctx context.Context, c daemonv1.DaemonServiceClient, args []string
 		fs := flag.NewFlagSet("feeds run", flag.ContinueOnError)
 		n := fs.Int("n", 3, "maximum URLs to detonate")
 		profs := fs.String("profiles", "all", `browser profiles per URL: "all" or a comma-separated list`)
-		control := fs.String("control", "baseline", `profile run a second time per URL to measure noise ("": none)`)
+		control := fs.String("control", "baseline,stealth-headful", `profiles run a second time per URL, to measure noise ("": none)`)
 		if err := fs.Parse(args[1:]); err != nil || *n < 1 {
 			return exitError(2)
 		}
@@ -132,7 +132,7 @@ func cmdFeeds(ctx context.Context, c daemonv1.DaemonServiceClient, args []string
 		minAge := fs.Duration("min-age", 5*time.Minute, "wait this long after a certificate appears (the site needs time to go up)")
 		profs := fs.String("profiles", "all", `browser profiles per URL: "all" or a comma-separated list`)
 		maxURLs := fs.Int("max-urls", 0, "stop after this many URLs (0: no limit)")
-		control := fs.String("control", "baseline", `profile run a second time per URL to measure noise ("": none)`)
+		control := fs.String("control", "baseline,stealth-headful", `profiles run a second time per URL, to measure noise ("": none)`)
 		if err := fs.Parse(args[1:]); err != nil {
 			return exitError(2)
 		}
@@ -210,13 +210,17 @@ func liveProfiles(ctx context.Context, c daemonv1.DaemonServiceClient, profileLi
 	if profs, err = pickProfiles(profileList, v.GetProfiles()); err != nil {
 		return nil, 0, err
 	}
-	if control != "" {
-		if !slices.Contains(v.GetProfiles(), control) {
-			return nil, 0, fmt.Errorf("-control: the daemon has no profile %q", control)
+	// A second run under the same profile: how often two identical runs disagree is the noise
+	// any difference between profiles has to beat. Profiles the daemon lacks are skipped.
+	for _, ctl := range strings.Split(control, ",") {
+		if ctl = strings.TrimSpace(ctl); ctl == "" {
+			continue
 		}
-		// A second run under the same profile: how often two identical runs disagree is the
-		// noise any difference between profiles has to beat.
-		profs = append(profs, control+controlSuffix)
+		if !slices.Contains(v.GetProfiles(), ctl) {
+			fmt.Fprintf(os.Stderr, "-control: the daemon has no profile %q; no control for it\n", ctl)
+			continue
+		}
+		profs = append(profs, ctl+controlSuffix)
 	}
 	return profs, max(1, min(int(v.GetMaxVms()), len(profs))), nil
 }
