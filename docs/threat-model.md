@@ -85,7 +85,7 @@ Each threat above, against what exists after P1–P5 and the live-gate work. *Ve
 | Cross-run contamination | verified (kernel), open (userspace) | Fresh reflinked disk and namespace per run; snapshot built with no network; VMGenID reseed logged per clone; 25/25 distinct ClientHello randoms across 3 clones; Chrome's userspace RNG state is cloned (R2) |
 | Credentials typed into a page | holds | No interaction is simulated at all |
 | Malicious download executed | holds | `noexec` in the guest, destroyed with the VM (claim above corrected: not collected) |
-| Leaked VM keeps running | built | Teardown bounded per step; startup reaping kills everything in urljail namespaces and cgroups; VM cgroups under the service's own, so a daemon crash takes them along (closed 2026-10-13, verification below) |
+| Leaked VM keeps running | built | Teardown bounded per step; startup reaping kills everything in urljail namespaces and cgroups; VM cgroups under the service's own, so a daemon crash takes them along (closed 2026-10-13: VMMs verified in the service's cgroup, [P5 journal](./journal/p5-hardening.md#follow-ups-from-the-threat-model-2026-10-13)) |
 | Dev sudo rule | removed (2026-10-12) | urljaild runs as a systemd service from root-owned binaries; live mode would refuse to start if the rule came back |
 
 ### New threats found while building
