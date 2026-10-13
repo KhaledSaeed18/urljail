@@ -32,9 +32,11 @@ CREATE TABLE IF NOT EXISTS runs (
   report      jsonb
 );
 CREATE INDEX IF NOT EXISTS runs_created ON runs (created_at DESC);
+ALTER TABLE runs ADD COLUMN IF NOT EXISTS source text NOT NULL DEFAULT 'dashboard';
+CREATE UNIQUE INDEX IF NOT EXISTS runs_run_id ON runs (run_id) WHERE run_id IS NOT NULL;
 `;
 
-const COLS = `id, url, profile, state, message, error, run_id AS "runId", created_at AS "createdAt",
+const COLS = `id, url, profile, state, message, error, source, run_id AS "runId", created_at AS "createdAt",
   started_at AS "startedAt", finished_at AS "finishedAt", summary`;
 
 export class Db {
@@ -77,6 +79,22 @@ export class Db {
     await this.pool.query(
       'UPDATE runs SET state = $2, error = $3, summary = $4, report = $5, finished_at = now() WHERE id = $1',
       [id, state, error.slice(0, 2000), summary === null ? null : JSON.stringify(summary), report === null ? null : JSON.stringify(report)],
+    );
+  }
+
+  async knownRunIds(): Promise<Set<string>> {
+    const r = await this.pool.query('SELECT run_id FROM runs WHERE run_id IS NOT NULL');
+    return new Set(r.rows.map((x) => x.run_id));
+  }
+
+  // A run started outside the control plane (CLI, feeds), indexed from its directory.
+  async importRun(runId: string, url: string, profile: string, state: string, error: string, createdAt: Date,
+    finishedAt: Date | null, summary: unknown, report: unknown): Promise<void> {
+    await this.pool.query(
+      `INSERT INTO runs (url, profile, state, error, source, run_id, created_at, started_at, finished_at, summary, report)
+       VALUES ($1, $2, $3, $4, 'cli', $5, $6, $6, $7, $8, $9) ON CONFLICT (run_id) WHERE run_id IS NOT NULL DO NOTHING`,
+      [url.slice(0, 2048), profile, state, error.slice(0, 2000), runId, createdAt, finishedAt,
+        summary === null ? null : JSON.stringify(summary), report === null ? null : JSON.stringify(report)],
     );
   }
 

@@ -25,6 +25,7 @@ export interface RunRow {
   id: string;
   url: string;
   profile: string;
+  source: string; // 'dashboard' or 'cli' (CLI, feeds)
   state: string;
   message: string;
   error: string;

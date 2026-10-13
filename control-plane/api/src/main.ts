@@ -8,6 +8,7 @@ import { DaemonClient } from './daemon';
 import { Db } from './db';
 import { ApiController, CONFIG, LocalOnly, QUEUE_TOKEN, TokenGuard } from './http';
 import { makeQueue, startWorker } from './worker';
+import { importRuns } from './importer';
 
 async function bootstrap() {
   const cfg = loadConfig();
@@ -22,6 +23,10 @@ async function bootstrap() {
   } catch (e) {
     console.warn(`urljaild not reachable yet (${(e as Error).message}); worker concurrency 1`);
   }
+  // Runs from the CLI and feeds appear in the dashboard too: now, then every minute.
+  const sync = () => importRuns(cfg, db).then((n) => n && console.log(`indexed ${n} runs from ${cfg.runsDir}`)).catch((e) => console.warn(`indexing runs: ${e.message}`));
+  await sync();
+  const syncTimer = setInterval(sync, 60_000);
   const queue = makeQueue(cfg);
   const worker = startWorker(cfg, db, daemon, slots);
 
@@ -46,6 +51,7 @@ async function bootstrap() {
   app.useBodyParser('json', { limit: '16kb' });
   app.enableShutdownHooks();
   const close = async () => {
+    clearInterval(syncTimer);
     await worker.close();
     await queue.close();
     await db.pool.end();

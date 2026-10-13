@@ -45,3 +45,4 @@ dl.kv dt { color: var(--muted); font-size: 13px; } dl.kv dd { margin: 0; min-wid
 .error { padding: 10px 12px; border-radius: 4px; background: var(--bad-soft); color: var(--bad); font-size: 14px; overflow-wrap: anywhere; }
 ul.gaps { margin: 0; padding-left: 18px; display: grid; gap: 4px; font-size: 14px; }
 svg.graph text { font: 11px var(--mono); fill: var(--ink); }
+td.urlcell { min-width: 28ch; max-width: 46ch; }

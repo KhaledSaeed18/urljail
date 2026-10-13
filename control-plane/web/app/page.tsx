@@ -48,17 +48,18 @@ export default async function Home() {
           <div className="table">
             <table>
               <thead>
-                <tr><th>Submitted</th><th>State</th><th>URL</th><th>Final page</th><th className="num">Requests</th><th>Profile</th></tr>
+                <tr><th>Submitted</th><th>State</th><th>URL</th><th>Final page</th><th className="num">Requests</th><th>Profile</th><th>Via</th></tr>
               </thead>
               <tbody>
                 {runs.map((r) => (
                   <tr key={r.id}>
                     <td><Link className="row" href={`/runs/${r.id}`}>{when(r.createdAt)}</Link></td>
                     <td><StatePill state={r.state} consistent={r.summary?.consistent} /></td>
-                    <td><span className="url">{r.url}</span></td>
+                    <td className="urlcell"><span className="url">{r.url}</span></td>
                     <td>{r.summary ? (r.summary.navError ? <span className="muted">{r.summary.navError}</span> : r.summary.title || <span className="muted">(no title)</span>) : <span className="muted">{r.error || r.message}</span>}</td>
                     <td className="num">{r.summary?.requests ?? ''}</td>
                     <td className="mono">{r.profile || 'default'}</td>
+                    <td className="muted mono">{r.source === 'cli' ? 'cli' : 'dashboard'}</td>
                   </tr>
                 ))}
               </tbody>
