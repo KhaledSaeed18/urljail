@@ -53,4 +53,3 @@ func TestLoadNeighborsGroups(t *testing.T) {
 		t.Errorf("domains = %v", gs[0].Domains)
 	}
 }
-
