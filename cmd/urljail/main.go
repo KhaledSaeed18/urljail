@@ -32,6 +32,7 @@ commands:
   feeds fetch|status|run|pause|resume        phishing feed ingestion (P6)
   gc [-pcap-days 7] [-pcap-cap 10G] [-dry-run]
                                              delete old packet captures (reports are kept)
+  similar [-max 6] <run> | -groups           runs whose screenshots look alike
   version                                    show CLI and daemon versions
 `
 
@@ -86,6 +87,8 @@ func run() error {
 		return cmdFeeds(ctx, client, args)
 	case "gc":
 		return cmdGC(args)
+	case "similar":
+		return cmdSimilar(args)
 	default:
 		fmt.Fprintf(os.Stderr, "unknown command %q\n\n", cmd)
 		flag.Usage()
