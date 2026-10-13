@@ -60,7 +60,7 @@ Decision (2026-10-13): find candidates in Certificate Transparency instead of wa
 - First scoring pass, 3 min live: 8 candidates, all false positives (Microsoft's internal `microsoft-int.com`, machine-generated hostnames). Tuned: brand position, hyphens counted in the registered name only, generated labels penalized, those domains excluded. 10 min live afterwards: 0 candidates in 41,539 names.
 - Dumped 7,540 names (4 min) to check: genuine brand impersonation is rare. The one plausible candidate, `accounts.tdaccounts.online`, needed a general rule (short brand glued to an action word: `td`+`accounts`), not a memorized name.
 
-### First hour of `feeds watch` (2026-10-13, 03:3x–04:3x)
+### First hour of `feeds watch` (2026-10-13, 02:55–03:55)
 
 114 candidates queued, 35 detonated under all five profiles, about 5 min after each certificate.
 
