@@ -9,6 +9,7 @@ import { Db } from './db';
 import { ApiController, CONFIG, LocalOnly, QUEUE_TOKEN, TokenGuard } from './http';
 import { makeQueue, startWorker } from './worker';
 import { importRuns } from './importer';
+import { SUMMARY_VERSION, summarize } from './untrusted';
 
 async function bootstrap() {
   const cfg = loadConfig();
@@ -25,6 +26,8 @@ async function bootstrap() {
   }
   // Runs from the CLI and feeds appear in the dashboard too: now, then every minute.
   const sync = () => importRuns(cfg, db).then((n) => n && console.log(`indexed or refreshed ${n} runs from ${cfg.runsDir}`)).catch((e) => console.warn(`indexing runs: ${e.message}`));
+  const resummarized = await db.resummarize(SUMMARY_VERSION, summarize);
+  if (resummarized) console.log(`recomputed ${resummarized} run summaries (summary v${SUMMARY_VERSION})`);
   await sync();
   const syncTimer = setInterval(sync, 60_000);
   const queue = makeQueue(cfg);

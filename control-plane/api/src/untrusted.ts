@@ -43,6 +43,10 @@ export const PHASH = /^[0-9a-f]{16}$/;
 
 const clip = (v: unknown, n: number): string => (typeof v === 'string' ? v.slice(0, n) : '');
 
+// SUMMARY_VERSION goes up whenever summarize adds or changes a field; stored summaries of an
+// older version are recomputed from the stored report at start (Db.resummarize).
+export const SUMMARY_VERSION = 2;
+
 // summarize extracts the fields the run list shows from a report (urljail.report.v0, protojson).
 export function summarize(report: any): Record<string, unknown> {
   const nav = report?.navigation ?? {};
@@ -50,6 +54,7 @@ export function summarize(report: any): Record<string, unknown> {
   const rec = report?.reconciliation ?? {};
   const len = (a: unknown) => (Array.isArray(a) ? a.length : 0);
   return {
+    v: SUMMARY_VERSION,
     status: clip(report?.run?.status, 40),
     finalUrl: clip(nav.finalUrl ?? nav.final_url, MAX_URL),
     title: clip(nav.title, 300),

@@ -125,6 +125,20 @@ export class Db {
     return r.rows;
   }
 
+  // Recomputes summaries written by an older summarize() from the stored reports, in batches.
+  async resummarize(version: number, summarize: (report: unknown) => unknown): Promise<number> {
+    let n = 0;
+    for (;;) {
+      const r = await this.pool.query(
+        `SELECT id, report FROM runs WHERE report IS NOT NULL AND COALESCE((summary->>'v')::int, 1) < $1 LIMIT 100`, [version]);
+      if (r.rows.length === 0) return n;
+      for (const row of r.rows) {
+        await this.pool.query('UPDATE runs SET summary = $2 WHERE id = $1', [row.id, JSON.stringify(summarize(row.report))]);
+        n++;
+      }
+    }
+  }
+
   // Runs a stopped worker left mid-flight: the daemon tears them down itself; mark them.
   async failStale(): Promise<number> {
     const r = await this.pool.query(
