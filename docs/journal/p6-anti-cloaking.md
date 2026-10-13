@@ -71,3 +71,29 @@ Decision (2026-10-13): find candidates in Certificate Transparency instead of wa
 - **Navigation without an answer.** One server accepted the connection and never answered: `Page.navigate` held the run until its deadline and every artifact was lost. Fixed in the agent: navigation waits at most 12 s, then the run records "navigation timed out (no response)", stops loading and still collects.
 - **Retry:** when every profile found a site not up (DNS failure, no answer, refused, Cloudflare 52x), the URL is queued once more for 30 min later; the first round's runs are kept as `<profile>#1`.
 
+## M4: comparison with a noise control (2026-10-13)
+
+`urljail feeds compare` labels each run (dead, no-response, origin-down, blocked, gate, login, error-page, redirect-away, content), compares a URL's profiles, and names the countermeasure when exactly one splits the outcomes. Every URL also runs a second time under `baseline` (`baseline~control`): two identical runs disagreeing is the noise a profile difference has to beat.
+
+### 2.5 h of `feeds watch` with the control (04:2x–06:5x)
+
+62 candidates queued, 59 detonated with a control, **55 reached a page in at least one profile (93%**, against about a third for OpenPhish).
+
+| Outcome (baseline) | URLs |
+| ------------------ | ---- |
+| content | 20 |
+| error page | 15 |
+| gate (Cloudflare challenge and similar) | 9 |
+| login | 7 |
+| redirect away | 2 |
+| dead, no response, origin down | 5 |
+| blocked (Cloudflare "Suspected Phishing") | 1 |
+
+- **Noise:** the control disagreed with its twin on 2 of 55 (4%): a rotating redirect (`5kraken.cc` to `sion6.at` or `sion10.to` on each visit) and a site flipping between page and error.
+- **Profiles differed on 7 of 55.** Two were noise (the control disagreed too), four were a single profile out of line with no pattern (a run without an answer, a login field rendering late), consistent with the noise rate.
+- **One clean single-factor split:** `www.tdaccounting.net`. Cloudflare's "Just a moment..." Turnstile challenge for both `HeadlessChrome` profiles and the control (the same 28,864-byte page each time); the page itself for the three desktop-UA profiles. Attributed to the User-Agent, with the control agreeing. The site is most likely an ordinary business (a false positive of the `td`+"account" rule), so this measures Cloudflare's bot management, not a phishing kit; but many kits sit behind Cloudflare.
+- **Profiles barely matter overall.** Per profile, label counts are nearly identical: 9 gates for the `HeadlessChrome` profiles against 8 for the desktop-UA ones, the difference being that one site. So 8 of 9 gates challenged every profile: what triggers them is something no profile varies, most likely the datacenter exit IP (Proton free) or browser signals beyond the three countermeasures (WebGL SwiftShader, headless rendering).
+- **Precision of CT scoring for phishing is low.** The seven logins were self-hosted auth portals (authentik, Authelia), affiliate trackers and a company portal. The one clear phishing site, `f-p-w-whatsapp.com.cn`, was already behind Cloudflare's phishing interstitial.
+
+**Where this leaves R1:** across 103 fresh URLs with five profiles each (both watch runs), two differences were explained by one countermeasure, both the User-Agent, neither on a phishing site. No phishing kit was seen cloaking on User-Agent, `navigator.webdriver` or time zone. The barriers seen are infrastructure-level: Cloudflare challenges (independent of the three countermeasures) and Cloudflare's own phishing takedowns within minutes.
+
