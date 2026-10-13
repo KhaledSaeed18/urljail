@@ -98,6 +98,14 @@ func run() error {
 		return err
 	}
 	defer unlock()
+	// VMs live in the service's own cgroup when systemd delegated it, so they can't outlive
+	// the daemon. First thing after the lock: the daemon must move into its leaf before it
+	// starts any child (unbound, tcpdump), or the service cgroup isn't empty and enabling its
+	// controllers fails with EBUSY (found on the first delegated start).
+	cgroupParent, err := daemon.ServiceCgroup()
+	if err != nil {
+		return err
+	}
 	op, err := operatorFrom(*opName)
 	if err != nil {
 		return err
@@ -156,6 +164,7 @@ func run() error {
 	}
 
 	cfg := daemon.Config{
+		CgroupParent:   cgroupParent,
 		Policy:         policy.Policy{Mode: mode, Allowlist: splitList(*allow)},
 		RunsDir:        *runsDir,
 		DefaultTimeout: *defTimeout,
@@ -244,12 +253,6 @@ func run() error {
 			log.Info("WireGuard tunnel up")
 		}
 	}
-	// VMs live in the service's own cgroup when systemd delegated it, so they can't outlive
-	// the daemon. After the namespace cleanup above, which kills whatever was left inside them.
-	if cfg.CgroupParent, err = daemon.ServiceCgroup(); err != nil {
-		return err
-	}
-	log.Info("VM cgroups", "parent", "/sys/fs/cgroup/"+cfg.CgroupParent)
 	if err := daemon.SetupJails(cfg); err != nil {
 		return err
 	}
