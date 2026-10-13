@@ -3,6 +3,7 @@ package report
 import (
 	"bufio"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"math"
 	"net"
@@ -18,6 +19,7 @@ import (
 	"google.golang.org/protobuf/types/known/timestamppb"
 
 	reportv0 "github.com/KhaledSaeed18/urljail/gen/urljail/report/v0"
+	"github.com/KhaledSaeed18/urljail/internal/visual"
 )
 
 // Schema identifies the report format.
@@ -115,6 +117,16 @@ func Build(runDir string) (*reportv0.Report, error) {
 		b.add(e)
 	}
 	b.finish(r)
+	if r.Artifacts.GetScreenshot() != "" {
+		switch h, err := visual.HashFile(filepath.Join(runDir, "guest", "screenshot.png")); {
+		case errors.Is(err, visual.ErrBlank):
+			r.Page.ScreenshotBlank = true
+		case err != nil:
+			r.Gaps = append(r.Gaps, "The screenshot couldn't be decoded for its perceptual hash")
+		default:
+			r.Page.ScreenshotPhash = h.String()
+		}
+	}
 	if !addHost(r, runDir, b.reportHosts, b.headerHints) {
 		r.Gaps = append(r.Gaps, "No host-side records (run from before P3): every network observation is guest-attested (source guest.cdp)")
 	}

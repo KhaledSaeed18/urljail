@@ -206,6 +206,13 @@ message Domain {
 message Page {
   repeated Dialog dialogs = 1;
   repeated Download downloads = 2;
+  // Perceptual hash of the screenshot (64-bit DCT pHash, 16 hex digits; internal/visual).
+  // Screenshots that look alike are a few bits apart: a distance of 6 or less found no false
+  // matches between different loaded pages in P7's 761-page corpus. Empty when there's no
+  // screenshot or it's blank.
+  string screenshot_phash = 3;
+  // The screenshot exists but is one colour, or nearly (no useful hash).
+  bool screenshot_blank = 4;
 }
 
 message Dialog {

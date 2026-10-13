@@ -734,6 +734,18 @@
     "urljail.report.v0.Page.schema.json": {
       "$schema": "https://json-schema.org/draft/2020-12/schema",
       "additionalProperties": false,
+      "patternProperties": {
+        "^(screenshotBlank)$": {
+          "default": false,
+          "description": "The screenshot exists but is one colour, or nearly (no useful hash).",
+          "type": "boolean"
+        },
+        "^(screenshotPhash)$": {
+          "default": "",
+          "description": "Perceptual hash of the screenshot (64-bit DCT pHash, 16 hex digits; internal/visual).\n Screenshots that look alike are a few bits apart: a distance of 6 or less found no false\n matches between different loaded pages in P7's 761-page corpus. Empty when there's no\n screenshot or it's blank.",
+          "type": "string"
+        }
+      },
       "properties": {
         "dialogs": {
           "items": {
@@ -746,6 +758,16 @@
             "$ref": "#/$defs/urljail.report.v0.Download.schema.json"
           },
           "type": "array"
+        },
+        "screenshot_blank": {
+          "default": false,
+          "description": "The screenshot exists but is one colour, or nearly (no useful hash).",
+          "type": "boolean"
+        },
+        "screenshot_phash": {
+          "default": "",
+          "description": "Perceptual hash of the screenshot (64-bit DCT pHash, 16 hex digits; internal/visual).\n Screenshots that look alike are a few bits apart: a distance of 6 or less found no false\n matches between different loaded pages in P7's 761-page corpus. Empty when there's no\n screenshot or it's blank.",
+          "type": "string"
         }
       },
       "title": "Page",

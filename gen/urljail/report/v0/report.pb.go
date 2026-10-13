@@ -1411,11 +1411,18 @@ func (x *Domain) GetHosts() []string {
 }
 
 type Page struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	Dialogs       []*Dialog              `protobuf:"bytes,1,rep,name=dialogs,proto3" json:"dialogs,omitempty"`
-	Downloads     []*Download            `protobuf:"bytes,2,rep,name=downloads,proto3" json:"downloads,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
+	state     protoimpl.MessageState `protogen:"open.v1"`
+	Dialogs   []*Dialog              `protobuf:"bytes,1,rep,name=dialogs,proto3" json:"dialogs,omitempty"`
+	Downloads []*Download            `protobuf:"bytes,2,rep,name=downloads,proto3" json:"downloads,omitempty"`
+	// Perceptual hash of the screenshot (64-bit DCT pHash, 16 hex digits; internal/visual).
+	// Screenshots that look alike are a few bits apart: a distance of 6 or less found no false
+	// matches between different loaded pages in P7's 761-page corpus. Empty when there's no
+	// screenshot or it's blank.
+	ScreenshotPhash string `protobuf:"bytes,3,opt,name=screenshot_phash,json=screenshotPhash,proto3" json:"screenshot_phash,omitempty"`
+	// The screenshot exists but is one colour, or nearly (no useful hash).
+	ScreenshotBlank bool `protobuf:"varint,4,opt,name=screenshot_blank,json=screenshotBlank,proto3" json:"screenshot_blank,omitempty"`
+	unknownFields   protoimpl.UnknownFields
+	sizeCache       protoimpl.SizeCache
 }
 
 func (x *Page) Reset() {
@@ -1460,6 +1467,20 @@ func (x *Page) GetDownloads() []*Download {
 		return x.Downloads
 	}
 	return nil
+}
+
+func (x *Page) GetScreenshotPhash() string {
+	if x != nil {
+		return x.ScreenshotPhash
+	}
+	return ""
+}
+
+func (x *Page) GetScreenshotBlank() bool {
+	if x != nil {
+		return x.ScreenshotBlank
+	}
+	return false
 }
 
 type Dialog struct {
@@ -1846,10 +1867,12 @@ const file_urljail_report_v0_report_proto_rawDesc = "" +
 	"\x06source\x18\b \x01(\tR\x06source\"@\n" +
 	"\x06Domain\x12 \n" +
 	"\vregistrable\x18\x01 \x01(\tR\vregistrable\x12\x14\n" +
-	"\x05hosts\x18\x02 \x03(\tR\x05hosts\"v\n" +
+	"\x05hosts\x18\x02 \x03(\tR\x05hosts\"\xcc\x01\n" +
 	"\x04Page\x123\n" +
 	"\adialogs\x18\x01 \x03(\v2\x19.urljail.report.v0.DialogR\adialogs\x129\n" +
-	"\tdownloads\x18\x02 \x03(\v2\x1b.urljail.report.v0.DownloadR\tdownloads\"`\n" +
+	"\tdownloads\x18\x02 \x03(\v2\x1b.urljail.report.v0.DownloadR\tdownloads\x12)\n" +
+	"\x10screenshot_phash\x18\x03 \x01(\tR\x0fscreenshotPhash\x12)\n" +
+	"\x10screenshot_blank\x18\x04 \x01(\bR\x0fscreenshotBlank\"`\n" +
 	"\x06Dialog\x12\x12\n" +
 	"\x04type\x18\x01 \x01(\tR\x04type\x12\x18\n" +
 	"\amessage\x18\x02 \x01(\tR\amessage\x12\x10\n" +
