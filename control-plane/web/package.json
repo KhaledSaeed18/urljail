@@ -1,0 +1,21 @@
+{
+  "name": "urljail-web",
+  "private": true,
+  "description": "urljail control plane: dashboard (Next.js), unprivileged, localhost only",
+  "license": "UNLICENSED",
+  "scripts": {
+    "build": "next build",
+    "start": "next start -H 127.0.0.1 -p 7800"
+  },
+  "dependencies": {
+    "next": "16.4.0",
+    "react": "19.3.0",
+    "react-dom": "19.3.0",
+    "server-only": "0.0.1"
+  },
+  "devDependencies": {
+    "@types/node": "26.6.5",
+    "@types/react": "19.3.0",
+    "typescript": "7.0.2"
+  }
+}

@@ -1,0 +1,19 @@
+# urljail control plane: Postgres (ADR 0019). Rootless podman, as a systemd user service
+# (Quadlet). Installed by control-plane/scripts/setup.sh into ~/.config/containers/systemd.
+[Unit]
+Description=urljail control plane: Postgres
+
+[Container]
+Image=@POSTGRES_IMAGE@
+ContainerName=urljail-postgres
+PublishPort=127.0.0.1:55432:5432
+Volume=urljail-pgdata:/var/lib/postgresql/data
+Environment=POSTGRES_USER=urljail POSTGRES_DB=urljail
+Secret=urljail-pg-password,type=env,target=POSTGRES_PASSWORD
+NoNewPrivileges=true
+
+[Service]
+Restart=on-failure
+
+[Install]
+WantedBy=default.target

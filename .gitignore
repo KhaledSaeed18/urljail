@@ -24,3 +24,11 @@ runs/
 
 # Go build output
 bin/
+
+# control plane (P7)
+control-plane/*/node_modules/
+control-plane/api/dist/
+control-plane/web/.next/
+control-plane/web/next-env.d.ts
+control-plane/web/tsconfig.tsbuildinfo
+!control-plane/web/app/runs/

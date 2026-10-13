@@ -22,6 +22,7 @@ One file per significant decision. Never edit an accepted ADR's decision. Supers
 | [0016](./0016-every-vmm-jailed.md) | Every VMM runs under the jailer, as a per-slot uid | Accepted | 2026-10-12 |
 | [0017](./0017-proton-vpn-free.md) | Proton VPN Free as the live-mode WireGuard exit (supersedes 0010) | Accepted | 2026-10-12 |
 | [0018](./0018-profiles-as-snapshots.md) | Experimental conditions are browser profiles, one snapshot each | Accepted | 2026-10-12 |
+| [0019](./0019-control-plane-deployment.md) | Control plane runs unprivileged, on localhost, behind a token | Accepted | 2026-10-13 |
 
 ## Template
 

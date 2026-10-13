@@ -1,0 +1,17 @@
+# urljail control plane: the dashboard (Next.js), as the operator (ADR 0019).
+[Unit]
+Description=urljail control plane: dashboard
+After=urljail-api.service
+Wants=urljail-api.service
+
+[Service]
+EnvironmentFile=%h/.config/urljail/control-plane.env
+WorkingDirectory=@REPO@/control-plane/web
+Environment=NODE_ENV=production HOSTNAME=127.0.0.1 PORT=7800
+ExecStart=@NODE@ node_modules/next/dist/bin/next start -H 127.0.0.1 -p 7800
+Restart=on-failure
+RestartSec=5
+NoNewPrivileges=yes
+
+[Install]
+WantedBy=default.target

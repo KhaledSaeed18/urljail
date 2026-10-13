@@ -1,0 +1,47 @@
+/* One working surface: a dense operator console. Slate neutrals tinted toward one blue accent;
+   amber and red only for state (attention, failure). */
+:root {
+  --bg: #f4f6f8; --surface: #ffffff; --ink: #18212c; --muted: #5a6676; --rule: #d8dee6;
+  --accent: #1f5f8b; --accent-soft: #e2edf5; --warn: #8a5208; --warn-soft: #fbf0df; --bad: #a12a2a; --bad-soft: #fbe6e6;
+  --ok: #2c6e3f; --ok-soft: #e3f2e7;
+  --font: "IBM Plex Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --mono: "IBM Plex Mono", ui-monospace, "SFMono-Regular", Menlo, monospace;
+}
+@media (prefers-color-scheme: dark) {
+  :root { --bg: #10151c; --surface: #171e28; --ink: #e3e8ef; --muted: #9aa5b5; --rule: #2a3442;
+    --accent: #7db3da; --accent-soft: #182a3b; --warn: #e3ab68; --warn-soft: #2e2416; --bad: #ef8f8f; --bad-soft: #351b1b;
+    --ok: #86c99a; --ok-soft: #17291d; color-scheme: dark; }
+}
+* { box-sizing: border-box; }
+body { margin: 0; background: var(--bg); color: var(--ink); font: 15px/1.5 var(--font); }
+.wrap { max-width: 1120px; margin: 0 auto; padding-inline: 16px; padding-block: 20px 48px; display: grid; gap: 20px; }
+header.top { display: flex; flex-wrap: wrap; align-items: baseline; gap: 12px 20px; }
+header.top h1 { margin: 0; font-size: 20px; font-weight: 600; }
+header.top a { color: inherit; text-decoration: none; }
+.pill { display: inline-block; font: 12px/1.6 var(--mono); padding: 0 8px; border-radius: 999px; background: var(--accent-soft); color: var(--accent); white-space: nowrap; }
+.pill.ok { background: var(--ok-soft); color: var(--ok); } .pill.warn { background: var(--warn-soft); color: var(--warn); } .pill.bad { background: var(--bad-soft); color: var(--bad); }
+.muted { color: var(--muted); } .mono { font-family: var(--mono); font-size: 13px; }
+.url { font-family: var(--mono); font-size: 13px; overflow-wrap: anywhere; user-select: all; }
+section.card { background: var(--surface); border: 1px solid var(--rule); border-radius: 6px; padding: 16px; display: grid; gap: 12px; min-width: 0; }
+section.card h2 { margin: 0; font-size: 15px; font-weight: 600; }
+form.submit { display: flex; flex-wrap: wrap; gap: 8px; }
+form.submit input[type=text] { flex: 1 1 320px; min-width: 0; font: 14px var(--mono); padding: 8px 10px; border: 1px solid var(--rule); border-radius: 4px; background: var(--bg); color: var(--ink); }
+form.submit select, form.submit button { font: 14px var(--font); padding: 8px 12px; border-radius: 4px; border: 1px solid var(--rule); background: var(--bg); color: var(--ink); }
+form.submit button { background: var(--accent); color: var(--surface); border-color: var(--accent); font-weight: 600; cursor: pointer; }
+:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.table { overflow-x: auto; }
+table { width: 100%; border-collapse: collapse; font-size: 14px; }
+th, td { text-align: left; padding: 7px 10px; border-bottom: 1px solid var(--rule); vertical-align: top; }
+th { font-size: 12px; color: var(--muted); font-weight: 600; text-transform: uppercase; letter-spacing: .03em; white-space: nowrap; }
+td.num { text-align: right; font-variant-numeric: tabular-nums; font-family: var(--mono); font-size: 13px; }
+tr:last-child td { border-bottom: 0; }
+a.row { color: var(--accent); text-decoration: none; font-family: var(--mono); font-size: 13px; }
+.grid2 { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 20px; }
+@media (max-width: 820px) { .grid2 { grid-template-columns: 1fr; } }
+dl.kv { display: grid; grid-template-columns: max-content minmax(0, 1fr); gap: 6px 14px; margin: 0; }
+dl.kv dt { color: var(--muted); font-size: 13px; } dl.kv dd { margin: 0; min-width: 0; overflow-wrap: anywhere; }
+.shot { width: 100%; height: auto; border: 1px solid var(--rule); border-radius: 4px; background: var(--bg); }
+.notice { padding: 10px 12px; border-radius: 4px; background: var(--warn-soft); color: var(--warn); font-size: 14px; }
+.error { padding: 10px 12px; border-radius: 4px; background: var(--bad-soft); color: var(--bad); font-size: 14px; overflow-wrap: anywhere; }
+ul.gaps { margin: 0; padding-left: 18px; display: grid; gap: 4px; font-size: 14px; }
+svg.graph text { font: 11px var(--mono); fill: var(--ink); }
