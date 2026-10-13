@@ -161,3 +161,16 @@ func TestMinAgeFeedPauseLock(t *testing.T) {
 		u()
 	}
 }
+
+func TestRescore(t *testing.T) {
+	s := &Store{Items: map[string]*Item{}}
+	s.AddCandidate(&Item{URL: "https://schemas.cn-north-1.api.amazonwebservices.com.cn/", Feed: "ct", Score: 4})
+	s.AddCandidate(&Item{URL: "https://paypal-account-verify.com/", Feed: "ct", Score: 4})
+	s.AddCandidate(&Item{URL: "https://other.test/", Feed: "openphish-community"})
+	if n := s.Rescore("ct", CandidateScore, Score); n != 1 {
+		t.Fatalf("dropped %d", n)
+	}
+	if s.Items["https://paypal-account-verify.com/"].Status != "queued" || s.Items["https://other.test/"].Status != "queued" {
+		t.Error("rescored the wrong items")
+	}
+}

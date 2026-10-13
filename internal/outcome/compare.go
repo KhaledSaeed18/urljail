@@ -44,13 +44,39 @@ type Comparison struct {
 	Visual int `json:"visual"`
 	// Reached: at least one profile got a page (not dead, no response or origin down).
 	Reached bool `json:"reached"`
+	// ControlAgrees: 1 when the control run ("<profile>~control") got the same outcome as its
+	// twin, 0 when not (noise: timing, rotation), -1 without a control.
+	ControlAgrees int `json:"control_agrees"`
 }
+
+// ControlSuffix marks a control run's profile key.
+const ControlSuffix = "~control"
 
 func key(o Outcome) string { return o.Label + "@" + o.FinalDomain }
 
 // Compare puts a URL's outcomes side by side.
-func Compare(u string, outs []Outcome) Comparison {
-	c := Comparison{URL: u, Outcomes: outs, Groups: map[string][]string{}, Visual: -1}
+func Compare(u string, all []Outcome) Comparison {
+	c := Comparison{URL: u, Outcomes: all, Groups: map[string][]string{}, Visual: -1, ControlAgrees: -1}
+	var outs, controls []Outcome
+	for _, o := range all {
+		if strings.HasSuffix(o.Profile, ControlSuffix) {
+			controls = append(controls, o)
+		} else {
+			outs = append(outs, o)
+		}
+	}
+	for _, ctl := range controls {
+		twin := strings.TrimSuffix(ctl.Profile, ControlSuffix)
+		for _, o := range outs {
+			if o.Profile == twin && o.Label != Failed && ctl.Label != Failed {
+				if key(o) == key(ctl) {
+					c.ControlAgrees = max(c.ControlAgrees, 1)
+				} else if c.ControlAgrees < 0 {
+					c.ControlAgrees = 0
+				}
+			}
+		}
+	}
 	for _, o := range outs {
 		c.Groups[key(o)] = append(c.Groups[key(o)], o.Profile)
 		switch o.Label {

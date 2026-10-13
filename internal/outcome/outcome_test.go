@@ -63,6 +63,13 @@ func TestCompareFactor(t *testing.T) {
 	if same.Differs || !same.Reached {
 		t.Errorf("same: %+v", same)
 	}
+	ctl := Compare("u", []Outcome{at(login, "baseline"), at(login, "stealth"), at(forbidden, "baseline~control")})
+	if ctl.Differs || ctl.ControlAgrees != 0 {
+		t.Errorf("control: differs %v agrees %d (a control never makes profiles differ)", ctl.Differs, ctl.ControlAgrees)
+	}
+	if c := Compare("u", []Outcome{at(login, "baseline"), at(login, "baseline~control")}); c.ControlAgrees != 1 {
+		t.Errorf("agreeing control: %d", c.ControlAgrees)
+	}
 	dead := Compare("u", []Outcome{at(Outcome{Label: Dead}, "baseline")})
 	if dead.Reached {
 		t.Error("dead counted as reached")

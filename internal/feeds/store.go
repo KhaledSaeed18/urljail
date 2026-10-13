@@ -3,6 +3,7 @@ package feeds
 import (
 	"encoding/json"
 	"errors"
+	"net/url"
 	"os"
 	"path/filepath"
 	"sort"
@@ -130,6 +131,40 @@ func (s *Store) Add(feed string, urls []string, now time.Time) (added int) {
 		added++
 	}
 	return added
+}
+
+// RecoverInterrupted puts items a stopped process left "running" back in the queue (only one
+// process holds the store, so nothing else can be running them). It returns how many.
+func (s *Store) RecoverInterrupted() int {
+	n := 0
+	for _, it := range s.Items {
+		if it.Status == "running" {
+			it.Status = "queued"
+			n++
+		}
+	}
+	return n
+}
+
+// Rescore re-applies score to queued items of feed (scoring improves; candidates queued under
+// older rules shouldn't still run). Those now below min are marked "dropped". It returns how
+// many were dropped.
+func (s *Store) Rescore(feed string, min int, score func(host string) (int, []string)) int {
+	n := 0
+	for _, it := range s.Items {
+		if it.Status != "queued" || it.Feed != feed {
+			continue
+		}
+		u, err := url.Parse(it.URL)
+		if err != nil {
+			continue
+		}
+		if it.Score, it.Reasons = score(u.Hostname()); it.Score < min {
+			it.Status = "dropped"
+			n++
+		}
+	}
+	return n
 }
 
 // AddCandidate queues one discovered URL unless it's known; it reports whether it was new.

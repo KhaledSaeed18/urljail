@@ -73,6 +73,9 @@ func cmdFeeds(ctx context.Context, c daemonv1.DaemonServiceClient, args []string
 		if st, err = feeds.Open(filepath.Join(paths.DataDir(home), "feeds")); err != nil {
 			return err
 		}
+		if n := st.RecoverInterrupted(); n > 0 {
+			fmt.Fprintf(os.Stderr, "%d URLs left running by a stopped process are queued again\n", n)
+		}
 	}
 	switch args[0] {
 	case "fetch":
@@ -86,10 +89,11 @@ func cmdFeeds(ctx context.Context, c daemonv1.DaemonServiceClient, args []string
 		fs := flag.NewFlagSet("feeds run", flag.ContinueOnError)
 		n := fs.Int("n", 3, "maximum URLs to detonate")
 		profs := fs.String("profiles", "all", `browser profiles per URL: "all" or a comma-separated list`)
+		control := fs.String("control", "baseline", `profile run a second time per URL to measure noise ("": none)`)
 		if err := fs.Parse(args[1:]); err != nil || *n < 1 {
 			return exitError(2)
 		}
-		return runFeeds(ctx, c, st, *n, *profs)
+		return runFeeds(ctx, c, st, *n, *profs, *control)
 	case "ct":
 		fs := flag.NewFlagSet("feeds ct", flag.ContinueOnError)
 		dur := fs.Duration("for", 10*time.Minute, "how long to follow the logs")
@@ -128,12 +132,13 @@ func cmdFeeds(ctx context.Context, c daemonv1.DaemonServiceClient, args []string
 		minAge := fs.Duration("min-age", 5*time.Minute, "wait this long after a certificate appears (the site needs time to go up)")
 		profs := fs.String("profiles", "all", `browser profiles per URL: "all" or a comma-separated list`)
 		maxURLs := fs.Int("max-urls", 0, "stop after this many URLs (0: no limit)")
+		control := fs.String("control", "baseline", `profile run a second time per URL to measure noise ("": none)`)
 		if err := fs.Parse(args[1:]); err != nil {
 			return exitError(2)
 		}
 		wctx, cancel := context.WithTimeout(ctx, *dur)
 		defer cancel()
-		return watchCT(wctx, c, st, *profs, *minAge, *maxURLs)
+		return watchCT(wctx, c, st, *profs, *control, *minAge, *maxURLs)
 	case "compare":
 		fs := flag.NewFlagSet("feeds compare", flag.ContinueOnError)
 		onlyDiff := fs.Bool("differs", false, "list only URLs where profiles differ")
@@ -188,11 +193,11 @@ func printFeedStatus(st *feeds.Store) {
 		fmt.Printf("%-22s last fetch %s, %d URLs, %d skipped\n", n, s.LastFetch.Local().Format(time.DateTime), s.LastCount, s.LastSkipped)
 	}
 	c := st.Counts()
-	fmt.Printf("queue: %d queued, %d done, %d failed, %d refused, %d expired\n", c["queued"], c["done"], c["failed"], c["refused"], c["expired"])
+	fmt.Printf("queue: %d queued, %d done, %d failed, %d refused, %d expired, %d dropped\n", c["queued"], c["done"], c["failed"], c["refused"], c["expired"], c["dropped"])
 }
 
 // liveProfiles checks the daemon is in live mode and resolves the profiles to run.
-func liveProfiles(ctx context.Context, c daemonv1.DaemonServiceClient, profileList string) (profs []string, parallel int, err error) {
+func liveProfiles(ctx context.Context, c daemonv1.DaemonServiceClient, profileList, control string) (profs []string, parallel int, err error) {
 	vctx, cancel := context.WithTimeout(ctx, 5*time.Second)
 	v, err := c.Version(vctx, &daemonv1.VersionRequest{})
 	cancel()
@@ -205,14 +210,31 @@ func liveProfiles(ctx context.Context, c daemonv1.DaemonServiceClient, profileLi
 	if profs, err = pickProfiles(profileList, v.GetProfiles()); err != nil {
 		return nil, 0, err
 	}
+	if control != "" {
+		if !slices.Contains(v.GetProfiles(), control) {
+			return nil, 0, fmt.Errorf("-control: the daemon has no profile %q", control)
+		}
+		// A second run under the same profile: how often two identical runs disagree is the
+		// noise any difference between profiles has to beat.
+		profs = append(profs, control+controlSuffix)
+	}
 	return profs, max(1, min(int(v.GetMaxVms()), len(profs))), nil
 }
 
-func runFeeds(ctx context.Context, c daemonv1.DaemonServiceClient, st *feeds.Store, n int, profileList string) error {
+// controlSuffix marks the control run's key ("baseline~control"); the daemon gets the name
+// before it.
+const controlSuffix = outcome.ControlSuffix
+
+func daemonProfile(key string) string {
+	p, _, _ := strings.Cut(key, "~")
+	return p
+}
+
+func runFeeds(ctx context.Context, c daemonv1.DaemonServiceClient, st *feeds.Store, n int, profileList, control string) error {
 	if st.IsPaused() {
 		return errors.New("submissions are paused (urljail feeds resume)")
 	}
-	profs, parallel, err := liveProfiles(ctx, c, profileList)
+	profs, parallel, err := liveProfiles(ctx, c, profileList, control)
 	if err != nil {
 		return err
 	}
@@ -324,10 +346,13 @@ func allNotUp(results []profileResult) bool {
 
 // watchCT follows the CT logs and detonates candidates once they're minAge old, newest first,
 // until ctx ends or maxURLs have run (0: no limit).
-func watchCT(ctx context.Context, c daemonv1.DaemonServiceClient, st *feeds.Store, profileList string, minAge time.Duration, maxURLs int) error {
-	profs, parallel, err := liveProfiles(ctx, c, profileList)
+func watchCT(ctx context.Context, c daemonv1.DaemonServiceClient, st *feeds.Store, profileList, control string, minAge time.Duration, maxURLs int) error {
+	profs, parallel, err := liveProfiles(ctx, c, profileList, control)
 	if err != nil {
 		return err
+	}
+	if n := st.Rescore("ct", feeds.CandidateScore, feeds.Score); n > 0 {
+		fmt.Printf("%d queued candidates no longer score as candidates: dropped\n", n)
 	}
 	var mu sync.Mutex
 	cctx, cancel := context.WithCancel(ctx)
@@ -420,7 +445,7 @@ func detonateProfiles(ctx context.Context, c daemonv1.DaemonServiceClient, url s
 			defer wg.Done()
 			sem <- struct{}{}
 			defer func() { <-sem }()
-			dir, err := detonateQuiet(ctx, c, url, p)
+			dir, err := detonateQuiet(ctx, c, url, daemonProfile(p))
 			results[i] = profileResult{profile: p, runDir: dir, err: err}
 		}()
 	}
@@ -542,9 +567,7 @@ func compareFeeds(st *feeds.Store, runsDir string, onlyDiff, asJSON bool) error 
 				continue
 			}
 			o := outcome.Classify(filepath.Join(runsDir, filepath.Base(id)), it.URL)
-			if o.Profile == "" {
-				o.Profile = prof
-			}
+			o.Profile = prof // the key: keeps "~control" apart from its twin
 			outs = append(outs, o)
 		}
 		sort.Slice(outs, func(i, j int) bool { return outs[i].Profile < outs[j].Profile })
@@ -557,10 +580,16 @@ func compareFeeds(st *feeds.Store, runsDir string, onlyDiff, asJSON bool) error 
 		return enc.Encode(cmps)
 	}
 	labels, factors := map[string]int{}, map[string]int{}
-	reached, differs := 0, 0
+	reached, differs, controlled, noisy := 0, 0, 0, 0
 	for _, c := range cmps {
 		if c.Reached {
 			reached++
+			if c.ControlAgrees >= 0 {
+				controlled++
+				if c.ControlAgrees == 0 {
+					noisy++
+				}
+			}
 		}
 		if c.Differs {
 			differs++
@@ -592,6 +621,9 @@ func compareFeeds(st *feeds.Store, runsDir string, onlyDiff, asJSON bool) error 
 			if c.Factor != "" {
 				fmt.Printf("           explained by one countermeasure: %s\n", c.Factor)
 			}
+			if c.ControlAgrees == 0 {
+				fmt.Printf("           control disagreed with its twin: likely timing, not treatment\n")
+			}
 		} else if len(c.Outcomes) > 0 {
 			o := c.Outcomes[0]
 			fmt.Printf("           %s@%s %q\n", o.Label, o.FinalDomain, truncate(o.Title, 50))
@@ -601,6 +633,10 @@ func compareFeeds(st *feeds.Store, runsDir string, onlyDiff, asJSON bool) error 
 	fmt.Printf("same in every profile, by outcome: %v\n", sortedCounts(labels))
 	if differs > 0 {
 		fmt.Printf("differing, by explaining countermeasure: %v\n", sortedCounts(factors))
+	}
+	if controlled > 0 {
+		fmt.Printf("noise: the control run disagreed with its twin on %d of %d reached URLs (%.0f%%)\n",
+			noisy, controlled, 100*float64(noisy)/float64(controlled))
 	}
 	return nil
 }
