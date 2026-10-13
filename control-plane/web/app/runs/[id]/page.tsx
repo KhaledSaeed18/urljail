@@ -24,6 +24,9 @@ export default async function Run({ params }: { params: Promise<{ id: string }> 
   const finalHost = hostOf(nav.final_url);
   const pageDomain = domains.find((d) => (d.hosts ?? []).includes(finalHost))?.registrable ?? '';
   const counted = countRequests(domains, net.requests ?? []);
+  const indicators: any[] = rep.indicators ?? [];
+  const forms: any[] = rep.page?.forms ?? [];
+  const similar = run.summary?.phash ? await api.similar(id).catch(() => null) : null;
   return (
     <>
       <header className="top">
@@ -44,6 +47,16 @@ export default async function Run({ params }: { params: Promise<{ id: string }> 
         {active(run.state) && <div className="notice">Running: {run.state}{run.message ? ` · ${run.message}` : ''}</div>}
         {run.error && <div className="error">{run.error}</div>}
       </section>
+
+      {indicators.length > 0 && (
+        <section className="card">
+          <h2>Indicators</h2>
+          <ul className="gaps">{indicators.map((x, i) => (
+            <li key={i}><span className={`pill ${x.severity === 'high' ? 'bad' : 'warn'}`}>{x.severity}</span> <span className="mono">{x.id}</span>: {x.detail}</li>
+          ))}</ul>
+          <p className="muted" style={{ margin: 0, fontSize: 13 }}>Signals with their reasons, not a verdict.</p>
+        </section>
+      )}
 
       <div className="grid2">
         <section className="card">
@@ -67,6 +80,43 @@ export default async function Run({ params }: { params: Promise<{ id: string }> 
             <thead><tr><th className="num">#</th><th>Kind</th><th className="num">Status</th><th>URL</th></tr></thead>
             <tbody>{chain.map((h, i) => (
               <tr key={i}><td className="num">{i + 1}</td><td className="mono">{h.kind}</td><td className="num">{h.status ?? ''}</td><td><span className="url">{h.url}</span></td></tr>
+            ))}</tbody>
+          </table></div>
+        )}
+      </section>
+
+      {(forms.length > 0 || rep.page?.password_fields > 0) && (
+        <section className="card">
+          <h2>Forms</h2>
+          <p className="muted" style={{ marginTop: 0 }}>{rep.page?.password_fields ?? 0} password field(s) on the page; forms in the top document only.</p>
+          {forms.length > 0 && (
+            <div className="table"><table>
+              <thead><tr><th>Method</th><th>Sends to</th><th>Fields</th></tr></thead>
+              <tbody>{forms.slice(0, 32).map((f, i) => (
+                <tr key={i}>
+                  <td className="mono">{f.method}</td>
+                  <td><span className="url">{f.action}</span>{f.cross_origin_action && <> <span className="pill warn">other domain</span></>}</td>
+                  <td className="mono">{(f.fields ?? []).slice(0, 64).map((x: any) => `${x.name || '?'}:${x.type}`).join(' ')}</td>
+                </tr>
+              ))}</tbody>
+            </table></div>
+          )}
+        </section>
+      )}
+
+      <section className="card">
+        <h2>Looks like</h2>
+        {!run.summary?.phash ? <p className="muted" style={{ margin: 0 }}>{rep.page?.screenshot_blank ? 'The screenshot is blank.' : 'No screenshot hash.'}</p>
+          : !similar || similar.runs.length === 0 ? <p className="muted" style={{ margin: 0 }}>No other run's screenshot is within {similar?.maxDistance ?? 6} of 64 bits (hash <span className="mono">{run.summary.phash}</span>).</p> : (
+          <div className="table"><table>
+            <thead><tr><th className="num">Bits apart</th><th>Run</th><th>Final URL</th><th>Title</th></tr></thead>
+            <tbody>{similar.runs.slice(0, 50).map((r) => (
+              <tr key={r.id}>
+                <td className="num">{r.distance}</td>
+                <td className="mono"><Link href={`/runs/${r.id}`}>{when(r.createdAt)}</Link></td>
+                <td className="urlcell"><span className="url">{r.summary?.finalUrl || r.url}</span></td>
+                <td>{r.summary?.title ?? ''}</td>
+              </tr>
             ))}</tbody>
           </table></div>
         )}

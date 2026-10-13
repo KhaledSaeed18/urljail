@@ -110,6 +110,21 @@ export class Db {
     );
   }
 
+  // Runs whose screenshot hash is within maxDist bits of this one's (internal/visual), closest
+  // first. The hash was checked against PHASH when the summary was written.
+  async similar(id: string, maxDist: number, limit: number): Promise<Array<RunRow & { distance: number }>> {
+    const r = await this.pool.query(
+      `WITH me AS (SELECT ('x' || (summary->>'phash'))::bit(64) AS h FROM runs WHERE id = $1 AND summary->>'phash' ~ '^[0-9a-f]{16}$')
+       SELECT ${COLS}, bit_count(('x' || (r.summary->>'phash'))::bit(64) # me.h)::int AS distance
+         FROM runs r, me
+        WHERE r.id <> $1 AND r.summary->>'phash' ~ '^[0-9a-f]{16}$'
+          AND bit_count(('x' || (r.summary->>'phash'))::bit(64) # me.h) <= $2
+        ORDER BY distance, r.created_at DESC LIMIT $3`,
+      [id, maxDist, limit],
+    );
+    return r.rows;
+  }
+
   // Runs a stopped worker left mid-flight: the daemon tears them down itself; mark them.
   async failStale(): Promise<number> {
     const r = await this.pool.query(

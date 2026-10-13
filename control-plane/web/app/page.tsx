@@ -54,7 +54,10 @@ export default async function Home() {
                 {runs.map((r) => (
                   <tr key={r.id}>
                     <td><Link className="row" href={`/runs/${r.id}`}>{when(r.createdAt)}</Link></td>
-                    <td><StatePill state={r.state} consistent={r.summary?.consistent} /></td>
+                    <td>
+                      <StatePill state={r.state} consistent={r.summary?.consistent} />
+                      {(r.summary?.indicators?.length ?? 0) > 0 && <> <span className="pill bad" title={r.summary!.indicators!.map((x) => x.id).join(', ')}>{r.summary!.indicators![0].brand || 'flag'}</span></>}
+                    </td>
                     <td className="urlcell"><span className="url">{r.url}</span></td>
                     <td>{r.summary ? (r.summary.navError ? <span className="muted">{r.summary.navError}</span> : r.summary.title || <span className="muted">(no title)</span>) : <span className="muted">{r.error || r.message}</span>}</td>
                     <td className="num">{r.summary?.requests ?? ''}</td>

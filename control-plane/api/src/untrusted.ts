@@ -38,6 +38,9 @@ export function isRunId(s: unknown): s is string {
 const PNG = Buffer.from([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a]);
 export const isPng = (b: Buffer): boolean => b.length > PNG.length && b.subarray(0, PNG.length).equals(PNG);
 
+// A screenshot hash as the report writes it (internal/visual): 16 lowercase hex digits.
+export const PHASH = /^[0-9a-f]{16}$/;
+
 const clip = (v: unknown, n: number): string => (typeof v === 'string' ? v.slice(0, n) : '');
 
 // summarize extracts the fields the run list shows from a report (urljail.report.v0, protojson).
@@ -58,5 +61,10 @@ export function summarize(report: any): Record<string, unknown> {
     blocked: len(net.blocked),
     consistent: rec.consistent === true,
     gaps: len(report?.gaps),
+    phash: typeof report?.page?.screenshot_phash === 'string' && PHASH.test(report.page.screenshot_phash) ? report.page.screenshot_phash : '',
+    passwordFields: Number.isInteger(report?.page?.password_fields) ? Math.min(report.page.password_fields, 1000) : 0,
+    indicators: (Array.isArray(report?.indicators) ? report.indicators : []).slice(0, 10).map((i: any) => ({
+      id: clip(i?.id, 60), severity: clip(i?.severity, 10), brand: clip(i?.brand, 40),
+    })),
   };
 }

@@ -95,6 +95,14 @@ export class ApiController {
     return row;
   }
 
+  // Runs whose screenshots look like this one's (64-bit pHash; 6 is visual.DefaultMaxDistance).
+  @Get('runs/:id/similar')
+  async similar(@Param('id') id: string, @Query('max') max?: string) {
+    if (!UUID.test(id)) throw new HttpException('bad id', HttpStatus.BAD_REQUEST);
+    const d = Math.min(Math.max(Number.parseInt(max ?? '6', 10) || 6, 0), 16);
+    return { maxDistance: d, runs: await this.db.similar(id, d, 50) };
+  }
+
   // The screenshot, only if it really is a PNG, served as one.
   @Get('runs/:id/screenshot')
   async screenshot(@Param('id') id: string, @Res() res: Response) {

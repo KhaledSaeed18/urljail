@@ -32,3 +32,16 @@ test('summarize tolerates junk', () => {
   assert.equal(s.redirects, 2);
   assert.equal(s.consistent, true);
 });
+
+test('summarize keeps a well-formed phash and capped indicators only', () => {
+  const ok = summarize({ page: { screenshot_phash: 'b366cc998ccc3333', password_fields: 2 },
+    indicators: Array.from({ length: 30 }, () => ({ id: 'brand-look-off-domain', severity: 'high', brand: 'paypal', detail: 'x'.repeat(9999) })) });
+  assert.equal(ok.phash, 'b366cc998ccc3333');
+  assert.equal(ok.passwordFields, 2);
+  assert.equal((ok.indicators as unknown[]).length, 10);
+  assert.deepEqual((ok.indicators as unknown[])[0], { id: 'brand-look-off-domain', severity: 'high', brand: 'paypal' });
+  for (const bad of ["b366cc998ccc3333'; drop", 'B366CC998CCC3333', 'abc', 7]) {
+    assert.equal(summarize({ page: { screenshot_phash: bad } }).phash, '');
+  }
+  assert.deepEqual(summarize({}).indicators, []);
+});

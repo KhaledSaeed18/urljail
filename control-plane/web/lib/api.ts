@@ -48,6 +48,9 @@ export interface Summary {
   blocked: number;
   consistent: boolean;
   gaps: number;
+  phash?: string;
+  passwordFields?: number;
+  indicators?: { id: string; severity: string; brand: string }[];
 }
 
 export interface Status {
@@ -62,6 +65,7 @@ export const api = {
   get: (id: string) => json<RunRow & { report: any }>(`/api/runs/${encodeURIComponent(id)}`),
   submit: (url: string, profile: string) =>
     json<{ id: string }>('/api/runs', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ url, profile }) }),
+  similar: (id: string) => json<{ maxDistance: number; runs: (RunRow & { distance: number })[] }>(`/api/runs/${encodeURIComponent(id)}/similar`),
   screenshot: (id: string) => call(`/api/runs/${encodeURIComponent(id)}/screenshot`),
 };
 
