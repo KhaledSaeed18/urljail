@@ -85,7 +85,7 @@ See [research/anti-cloaking.md](./research/anti-cloaking.md).
 - [~] Snapshot profiles as experimental conditions (baseline vs stealth variants): built ([ADR 0018](./decisions/0018-profiles-as-snapshots.md)); verification needs a daemon reinstall
 - [~] Fresh-feed ingestion; detonate within minutes of publication (phishing URLs die in hours): `urljail feeds` with OpenPhish Community, plus own discovery from CT logs (`urljail feeds watch`) ([feed-ingestion.md](./feed-ingestion.md))
 - Cloaking measurement: same URL, multiple profiles/exits, content diff
-- Write-up with results
+- [x] Write-up with results: [research/r1-results.md](./research/r1-results.md) (2026-10-13)
 
 **Exit:** cloaking rate per countermeasure on a real feed, with methodology documented.
 

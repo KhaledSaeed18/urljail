@@ -75,7 +75,7 @@ Decision (2026-10-13): find candidates in Certificate Transparency instead of wa
 
 `urljail feeds compare` labels each run (dead, no-response, origin-down, blocked, gate, login, error-page, redirect-away, content), compares a URL's profiles, and names the countermeasure when exactly one splits the outcomes. Every URL also runs a second time under `baseline` (`baseline~control`): two identical runs disagreeing is the noise a profile difference has to beat.
 
-### 2.5 h of `feeds watch` with the control (04:2x–06:5x)
+### 2.5 h of `feeds watch` with the control (04:09–06:37)
 
 62 candidates queued, 59 detonated with a control, **55 reached a page in at least one profile (93%**, against about a third for OpenPhish).
 
@@ -121,7 +121,7 @@ Also: most "accounting" names were candidates because "account**ing**" matched t
 
 **Process note:** several earlier test additions for the CT scoring had silently not been applied (an edit script replaced text that `gofmt` had re-aligned, with no match check). They are in now (29 cases, all passing), and edits are checked for a match.
 
-### 3 h of `feeds watch` with the headful profile (2026-10-13, 10:2x–13:2x)
+### 3 h of `feeds watch` with the headful profile (2026-10-13, 10:13–13:04)
 
 67 candidates queued, 70 detonations (6 retries of sites not up yet); 65 URLs ran under all six profiles plus both controls, **60 reached a page**.
 

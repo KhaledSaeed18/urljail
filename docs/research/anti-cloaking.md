@@ -1,6 +1,6 @@
 # Research track R1: measuring phishing cloaking
 
-Status: **idea / design**. Runs in Phase 6, after the live gate.
+Status: **first results 2026-10-13**: [r1-results.md](./r1-results.md). Runs in Phase 6, after the live gate.
 
 ## Question
 
