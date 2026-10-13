@@ -227,7 +227,7 @@ func portOf(u *url.URL) string {
 	if p := u.Port(); p != "" {
 		return p
 	}
-	if u.Scheme == "http" {
+	if u.Scheme == "http" || u.Scheme == "ws" {
 		return "80"
 	}
 	return "443"

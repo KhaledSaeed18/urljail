@@ -333,6 +333,32 @@ func (b *builder) add(e event) {
 				}
 			}
 		}
+	case "Network.webSocketCreated":
+		// WebSockets don't go through requestWillBeSent (found in P7: pusher.com connections the
+		// host saw were "unexplained").
+		var p struct {
+			RequestID string `json:"requestId"`
+			URL       string `json:"url"`
+			Initiator struct {
+				Type string `json:"type"`
+			} `json:"initiator"`
+		}
+		if json.Unmarshal(e.Params, &p) != nil {
+			return
+		}
+		ws := requestWillBeSent{RequestID: p.RequestID, Type: "WebSocket"}
+		ws.Request.URL, ws.Request.Method, ws.Initiator.Type = p.URL, "GET", p.Initiator.Type
+		b.request(ws)
+	case "Network.webSocketHandshakeResponseReceived":
+		var p struct {
+			RequestID string `json:"requestId"`
+			Response  struct {
+				Status float64 `json:"status"`
+			} `json:"response"`
+		}
+		if json.Unmarshal(e.Params, &p) == nil && b.byID[p.RequestID] != nil {
+			b.byID[p.RequestID].Status = int32(p.Response.Status)
+		}
 	case "Network.requestServedFromCache":
 		var p struct {
 			RequestID string `json:"requestId"`

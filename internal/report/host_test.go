@@ -7,6 +7,8 @@ import (
 	"strconv"
 	"strings"
 	"testing"
+
+	reportv0 "github.com/KhaledSaeed18/urljail/gen/urljail/report/v0"
 )
 
 func writeHost(t *testing.T, dir string) {
@@ -169,5 +171,34 @@ func TestHostOfQuery(t *testing.T) {
 		if got := hostOfQuery(in); got != want {
 			t.Errorf("hostOfQuery(%q) = %q, want %q", in, got, want)
 		}
+	}
+}
+
+// A WebSocket the page opened: not a requestWillBeSent, but the page's all the same.
+func TestWebSocketIsPage(t *testing.T) {
+	dir := writeRun(t, true)
+	writeHost(t, dir)
+	g := filepath.Join(dir, "guest", "events.jsonl")
+	f, _ := os.OpenFile(g, os.O_APPEND|os.O_WRONLY, 0)
+	f.WriteString(`{"method":"Network.webSocketCreated","params":{"requestId":"ws1","url":"wss://beacon.evil.test/app?x=1","initiator":{"type":"script"}}}
+{"method":"Network.webSocketHandshakeResponseReceived","params":{"requestId":"ws1","response":{"status":101}}}
+`)
+	f.Close()
+	r, err := Build(dir)
+	if err != nil {
+		t.Fatal(err)
+	}
+	var ws *reportv0.Request
+	for _, q := range r.GetNetwork().GetRequests() {
+		if q.GetType() == "WebSocket" {
+			ws = q
+		}
+	}
+	if ws == nil || ws.GetUrl() != "wss://beacon.evil.test/app?x=1" || ws.GetStatus() != 101 || ws.GetInitiator() != "script" {
+		t.Fatalf("websocket request = %v", ws)
+	}
+	rec := r.GetReconciliation()
+	if len(rec.GetUnexplainedDns()) != 0 || strings.Contains(strings.Join(rec.GetUnexplainedFlows(), " "), "beacon.evil.test") {
+		t.Errorf("the WebSocket's host is still unexplained: dns=%v flows=%v", rec.GetUnexplainedDns(), rec.GetUnexplainedFlows())
 	}
 }
