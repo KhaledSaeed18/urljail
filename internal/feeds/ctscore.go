@@ -184,7 +184,10 @@ func brandToken(tokens []string, brand string) bool {
 	for _, t := range tokens {
 		if i := strings.Index(t, brand); i >= 0 {
 			before, after := t[:i], t[i+len(brand):]
-			if (before == "" || glued(before, false)) && (after == "" || glued(after, true)) {
+			// A short brand only counts first in its word ("tdaccounts"), never last:
+			// "accounting" would otherwise be account+ING (found in P6 M5).
+			shortOK := len(brand) > 4 || before == ""
+			if shortOK && (before == "" || glued(before, false)) && (after == "" || glued(after, true)) {
 				return true
 			}
 		}

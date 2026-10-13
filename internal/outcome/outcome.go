@@ -49,12 +49,21 @@ type Outcome struct {
 
 var (
 	passwordInput = regexp.MustCompile(`(?i)<input[^>]+type=["']?password`)
-	gateMarkers   = regexp.MustCompile(`(?i)verify you are human|just a moment\.\.\.|challenges\.cloudflare\.com|cf-turnstile|hcaptcha\.com|www\.google\.com/recaptcha|g-recaptcha|are you a robot|checking your browser|ddos-guard`)
-	blockedTitle  = regexp.MustCompile(`(?i)^suspected phishing|deceptive site ahead|this site has been (blocked|suspended)|phishing warning`)
-	originDown    = regexp.MustCompile(`\| 52[0-9]: `)
+	// A gate is an interstitial: a challenge title, or challenge markup on a small page.
+	// Loading reCAPTCHA's script alone is not one: ordinary sites do it for contact forms
+	// (an accounting firm's full home page was mislabelled before, P6 M5).
+	gateTitle = regexp.MustCompile(`(?i)^(just a moment|verify you are human|attention required|checking your browser|ddos-guard|access denied|security check|one more step|are you a robot|captcha)`)
+	// Not /cdn-cgi/challenge-platform/ alone: Cloudflare injects that script into normal
+	// pages for visitors who passed (seen on tdaccounting.net).
+	gateMarkup   = regexp.MustCompile(`(?i)challenges\.cloudflare\.com|cf-turnstile|class=["']?h-captcha|class=["']?g-recaptcha|verify you are human|are you a robot|checking your browser|ddos-guard`)
+	blockedTitle = regexp.MustCompile(`(?i)^suspected phishing|deceptive site ahead|this site has been (blocked|suspended)|phishing warning`)
+	originDown   = regexp.MustCompile(`\| 52[0-9]: `)
 )
 
-const maxDOM = 32 << 20
+const (
+	maxDOM     = 32 << 20
+	maxGateDOM = 64 << 10 // challenge pages are small; a full site with a form widget isn't
+)
 
 // Classify labels the run in runDir. submitted is the URL that was opened.
 func Classify(runDir, submitted string) Outcome {
@@ -95,7 +104,7 @@ func Classify(runDir, submitted string) Outcome {
 		o.Label = OriginDown
 	case blockedTitle.MatchString(o.Title):
 		o.Label = Blocked
-	case gateMarkers.MatchString(o.Title) || !o.Password && gateMarkers.Match(dom):
+	case gateTitle.MatchString(o.Title) || !o.Password && len(dom) < maxGateDOM && gateMarkup.Match(dom):
 		o.Label = Gate
 	case o.Password:
 		o.Label = Login

@@ -28,6 +28,10 @@ func TestClassify(t *testing.T) {
 		{`{"navigation":{"finalUrl":"https://example.top/","title":"Suspected Phishing | Cloudflare"}}`, "", Blocked},
 		{`{"navigation":{"finalUrl":"https://example.top/","title":"Verify you are human"}}`, "", Gate},
 		{`{"navigation":{"finalUrl":"https://example.top/","title":"x"}}`, `<div class="cf-turnstile"></div>`, Gate},
+		{`{"navigation":{"finalUrl":"https://example.top/","title":"Just a moment..."}}`, "", Gate},
+		{`{"navigation":{"finalUrl":"https://example.top/","title":"Home"}}`, `<script src="/cdn-cgi/challenge-platform/scripts/jsd/main.js"></script><p>`, Content},
+		// A normal page that loads reCAPTCHA for its contact form is content, not a gate.
+		{`{"navigation":{"finalUrl":"https://example.top/","title":"Accounting firm"}}`, `<script src="https://www.google.com/recaptcha/api.js"></script><p>`, Content},
 		{`{"navigation":{"finalUrl":"https://example.top/","title":"Sign in"}}`, `<form><input type="password"></form>`, Login},
 		{`{"navigation":{"finalUrl":"https://example.top/","title":"403","redirectChain":[{"status":403}]}}`, "", ErrorPage},
 		{`{"navigation":{"finalUrl":"https://www.google.com/","title":"Google"}}`, "<p>", RedirectAway},
