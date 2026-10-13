@@ -77,6 +77,9 @@ func Build(runDir string) (*reportv0.Report, error) {
 		}
 	}
 	r.Gaps = append(r.Gaps, meta.HostGaps...)
+	if g := retentionGap(runDir); g != "" {
+		r.Gaps = append(r.Gaps, g)
+	}
 	if meta.Status != "completed" {
 		r.Gaps = append(r.Gaps, fmt.Sprintf("Run ended with status %q: observations may be incomplete", meta.Status))
 	}
@@ -187,6 +190,7 @@ func artifacts(runDir string) *reportv0.Artifacts {
 		ChromeLog:      rel("guest/chrome.log"),
 		SerialLog:      rel("host/serial.log"),
 		FirecrackerLog: rel("host/firecracker.log"),
+		Pcap:           rel("host/capture.pcap"),
 	}
 }
 

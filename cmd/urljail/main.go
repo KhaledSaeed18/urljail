@@ -30,6 +30,8 @@ commands:
   selftest                                   run the network isolation test plan in a VM
   doctor                                     check everything a safe run depends on
   feeds fetch|status|run|pause|resume        phishing feed ingestion (P6)
+  gc [-pcap-days 7] [-pcap-cap 10G] [-dry-run]
+                                             delete old packet captures (reports are kept)
   version                                    show CLI and daemon versions
 `
 
@@ -82,6 +84,8 @@ func run() error {
 		return cmdDoctor(ctx, client)
 	case "feeds":
 		return cmdFeeds(ctx, client, args)
+	case "gc":
+		return cmdGC(args)
 	default:
 		fmt.Fprintf(os.Stderr, "unknown command %q\n\n", cmd)
 		flag.Usage()

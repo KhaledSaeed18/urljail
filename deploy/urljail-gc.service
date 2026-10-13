@@ -1,0 +1,13 @@
+# Retention for run directories (P7): delete old packet captures, keep reports.
+# A systemd *user* unit: it runs as the operator, who owns the run directories.
+# Installed by scripts/install-user.sh into ~/.config/systemd/user.
+[Unit]
+Description=urljail retention (delete old packet captures)
+Documentation=file://%h/Projects/urljail/docs/architecture.md
+
+[Service]
+Type=oneshot
+ExecStart=%h/.local/bin/urljail gc -pcap-days 7 -pcap-cap 10G
+NoNewPrivileges=yes
+Nice=10
+IOSchedulingClass=idle

@@ -140,7 +140,8 @@ type Run struct {
 	Egress       *Egress                `protobuf:"bytes,4,opt,name=egress,proto3" json:"egress,omitempty"`
 	StartedAt    *timestamppb.Timestamp `protobuf:"bytes,5,opt,name=started_at,json=startedAt,proto3" json:"started_at,omitempty"`
 	EndedAt      *timestamppb.Timestamp `protobuf:"bytes,6,opt,name=ended_at,json=endedAt,proto3" json:"ended_at,omitempty"`
-	// "completed", "timeout", "cancelled" or "error".
+	// "completed", "timeout", "cancelled", "error", or "interrupted" (the daemon stopped
+	// during the run; recovered at its next start).
 	Status string `protobuf:"bytes,7,opt,name=status,proto3" json:"status,omitempty"`
 	Error  string `protobuf:"bytes,8,opt,name=error,proto3" json:"error,omitempty"`
 	// Component versions: urljail, firecracker, image, guest_kernel, browser, snapshot.
@@ -1617,8 +1618,10 @@ type Artifacts struct {
 	ChromeLog      string                 `protobuf:"bytes,5,opt,name=chrome_log,json=chromeLog,proto3" json:"chrome_log,omitempty"`
 	SerialLog      string                 `protobuf:"bytes,6,opt,name=serial_log,json=serialLog,proto3" json:"serial_log,omitempty"`
 	FirecrackerLog string                 `protobuf:"bytes,7,opt,name=firecracker_log,json=firecrackerLog,proto3" json:"firecracker_log,omitempty"`
-	unknownFields  protoimpl.UnknownFields
-	sizeCache      protoimpl.SizeCache
+	// Host packet capture; empty once retention deleted it (see gaps).
+	Pcap          string `protobuf:"bytes,8,opt,name=pcap,proto3" json:"pcap,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
 }
 
 func (x *Artifacts) Reset() {
@@ -1696,6 +1699,13 @@ func (x *Artifacts) GetSerialLog() string {
 func (x *Artifacts) GetFirecrackerLog() string {
 	if x != nil {
 		return x.FirecrackerLog
+	}
+	return ""
+}
+
+func (x *Artifacts) GetPcap() string {
+	if x != nil {
+		return x.Pcap
 	}
 	return ""
 }
@@ -1850,7 +1860,7 @@ const file_urljail_report_v0_report_proto_rawDesc = "" +
 	"\bfilename\x18\x02 \x01(\tR\bfilename\x12\x14\n" +
 	"\x05state\x18\x03 \x01(\tR\x05state\x12\x14\n" +
 	"\x05bytes\x18\x04 \x01(\rR\x05bytes\x12\x16\n" +
-	"\x06source\x18\x05 \x01(\tR\x06source\"\xda\x01\n" +
+	"\x06source\x18\x05 \x01(\tR\x06source\"\xee\x01\n" +
 	"\tArtifacts\x12\x1e\n" +
 	"\n" +
 	"screenshot\x18\x01 \x01(\tR\n" +
@@ -1862,7 +1872,8 @@ const file_urljail_report_v0_report_proto_rawDesc = "" +
 	"chrome_log\x18\x05 \x01(\tR\tchromeLog\x12\x1d\n" +
 	"\n" +
 	"serial_log\x18\x06 \x01(\tR\tserialLog\x12'\n" +
-	"\x0ffirecracker_log\x18\a \x01(\tR\x0efirecrackerLogB\xc2\x01\n" +
+	"\x0ffirecracker_log\x18\a \x01(\tR\x0efirecrackerLog\x12\x12\n" +
+	"\x04pcap\x18\b \x01(\tR\x04pcapB\xc2\x01\n" +
 	"\x15com.urljail.report.v0B\vReportProtoP\x01Z6github.com/KhaledSaeed18/urljail/gen/urljail/report/v0\xa2\x02\x03URV\xaa\x02\x11Urljail.Report.V0\xca\x02\x11Urljail\\Report\\V0\xe2\x02\x1dUrljail\\Report\\V0\\GPBMetadata\xea\x02\x13Urljail::Report::V0b\x06proto3"
 
 var (

@@ -258,6 +258,7 @@ func run() error {
 	}
 
 	srv := daemon.New(cfg, eg, log)
+	srv.RecoverRuns(ctx) // runs a crash or SIGKILL left root-owned, without status or report
 	if *useSnapshots && eg != nil {
 		if err := op.MkdirAll(cfg.SnapshotsDir, 0o700); err != nil {
 			return err

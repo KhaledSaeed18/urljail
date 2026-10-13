@@ -121,7 +121,7 @@ runs/<run-id>/
 
 `<run-id>` is a UUIDv7 ([ADR 0008](./decisions/0008-protobuf-report-schema.md)).
 
-**Retention:** pcaps are deleted after N days (configurable) and under a total disk cap, oldest first. Reports, metadata and the other small artifacts are kept. The policy is implemented in P7.
+**Retention:** pcaps (with the TLS key log that decrypts them) are deleted after N days and under a total disk cap, oldest first: `urljail gc`, run daily by a systemd user timer as the operator ([P7 journal](./journal/p7-control-plane.md#m1-retention)). Reports, metadata and the other small artifacts are kept; a pruned run's report says what was deleted and when.
 
 ## Repo layout
 

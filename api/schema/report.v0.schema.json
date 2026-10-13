@@ -41,6 +41,11 @@
           "default": "",
           "type": "string"
         },
+        "pcap": {
+          "default": "",
+          "description": "Host packet capture; empty once retention deleted it (see gaps).",
+          "type": "string"
+        },
         "screenshot": {
           "default": "",
           "type": "string"
@@ -1034,7 +1039,7 @@
         },
         "status": {
           "default": "",
-          "description": "\"completed\", \"timeout\", \"cancelled\" or \"error\".",
+          "description": "\"completed\", \"timeout\", \"cancelled\", \"error\", or \"interrupted\" (the daemon stopped\n during the run; recovered at its next start).",
           "type": "string"
         },
         "submitted_url": {

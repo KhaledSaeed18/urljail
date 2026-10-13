@@ -31,7 +31,8 @@ message Run {
   Egress egress = 4;
   google.protobuf.Timestamp started_at = 5;
   google.protobuf.Timestamp ended_at = 6;
-  // "completed", "timeout", "cancelled" or "error".
+  // "completed", "timeout", "cancelled", "error", or "interrupted" (the daemon stopped
+  // during the run; recovered at its next start).
   string status = 7;
   string error = 8;
   // Component versions: urljail, firecracker, image, guest_kernel, browser, snapshot.
@@ -233,4 +234,6 @@ message Artifacts {
   string chrome_log = 5;
   string serial_log = 6;
   string firecracker_log = 7;
+  // Host packet capture; empty once retention deleted it (see gaps).
+  string pcap = 8;
 }
