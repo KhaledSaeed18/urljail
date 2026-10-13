@@ -359,6 +359,23 @@
       "title": "Feed",
       "type": "object"
     },
+    "urljail.report.v0.Field.schema.json": {
+      "$schema": "https://json-schema.org/draft/2020-12/schema",
+      "additionalProperties": false,
+      "properties": {
+        "name": {
+          "default": "",
+          "type": "string"
+        },
+        "type": {
+          "default": "",
+          "description": "The input's type attribute, lowercase (\"text\" when unset); \"select\" or \"textarea\" for those.",
+          "type": "string"
+        }
+      },
+      "title": "Field",
+      "type": "object"
+    },
     "urljail.report.v0.Flow.schema.json": {
       "$schema": "https://json-schema.org/draft/2020-12/schema",
       "additionalProperties": false,
@@ -567,6 +584,54 @@
       "title": "Flow",
       "type": "object"
     },
+    "urljail.report.v0.Form.schema.json": {
+      "$schema": "https://json-schema.org/draft/2020-12/schema",
+      "additionalProperties": false,
+      "patternProperties": {
+        "^(crossOriginAction)$": {
+          "default": false,
+          "description": "The action's registrable domain differs from the final URL's: the form sends what's typed\n somewhere else.",
+          "type": "boolean"
+        },
+        "^(hasPassword)$": {
+          "default": false,
+          "type": "boolean"
+        }
+      },
+      "properties": {
+        "action": {
+          "default": "",
+          "description": "The action resolved against the final URL; the final URL itself when the form has none.",
+          "type": "string"
+        },
+        "cross_origin_action": {
+          "default": false,
+          "description": "The action's registrable domain differs from the final URL's: the form sends what's typed\n somewhere else.",
+          "type": "boolean"
+        },
+        "fields": {
+          "items": {
+            "$ref": "#/$defs/urljail.report.v0.Field.schema.json"
+          },
+          "type": "array"
+        },
+        "has_password": {
+          "default": false,
+          "type": "boolean"
+        },
+        "method": {
+          "default": "",
+          "description": "\"get\" or \"post\" (lowercase; \"get\" when unset, as browsers do).",
+          "type": "string"
+        },
+        "source": {
+          "default": "",
+          "type": "string"
+        }
+      },
+      "title": "Form",
+      "type": "object"
+    },
     "urljail.report.v0.Hop.schema.json": {
       "$schema": "https://json-schema.org/draft/2020-12/schema",
       "additionalProperties": false,
@@ -735,6 +800,21 @@
       "$schema": "https://json-schema.org/draft/2020-12/schema",
       "additionalProperties": false,
       "patternProperties": {
+        "^(passwordFields)$": {
+          "anyOf": [
+            {
+              "maximum": 4294967295,
+              "minimum": 0,
+              "type": "integer"
+            },
+            {
+              "pattern": "^[0-9]+$",
+              "type": "string"
+            }
+          ],
+          "default": 0,
+          "description": "Password inputs anywhere in the top document, in a form or not (script-driven logins often\n have no \u003cform\u003e)."
+        },
         "^(screenshotBlank)$": {
           "default": false,
           "description": "The screenshot exists but is one colour, or nearly (no useful hash).",
@@ -758,6 +838,28 @@
             "$ref": "#/$defs/urljail.report.v0.Download.schema.json"
           },
           "type": "array"
+        },
+        "forms": {
+          "description": "Forms in the final DOM (guest/dom.html, the top document only: forms inside iframes\n aren't in it). At most 32 forms of 64 fields each.",
+          "items": {
+            "$ref": "#/$defs/urljail.report.v0.Form.schema.json"
+          },
+          "type": "array"
+        },
+        "password_fields": {
+          "anyOf": [
+            {
+              "maximum": 4294967295,
+              "minimum": 0,
+              "type": "integer"
+            },
+            {
+              "pattern": "^[0-9]+$",
+              "type": "string"
+            }
+          ],
+          "default": 0,
+          "description": "Password inputs anywhere in the top document, in a form or not (script-driven logins often\n have no \u003cform\u003e)."
         },
         "screenshot_blank": {
           "default": false,

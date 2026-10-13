@@ -213,6 +213,31 @@ message Page {
   string screenshot_phash = 3;
   // The screenshot exists but is one colour, or nearly (no useful hash).
   bool screenshot_blank = 4;
+  // Forms in the final DOM (guest/dom.html, the top document only: forms inside iframes
+  // aren't in it). At most 32 forms of 64 fields each.
+  repeated Form forms = 5;
+  // Password inputs anywhere in the top document, in a form or not (script-driven logins often
+  // have no <form>).
+  uint32 password_fields = 6;
+}
+
+message Form {
+  // The action resolved against the final URL; the final URL itself when the form has none.
+  string action = 1;
+  // "get" or "post" (lowercase; "get" when unset, as browsers do).
+  string method = 2;
+  repeated Field fields = 3;
+  bool has_password = 4;
+  // The action's registrable domain differs from the final URL's: the form sends what's typed
+  // somewhere else.
+  bool cross_origin_action = 5;
+  string source = 6;
+}
+
+message Field {
+  string name = 1;
+  // The input's type attribute, lowercase ("text" when unset); "select" or "textarea" for those.
+  string type = 2;
 }
 
 message Dialog {

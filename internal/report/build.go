@@ -117,6 +117,11 @@ func Build(runDir string) (*reportv0.Report, error) {
 		b.add(e)
 	}
 	b.finish(r)
+	if final, err := url.Parse(r.Navigation.GetFinalUrl()); err == nil && final.Host != "" {
+		r.Page.Forms, r.Page.PasswordFields = forms(filepath.Join(runDir, "guest", "dom.html"), final)
+	} else {
+		r.Page.Forms, r.Page.PasswordFields = forms(filepath.Join(runDir, "guest", "dom.html"), nil)
+	}
 	if r.Artifacts.GetScreenshot() != "" {
 		switch h, err := visual.HashFile(filepath.Join(runDir, "guest", "screenshot.png")); {
 		case errors.Is(err, visual.ErrBlank):

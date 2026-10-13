@@ -1421,8 +1421,14 @@ type Page struct {
 	ScreenshotPhash string `protobuf:"bytes,3,opt,name=screenshot_phash,json=screenshotPhash,proto3" json:"screenshot_phash,omitempty"`
 	// The screenshot exists but is one colour, or nearly (no useful hash).
 	ScreenshotBlank bool `protobuf:"varint,4,opt,name=screenshot_blank,json=screenshotBlank,proto3" json:"screenshot_blank,omitempty"`
-	unknownFields   protoimpl.UnknownFields
-	sizeCache       protoimpl.SizeCache
+	// Forms in the final DOM (guest/dom.html, the top document only: forms inside iframes
+	// aren't in it). At most 32 forms of 64 fields each.
+	Forms []*Form `protobuf:"bytes,5,rep,name=forms,proto3" json:"forms,omitempty"`
+	// Password inputs anywhere in the top document, in a form or not (script-driven logins often
+	// have no <form>).
+	PasswordFields uint32 `protobuf:"varint,6,opt,name=password_fields,json=passwordFields,proto3" json:"password_fields,omitempty"`
+	unknownFields  protoimpl.UnknownFields
+	sizeCache      protoimpl.SizeCache
 }
 
 func (x *Page) Reset() {
@@ -1483,6 +1489,161 @@ func (x *Page) GetScreenshotBlank() bool {
 	return false
 }
 
+func (x *Page) GetForms() []*Form {
+	if x != nil {
+		return x.Forms
+	}
+	return nil
+}
+
+func (x *Page) GetPasswordFields() uint32 {
+	if x != nil {
+		return x.PasswordFields
+	}
+	return 0
+}
+
+type Form struct {
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// The action resolved against the final URL; the final URL itself when the form has none.
+	Action string `protobuf:"bytes,1,opt,name=action,proto3" json:"action,omitempty"`
+	// "get" or "post" (lowercase; "get" when unset, as browsers do).
+	Method      string   `protobuf:"bytes,2,opt,name=method,proto3" json:"method,omitempty"`
+	Fields      []*Field `protobuf:"bytes,3,rep,name=fields,proto3" json:"fields,omitempty"`
+	HasPassword bool     `protobuf:"varint,4,opt,name=has_password,json=hasPassword,proto3" json:"has_password,omitempty"`
+	// The action's registrable domain differs from the final URL's: the form sends what's typed
+	// somewhere else.
+	CrossOriginAction bool   `protobuf:"varint,5,opt,name=cross_origin_action,json=crossOriginAction,proto3" json:"cross_origin_action,omitempty"`
+	Source            string `protobuf:"bytes,6,opt,name=source,proto3" json:"source,omitempty"`
+	unknownFields     protoimpl.UnknownFields
+	sizeCache         protoimpl.SizeCache
+}
+
+func (x *Form) Reset() {
+	*x = Form{}
+	mi := &file_urljail_report_v0_report_proto_msgTypes[16]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *Form) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*Form) ProtoMessage() {}
+
+func (x *Form) ProtoReflect() protoreflect.Message {
+	mi := &file_urljail_report_v0_report_proto_msgTypes[16]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use Form.ProtoReflect.Descriptor instead.
+func (*Form) Descriptor() ([]byte, []int) {
+	return file_urljail_report_v0_report_proto_rawDescGZIP(), []int{16}
+}
+
+func (x *Form) GetAction() string {
+	if x != nil {
+		return x.Action
+	}
+	return ""
+}
+
+func (x *Form) GetMethod() string {
+	if x != nil {
+		return x.Method
+	}
+	return ""
+}
+
+func (x *Form) GetFields() []*Field {
+	if x != nil {
+		return x.Fields
+	}
+	return nil
+}
+
+func (x *Form) GetHasPassword() bool {
+	if x != nil {
+		return x.HasPassword
+	}
+	return false
+}
+
+func (x *Form) GetCrossOriginAction() bool {
+	if x != nil {
+		return x.CrossOriginAction
+	}
+	return false
+}
+
+func (x *Form) GetSource() string {
+	if x != nil {
+		return x.Source
+	}
+	return ""
+}
+
+type Field struct {
+	state protoimpl.MessageState `protogen:"open.v1"`
+	Name  string                 `protobuf:"bytes,1,opt,name=name,proto3" json:"name,omitempty"`
+	// The input's type attribute, lowercase ("text" when unset); "select" or "textarea" for those.
+	Type          string `protobuf:"bytes,2,opt,name=type,proto3" json:"type,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *Field) Reset() {
+	*x = Field{}
+	mi := &file_urljail_report_v0_report_proto_msgTypes[17]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *Field) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*Field) ProtoMessage() {}
+
+func (x *Field) ProtoReflect() protoreflect.Message {
+	mi := &file_urljail_report_v0_report_proto_msgTypes[17]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use Field.ProtoReflect.Descriptor instead.
+func (*Field) Descriptor() ([]byte, []int) {
+	return file_urljail_report_v0_report_proto_rawDescGZIP(), []int{17}
+}
+
+func (x *Field) GetName() string {
+	if x != nil {
+		return x.Name
+	}
+	return ""
+}
+
+func (x *Field) GetType() string {
+	if x != nil {
+		return x.Type
+	}
+	return ""
+}
+
 type Dialog struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
 	// "alert", "confirm", "prompt" or "beforeunload". Dialogs are dismissed automatically.
@@ -1496,7 +1657,7 @@ type Dialog struct {
 
 func (x *Dialog) Reset() {
 	*x = Dialog{}
-	mi := &file_urljail_report_v0_report_proto_msgTypes[16]
+	mi := &file_urljail_report_v0_report_proto_msgTypes[18]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1508,7 +1669,7 @@ func (x *Dialog) String() string {
 func (*Dialog) ProtoMessage() {}
 
 func (x *Dialog) ProtoReflect() protoreflect.Message {
-	mi := &file_urljail_report_v0_report_proto_msgTypes[16]
+	mi := &file_urljail_report_v0_report_proto_msgTypes[18]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1521,7 +1682,7 @@ func (x *Dialog) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use Dialog.ProtoReflect.Descriptor instead.
 func (*Dialog) Descriptor() ([]byte, []int) {
-	return file_urljail_report_v0_report_proto_rawDescGZIP(), []int{16}
+	return file_urljail_report_v0_report_proto_rawDescGZIP(), []int{18}
 }
 
 func (x *Dialog) GetType() string {
@@ -1566,7 +1727,7 @@ type Download struct {
 
 func (x *Download) Reset() {
 	*x = Download{}
-	mi := &file_urljail_report_v0_report_proto_msgTypes[17]
+	mi := &file_urljail_report_v0_report_proto_msgTypes[19]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1578,7 +1739,7 @@ func (x *Download) String() string {
 func (*Download) ProtoMessage() {}
 
 func (x *Download) ProtoReflect() protoreflect.Message {
-	mi := &file_urljail_report_v0_report_proto_msgTypes[17]
+	mi := &file_urljail_report_v0_report_proto_msgTypes[19]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1591,7 +1752,7 @@ func (x *Download) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use Download.ProtoReflect.Descriptor instead.
 func (*Download) Descriptor() ([]byte, []int) {
-	return file_urljail_report_v0_report_proto_rawDescGZIP(), []int{17}
+	return file_urljail_report_v0_report_proto_rawDescGZIP(), []int{19}
 }
 
 func (x *Download) GetUrl() string {
@@ -1647,7 +1808,7 @@ type Artifacts struct {
 
 func (x *Artifacts) Reset() {
 	*x = Artifacts{}
-	mi := &file_urljail_report_v0_report_proto_msgTypes[18]
+	mi := &file_urljail_report_v0_report_proto_msgTypes[20]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1659,7 +1820,7 @@ func (x *Artifacts) String() string {
 func (*Artifacts) ProtoMessage() {}
 
 func (x *Artifacts) ProtoReflect() protoreflect.Message {
-	mi := &file_urljail_report_v0_report_proto_msgTypes[18]
+	mi := &file_urljail_report_v0_report_proto_msgTypes[20]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1672,7 +1833,7 @@ func (x *Artifacts) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use Artifacts.ProtoReflect.Descriptor instead.
 func (*Artifacts) Descriptor() ([]byte, []int) {
-	return file_urljail_report_v0_report_proto_rawDescGZIP(), []int{18}
+	return file_urljail_report_v0_report_proto_rawDescGZIP(), []int{20}
 }
 
 func (x *Artifacts) GetScreenshot() string {
@@ -1867,12 +2028,24 @@ const file_urljail_report_v0_report_proto_rawDesc = "" +
 	"\x06source\x18\b \x01(\tR\x06source\"@\n" +
 	"\x06Domain\x12 \n" +
 	"\vregistrable\x18\x01 \x01(\tR\vregistrable\x12\x14\n" +
-	"\x05hosts\x18\x02 \x03(\tR\x05hosts\"\xcc\x01\n" +
+	"\x05hosts\x18\x02 \x03(\tR\x05hosts\"\xa4\x02\n" +
 	"\x04Page\x123\n" +
 	"\adialogs\x18\x01 \x03(\v2\x19.urljail.report.v0.DialogR\adialogs\x129\n" +
 	"\tdownloads\x18\x02 \x03(\v2\x1b.urljail.report.v0.DownloadR\tdownloads\x12)\n" +
 	"\x10screenshot_phash\x18\x03 \x01(\tR\x0fscreenshotPhash\x12)\n" +
-	"\x10screenshot_blank\x18\x04 \x01(\bR\x0fscreenshotBlank\"`\n" +
+	"\x10screenshot_blank\x18\x04 \x01(\bR\x0fscreenshotBlank\x12-\n" +
+	"\x05forms\x18\x05 \x03(\v2\x17.urljail.report.v0.FormR\x05forms\x12'\n" +
+	"\x0fpassword_fields\x18\x06 \x01(\rR\x0epasswordFields\"\xd3\x01\n" +
+	"\x04Form\x12\x16\n" +
+	"\x06action\x18\x01 \x01(\tR\x06action\x12\x16\n" +
+	"\x06method\x18\x02 \x01(\tR\x06method\x120\n" +
+	"\x06fields\x18\x03 \x03(\v2\x18.urljail.report.v0.FieldR\x06fields\x12!\n" +
+	"\fhas_password\x18\x04 \x01(\bR\vhasPassword\x12.\n" +
+	"\x13cross_origin_action\x18\x05 \x01(\bR\x11crossOriginAction\x12\x16\n" +
+	"\x06source\x18\x06 \x01(\tR\x06source\"/\n" +
+	"\x05Field\x12\x12\n" +
+	"\x04name\x18\x01 \x01(\tR\x04name\x12\x12\n" +
+	"\x04type\x18\x02 \x01(\tR\x04type\"`\n" +
 	"\x06Dialog\x12\x12\n" +
 	"\x04type\x18\x01 \x01(\tR\x04type\x12\x18\n" +
 	"\amessage\x18\x02 \x01(\tR\amessage\x12\x10\n" +
@@ -1911,7 +2084,7 @@ func file_urljail_report_v0_report_proto_rawDescGZIP() []byte {
 	return file_urljail_report_v0_report_proto_rawDescData
 }
 
-var file_urljail_report_v0_report_proto_msgTypes = make([]protoimpl.MessageInfo, 20)
+var file_urljail_report_v0_report_proto_msgTypes = make([]protoimpl.MessageInfo, 22)
 var file_urljail_report_v0_report_proto_goTypes = []any{
 	(*Report)(nil),                // 0: urljail.report.v0.Report
 	(*Run)(nil),                   // 1: urljail.report.v0.Run
@@ -1929,27 +2102,29 @@ var file_urljail_report_v0_report_proto_goTypes = []any{
 	(*Tls)(nil),                   // 13: urljail.report.v0.Tls
 	(*Domain)(nil),                // 14: urljail.report.v0.Domain
 	(*Page)(nil),                  // 15: urljail.report.v0.Page
-	(*Dialog)(nil),                // 16: urljail.report.v0.Dialog
-	(*Download)(nil),              // 17: urljail.report.v0.Download
-	(*Artifacts)(nil),             // 18: urljail.report.v0.Artifacts
-	nil,                           // 19: urljail.report.v0.Run.VersionsEntry
-	(*timestamppb.Timestamp)(nil), // 20: google.protobuf.Timestamp
+	(*Form)(nil),                  // 16: urljail.report.v0.Form
+	(*Field)(nil),                 // 17: urljail.report.v0.Field
+	(*Dialog)(nil),                // 18: urljail.report.v0.Dialog
+	(*Download)(nil),              // 19: urljail.report.v0.Download
+	(*Artifacts)(nil),             // 20: urljail.report.v0.Artifacts
+	nil,                           // 21: urljail.report.v0.Run.VersionsEntry
+	(*timestamppb.Timestamp)(nil), // 22: google.protobuf.Timestamp
 }
 var file_urljail_report_v0_report_proto_depIdxs = []int32{
 	1,  // 0: urljail.report.v0.Report.run:type_name -> urljail.report.v0.Run
 	5,  // 1: urljail.report.v0.Report.navigation:type_name -> urljail.report.v0.Navigation
 	7,  // 2: urljail.report.v0.Report.network:type_name -> urljail.report.v0.Network
 	15, // 3: urljail.report.v0.Report.page:type_name -> urljail.report.v0.Page
-	18, // 4: urljail.report.v0.Report.artifacts:type_name -> urljail.report.v0.Artifacts
+	20, // 4: urljail.report.v0.Report.artifacts:type_name -> urljail.report.v0.Artifacts
 	11, // 5: urljail.report.v0.Report.reconciliation:type_name -> urljail.report.v0.Reconciliation
 	4,  // 6: urljail.report.v0.Run.egress:type_name -> urljail.report.v0.Egress
-	20, // 7: urljail.report.v0.Run.started_at:type_name -> google.protobuf.Timestamp
-	20, // 8: urljail.report.v0.Run.ended_at:type_name -> google.protobuf.Timestamp
-	19, // 9: urljail.report.v0.Run.versions:type_name -> urljail.report.v0.Run.VersionsEntry
+	22, // 7: urljail.report.v0.Run.started_at:type_name -> google.protobuf.Timestamp
+	22, // 8: urljail.report.v0.Run.ended_at:type_name -> google.protobuf.Timestamp
+	21, // 9: urljail.report.v0.Run.versions:type_name -> urljail.report.v0.Run.VersionsEntry
 	3,  // 10: urljail.report.v0.Run.clone:type_name -> urljail.report.v0.Clone
 	2,  // 11: urljail.report.v0.Run.feed:type_name -> urljail.report.v0.Feed
-	20, // 12: urljail.report.v0.Feed.first_seen:type_name -> google.protobuf.Timestamp
-	20, // 13: urljail.report.v0.Feed.feed_time:type_name -> google.protobuf.Timestamp
+	22, // 12: urljail.report.v0.Feed.first_seen:type_name -> google.protobuf.Timestamp
+	22, // 13: urljail.report.v0.Feed.feed_time:type_name -> google.protobuf.Timestamp
 	6,  // 14: urljail.report.v0.Navigation.redirect_chain:type_name -> urljail.report.v0.Hop
 	12, // 15: urljail.report.v0.Network.requests:type_name -> urljail.report.v0.Request
 	13, // 16: urljail.report.v0.Network.tls:type_name -> urljail.report.v0.Tls
@@ -1957,19 +2132,21 @@ var file_urljail_report_v0_report_proto_depIdxs = []int32{
 	8,  // 18: urljail.report.v0.Network.dns:type_name -> urljail.report.v0.DnsQuery
 	9,  // 19: urljail.report.v0.Network.flows:type_name -> urljail.report.v0.Flow
 	10, // 20: urljail.report.v0.Network.blocked:type_name -> urljail.report.v0.Blocked
-	20, // 21: urljail.report.v0.DnsQuery.time:type_name -> google.protobuf.Timestamp
-	20, // 22: urljail.report.v0.Flow.first:type_name -> google.protobuf.Timestamp
-	20, // 23: urljail.report.v0.Flow.last:type_name -> google.protobuf.Timestamp
-	20, // 24: urljail.report.v0.Blocked.first:type_name -> google.protobuf.Timestamp
-	20, // 25: urljail.report.v0.Tls.not_before:type_name -> google.protobuf.Timestamp
-	20, // 26: urljail.report.v0.Tls.not_after:type_name -> google.protobuf.Timestamp
-	16, // 27: urljail.report.v0.Page.dialogs:type_name -> urljail.report.v0.Dialog
-	17, // 28: urljail.report.v0.Page.downloads:type_name -> urljail.report.v0.Download
-	29, // [29:29] is the sub-list for method output_type
-	29, // [29:29] is the sub-list for method input_type
-	29, // [29:29] is the sub-list for extension type_name
-	29, // [29:29] is the sub-list for extension extendee
-	0,  // [0:29] is the sub-list for field type_name
+	22, // 21: urljail.report.v0.DnsQuery.time:type_name -> google.protobuf.Timestamp
+	22, // 22: urljail.report.v0.Flow.first:type_name -> google.protobuf.Timestamp
+	22, // 23: urljail.report.v0.Flow.last:type_name -> google.protobuf.Timestamp
+	22, // 24: urljail.report.v0.Blocked.first:type_name -> google.protobuf.Timestamp
+	22, // 25: urljail.report.v0.Tls.not_before:type_name -> google.protobuf.Timestamp
+	22, // 26: urljail.report.v0.Tls.not_after:type_name -> google.protobuf.Timestamp
+	18, // 27: urljail.report.v0.Page.dialogs:type_name -> urljail.report.v0.Dialog
+	19, // 28: urljail.report.v0.Page.downloads:type_name -> urljail.report.v0.Download
+	16, // 29: urljail.report.v0.Page.forms:type_name -> urljail.report.v0.Form
+	17, // 30: urljail.report.v0.Form.fields:type_name -> urljail.report.v0.Field
+	31, // [31:31] is the sub-list for method output_type
+	31, // [31:31] is the sub-list for method input_type
+	31, // [31:31] is the sub-list for extension type_name
+	31, // [31:31] is the sub-list for extension extendee
+	0,  // [0:31] is the sub-list for field type_name
 }
 
 func init() { file_urljail_report_v0_report_proto_init() }
@@ -1983,7 +2160,7 @@ func file_urljail_report_v0_report_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_urljail_report_v0_report_proto_rawDesc), len(file_urljail_report_v0_report_proto_rawDesc)),
 			NumEnums:      0,
-			NumMessages:   20,
+			NumMessages:   22,
 			NumExtensions: 0,
 			NumServices:   0,
 		},
