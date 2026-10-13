@@ -1,6 +1,6 @@
 # P7: control plane
 
-Status: **in progress** (started 2026-10-13)
+Status: **closed** 2026-10-14 (started 2026-10-13)
 
 ## M1: retention
 
@@ -41,3 +41,7 @@ After the report fixes, without re-running anything: **42 of 1,344 not consisten
 
 - **Found in the control plane:** a rebuilt `report.json` (`urljail report`, retention) never reached the dashboard: the importer skipped runs it already had. It now records the mtime of the `report.json` each stored report was read from and refreshes finished runs whose file is newer (never a run the worker is still handling). First pass after the change: 1,347 refreshed.
 
+
+## Exit
+
+Met: a URL submitted through the dashboard's form is detonated and its report rendered (redirect chain, network graph, screenshot); the control plane, its database and queue run as the operator, so `urljaild` stays the only privileged component. The installed daemon builds reports with the code from before M3's two report fixes (WebSockets, `Link` headers) until its next reinstall; the CLI and `urljail report` already use them.

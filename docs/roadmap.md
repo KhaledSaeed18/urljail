@@ -89,12 +89,12 @@ See [research/anti-cloaking.md](./research/anti-cloaking.md).
 
 **Exit:** cloaking rate per countermeasure on a real feed, with methodology documented.
 
-## P7: Control plane (in progress)
+## P7: Control plane (done 2026-10-14)
 - [x] NestJS orchestrator + Postgres + BullMQ queue; gRPC client to `urljaild` ([control-plane](../control-plane/README.md), [ADR 0019](./decisions/0019-control-plane-deployment.md))
 - [x] Next.js dashboard: submit URL, run list, report view (redirect chain, network graph, screenshot)
 - [x] Retention policy (pcaps rotated after N days + disk cap; reports kept): `urljail gc` + user timer ([journal](./journal/p7-control-plane.md))
 
-**Exit:** submit from the dashboard → report rendered; daemon remains the only privileged component.
+**Exit:** submit from the dashboard → report rendered; daemon remains the only privileged component. **Met:** [journal](./journal/p7-control-plane.md).
 
 ---
 
