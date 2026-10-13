@@ -1,0 +1,111 @@
+package outcome
+
+import (
+	"slices"
+	"strings"
+)
+
+// Countermeasures are the factors the stealth profiles switch (daemon profiles.go).
+var Countermeasures = []string{"ua", "webdriver", "tz"}
+
+// countermeasures returns which factors a profile applies, from its name: baseline none,
+// stealth all, stealth-no-<f> all but f. Unknown names: nil, false.
+func countermeasures(profile string) (map[string]bool, bool) {
+	switch {
+	case profile == "baseline":
+		return map[string]bool{}, true
+	case profile == "stealth":
+		return map[string]bool{"ua": true, "webdriver": true, "tz": true}, true
+	case strings.HasPrefix(profile, "stealth-no-"):
+		f := strings.TrimPrefix(profile, "stealth-no-")
+		if !slices.Contains(Countermeasures, f) {
+			return nil, false
+		}
+		m := map[string]bool{"ua": true, "webdriver": true, "tz": true}
+		delete(m, f)
+		return m, true
+	}
+	return nil, false
+}
+
+// Comparison is one URL across profiles.
+type Comparison struct {
+	URL      string    `json:"url"`
+	Outcomes []Outcome `json:"outcomes"`
+	// Differs: the profiles didn't all get the same outcome (label or final domain).
+	Differs bool `json:"differs"`
+	// Groups: profiles by outcome ("login@paypal-x.top" → profiles).
+	Groups map[string][]string `json:"groups,omitempty"`
+	// Factor: the one countermeasure whose presence splits the profiles exactly as the
+	// outcomes do ("ua", "webdriver", "tz"); empty when none or several fit.
+	Factor string `json:"factor,omitempty"`
+	// Visual: largest screenshot hash distance between two runs with the same outcome
+	// (rendering or timing noise vs. different content; -1 if not comparable).
+	Visual int `json:"visual"`
+	// Reached: at least one profile got a page (not dead, no response or origin down).
+	Reached bool `json:"reached"`
+}
+
+func key(o Outcome) string { return o.Label + "@" + o.FinalDomain }
+
+// Compare puts a URL's outcomes side by side.
+func Compare(u string, outs []Outcome) Comparison {
+	c := Comparison{URL: u, Outcomes: outs, Groups: map[string][]string{}, Visual: -1}
+	for _, o := range outs {
+		c.Groups[key(o)] = append(c.Groups[key(o)], o.Profile)
+		switch o.Label {
+		case Failed, Dead, NoResponse, OriginDown:
+		default:
+			c.Reached = true
+		}
+	}
+	for i := range outs {
+		for j := i + 1; j < len(outs); j++ {
+			if key(outs[i]) == key(outs[j]) {
+				c.Visual = max(c.Visual, ScreenDistance(outs[i].Screen, outs[j].Screen))
+			}
+		}
+	}
+	if len(c.Groups) < 2 {
+		c.Groups = nil
+		return c
+	}
+	c.Differs = true
+	// Failed runs say nothing about the page: leave them out of the attribution.
+	var known []Outcome
+	for _, o := range outs {
+		if _, ok := countermeasures(o.Profile); ok && o.Label != Failed {
+			known = append(known, o)
+		}
+	}
+	var fits []string
+	for _, f := range Countermeasures {
+		if splitsBy(known, f) {
+			fits = append(fits, f)
+		}
+	}
+	if len(fits) == 1 {
+		c.Factor = fits[0]
+	}
+	return c
+}
+
+// splitsBy reports whether outcomes are the same exactly when factor f's presence is.
+func splitsBy(outs []Outcome, f string) bool {
+	with, without := map[string]bool{}, map[string]bool{}
+	for _, o := range outs {
+		cm, _ := countermeasures(o.Profile)
+		if cm[f] {
+			with[key(o)] = true
+		} else {
+			without[key(o)] = true
+		}
+	}
+	if len(with) != 1 || len(without) != 1 {
+		return false
+	}
+	for k := range with {
+		return !without[k]
+	}
+	return false
+}

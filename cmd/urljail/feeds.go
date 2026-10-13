@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
 	"flag"
 	"fmt"
@@ -21,6 +22,7 @@ import (
 	reportv0 "github.com/KhaledSaeed18/urljail/gen/urljail/report/v0"
 	"github.com/KhaledSaeed18/urljail/internal/ctlog"
 	"github.com/KhaledSaeed18/urljail/internal/feeds"
+	"github.com/KhaledSaeed18/urljail/internal/outcome"
 	"github.com/KhaledSaeed18/urljail/internal/paths"
 	"github.com/KhaledSaeed18/urljail/internal/report"
 )
@@ -38,6 +40,9 @@ const feedsUsage = `usage: urljail feeds <command>
   watch [-for 1h] [-min-age 5m] [-profiles all] [-max-urls N]
                  follow CT and detonate candidates under every profile once they're
                  min-age old (live mode only)
+  compare [-differs] [-json]
+                 label each URL's outcome per profile and flag profiles that got
+                 something different (which countermeasure, when one explains it)
   pause|resume   stop or allow submissions (fetching continues)
 `
 
@@ -129,6 +134,14 @@ func cmdFeeds(ctx context.Context, c daemonv1.DaemonServiceClient, args []string
 		wctx, cancel := context.WithTimeout(ctx, *dur)
 		defer cancel()
 		return watchCT(wctx, c, st, *profs, *minAge, *maxURLs)
+	case "compare":
+		fs := flag.NewFlagSet("feeds compare", flag.ContinueOnError)
+		onlyDiff := fs.Bool("differs", false, "list only URLs where profiles differ")
+		asJSON := fs.Bool("json", false, "print the comparisons as JSON")
+		if err := fs.Parse(args[1:]); err != nil {
+			return exitError(2)
+		}
+		return compareFeeds(st, filepath.Join(paths.DataDir(home), "runs"), *onlyDiff, *asJSON)
 	case "pause", "resume":
 		if err := st.SetPaused(args[0] == "pause"); err != nil {
 			return err
@@ -514,4 +527,93 @@ func followCT(ctx context.Context, dump io.Writer, found func(*feeds.Item)) (int
 			}
 		}
 	}
+}
+
+// compareFeeds labels every URL's latest round of runs and compares the profiles.
+func compareFeeds(st *feeds.Store, runsDir string, onlyDiff, asJSON bool) error {
+	var cmps []outcome.Comparison
+	for _, it := range st.Items {
+		if len(it.Runs) == 0 {
+			continue
+		}
+		var outs []outcome.Outcome
+		for prof, id := range it.Runs {
+			if strings.Contains(prof, "#") { // an earlier round
+				continue
+			}
+			o := outcome.Classify(filepath.Join(runsDir, filepath.Base(id)), it.URL)
+			if o.Profile == "" {
+				o.Profile = prof
+			}
+			outs = append(outs, o)
+		}
+		sort.Slice(outs, func(i, j int) bool { return outs[i].Profile < outs[j].Profile })
+		cmps = append(cmps, outcome.Compare(it.URL, outs))
+	}
+	sort.Slice(cmps, func(i, j int) bool { return cmps[i].URL < cmps[j].URL })
+	if asJSON {
+		enc := json.NewEncoder(os.Stdout)
+		enc.SetIndent("", "  ")
+		return enc.Encode(cmps)
+	}
+	labels, factors := map[string]int{}, map[string]int{}
+	reached, differs := 0, 0
+	for _, c := range cmps {
+		if c.Reached {
+			reached++
+		}
+		if c.Differs {
+			differs++
+			f := c.Factor
+			if f == "" {
+				f = "unattributed"
+			}
+			factors[f]++
+		} else if len(c.Outcomes) > 0 {
+			labels[c.Outcomes[0].Label]++
+		}
+		if onlyDiff && !c.Differs {
+			continue
+		}
+		mark := "same   "
+		if c.Differs {
+			mark = "DIFFERS"
+		}
+		fmt.Printf("%s  %s\n", mark, c.URL)
+		if c.Differs {
+			keys := make([]string, 0, len(c.Groups))
+			for k := range c.Groups {
+				keys = append(keys, k)
+			}
+			sort.Strings(keys)
+			for _, k := range keys {
+				fmt.Printf("           %-40s %s\n", k, strings.Join(c.Groups[k], ", "))
+			}
+			if c.Factor != "" {
+				fmt.Printf("           explained by one countermeasure: %s\n", c.Factor)
+			}
+		} else if len(c.Outcomes) > 0 {
+			o := c.Outcomes[0]
+			fmt.Printf("           %s@%s %q\n", o.Label, o.FinalDomain, truncate(o.Title, 50))
+		}
+	}
+	fmt.Printf("\n%d URLs compared: %d reached a page in at least one profile, %d differ between profiles\n", len(cmps), reached, differs)
+	fmt.Printf("same in every profile, by outcome: %v\n", sortedCounts(labels))
+	if differs > 0 {
+		fmt.Printf("differing, by explaining countermeasure: %v\n", sortedCounts(factors))
+	}
+	return nil
+}
+
+func sortedCounts(m map[string]int) string {
+	keys := make([]string, 0, len(m))
+	for k := range m {
+		keys = append(keys, k)
+	}
+	sort.Slice(keys, func(i, j int) bool { return m[keys[i]] > m[keys[j]] || m[keys[i]] == m[keys[j]] && keys[i] < keys[j] })
+	var parts []string
+	for _, k := range keys {
+		parts = append(parts, fmt.Sprintf("%s %d", k, m[k]))
+	}
+	return strings.Join(parts, ", ")
 }
