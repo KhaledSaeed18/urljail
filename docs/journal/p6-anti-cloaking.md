@@ -121,3 +121,34 @@ Also: most "accounting" names were candidates because "account**ing**" matched t
 
 **Process note:** several earlier test additions for the CT scoring had silently not been applied (an edit script replaced text that `gofmt` had re-aligned, with no match check). They are in now (29 cases, all passing), and edits are checked for a match.
 
+### 3 h of `feeds watch` with the headful profile (2026-10-13, 10:2x–13:2x)
+
+67 candidates queued, 70 detonations (6 retries of sites not up yet); 65 URLs ran under all six profiles plus both controls, **60 reached a page**.
+
+| Profile | content | login | gate | blocked | error page | redirect away | no response |
+| ------- | ------- | ----- | ---- | ------- | ---------- | ------------- | ----------- |
+| baseline | 28 | 7 | 4 | 3 | 13 | 4 | 1 |
+| baseline~control | 29 | 7 | 4 | 3 | 13 | 4 | 0 |
+| stealth | 29 | 7 | 3 | 3 | 12 | 5 | 1 |
+| stealth-no-ua | 28 | 7 | 4 | 3 | 13 | 4 | 1 |
+| stealth-no-webdriver | 31 | 6 | 2 | 3 | 13 | 5 | 0 |
+| stealth-no-tz | 29 | 7 | 2 | 3 | 13 | 5 | 1 |
+| stealth-headful | 29 | 7 | 3 | 3 | 12 | 5 | 1 |
+| stealth-headful~control | 29 | 7 | 2 | 3 | 12 | 5 | 2 |
+
+- **Noise:** the baseline control agreed with its twin on 59 of 60; the headful control on 55 of 60 (headful rendering is slower and noisier).
+- **Profiles differed on 9 of 60.** Six unattributed: single runs without an answer, a three-way split, and `26kraken.cc`, a rotating redirect (`sion6.at` / `sion10.to`) whose control disagreed, so not credited although its split looked like the User-Agent's.
+- **Three User-Agent splits, all infrastructure:**
+  - `simone-zeller-mentalstark.de`, `blockchain-smart-contract.com` (redirects to `blockchain.com`): Cloudflare challenges `HeadlessChrome`, lets the desktop UA through.
+  - `ecs-bbo-alerts.pro.bbva-ether-billing-sp.backend-services.net`: not phishing but BBVA's own sign-in chain (Google OAuth for `hd=bbva.com`, then SAML to `idp.live.global.platform.bbva.com`). For the desktop UA Google hands off to BBVA's identity provider; for `HeadlessChrome` **Google's sign-in stops on its own page**.
+- **Headful: no effect.** No split credited to it; its counts match `stealth`.
+
+## Where R1 stands (2026-10-13)
+
+Over three watch runs (about 170 fresh CT candidates, 160 with at least five profiles; 115 with controls):
+
+1. **The only countermeasure that ever changed what a site showed is the User-Agent** (`HeadlessChrome` vs desktop): 5 URLs, every one explained by infrastructure reacting to headless Chrome (Cloudflare's bot management ×3, Google's sign-in, an Amazon-internal tool). `navigator.webdriver`, time zone and headless mode itself: no measurable effect.
+2. **No phishing kit was seen cloaking on any of the four signals.** The phishing that was reached was already taken down or behind Cloudflare's phishing interstitial within minutes, or behind a kit's own **click gate** (Australia Post lure), which no browser profile can pass.
+3. **Implication for scanners:** in this sample, the one thing worth doing is not announcing `HeadlessChrome`, mainly to get past CDNs and identity providers; beyond that, the barriers are interaction gates and takedown speed, not fingerprinting.
+4. **Limits:** one datacenter exit (Proton free, Chicago), so exit type is untested; CT scoring has low precision for real phishing (most candidates are ordinary businesses); one run per profile plus two controls per URL; Chrome 155 only.
+
