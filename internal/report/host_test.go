@@ -202,3 +202,40 @@ func TestWebSocketIsPage(t *testing.T) {
 		t.Errorf("the WebSocket's host is still unexplained: dns=%v flows=%v", rec.GetUnexplainedDns(), rec.GetUnexplainedFlows())
 	}
 }
+
+func TestLinkHeaderHosts(t *testing.T) {
+	h := map[string]any{"Link": `<https://fonts.gstatic.com>; rel=preconnect; crossorigin, </app.css>; rel="preload"; as=style, <https://cdn.example.net/x>; rel=canonical
+<//dns.example.org>; rel=dns-prefetch`}
+	got := linkHeaderHosts(h, "https://fonts.googleapis.com/css?family=X")
+	slices.Sort(got)
+	want := []string{"dns.example.org", "fonts.googleapis.com", "fonts.gstatic.com"} // canonical isn't a hint
+	if !slices.Equal(got, want) {
+		t.Errorf("hosts = %v, want %v", got, want)
+	}
+	if got := linkHeaderHosts(map[string]any{"Link": 7, "X-Link": "<https://a.test>; rel=preconnect"}, ""); len(got) != 0 {
+		t.Errorf("non-string or other headers gave %v", got)
+	}
+}
+
+// A preconnect named in a response's Link header explains the host's connection to it.
+func TestLinkHeaderPreconnectIsHint(t *testing.T) {
+	dir := writeRun(t, true)
+	writeHost(t, dir)
+	f, _ := os.OpenFile(filepath.Join(dir, "guest", "events.jsonl"), os.O_APPEND|os.O_WRONLY, 0)
+	f.WriteString(`{"method":"Network.requestWillBeSent","params":{"requestId":"css","type":"Stylesheet","request":{"url":"https://land.example.org/f.css","method":"GET"},"initiator":{"type":"parser"}}}
+{"method":"Network.responseReceived","params":{"requestId":"css","type":"Stylesheet","response":{"url":"https://land.example.org/f.css","status":200,"headers":{"link":"<https://beacon.evil.test>; rel=preconnect; crossorigin"}}}}
+`)
+	f.Close()
+	r, err := Build(dir)
+	if err != nil {
+		t.Fatal(err)
+	}
+	for _, fl := range r.GetNetwork().GetFlows() {
+		if fl.GetSni() == "beacon.evil.test" && fl.GetLabel() != "page-hint" {
+			t.Errorf("flow to beacon.evil.test labeled %q, want page-hint", fl.GetLabel())
+		}
+	}
+	if rec := r.GetReconciliation(); len(rec.GetUnexplainedDns()) != 0 || len(rec.GetUnexplainedFlows()) != 0 {
+		t.Errorf("still unexplained: dns=%v flows=%v", rec.GetUnexplainedDns(), rec.GetUnexplainedFlows())
+	}
+}

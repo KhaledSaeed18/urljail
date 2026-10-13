@@ -69,7 +69,7 @@ func readJSONL[T any](path string) ([]T, error) {
 
 // addHost fills the host-attested sections and the reconciliation. It reports whether the
 // run has host-side records at all (runs from before P3 don't).
-func addHost(r *reportv0.Report, runDir string, reportHosts map[string]bool) bool {
+func addHost(r *reportv0.Report, runDir string, reportHosts, headerHints map[string]bool) bool {
 	host := filepath.Join(runDir, "host")
 	dns, dnsErr := readJSONL[hostDNS](filepath.Join(host, "dns.jsonl"))
 	flows, flowErr := readJSONL[hostFlow](filepath.Join(host, "flows.jsonl"))
@@ -100,6 +100,9 @@ func addHost(r *reportv0.Report, runDir string, reportHosts map[string]bool) boo
 	isPageHost := func(h string) bool { return guestHosts[strings.TrimSuffix(strings.ToLower(h), ".")] }
 	final, _ := url.Parse(r.GetNavigation().GetFinalUrl())
 	hints := hintHosts(filepath.Join(runDir, "guest", "dom.html"), final)
+	for h := range headerHints {
+		hints[h] = true
+	}
 	isHintHost := func(h string) bool { return hints[strings.TrimSuffix(strings.ToLower(h), ".")] }
 	isReportHost := func(h string) bool { return reportHosts[strings.TrimSuffix(strings.ToLower(h), ".")] }
 	// When a navigation fails on DNS, Chrome's error page probes whether DNS works at all: a

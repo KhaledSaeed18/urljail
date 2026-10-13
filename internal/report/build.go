@@ -115,7 +115,7 @@ func Build(runDir string) (*reportv0.Report, error) {
 		b.add(e)
 	}
 	b.finish(r)
-	if !addHost(r, runDir, b.reportHosts) {
+	if !addHost(r, runDir, b.reportHosts, b.headerHints) {
 		r.Gaps = append(r.Gaps, "No host-side records (run from before P3): every network observation is guest-attested (source guest.cdp)")
 	}
 	return r, nil
@@ -276,6 +276,7 @@ type builder struct {
 	tls         map[string]*reportv0.Tls
 	hosts       map[string]bool
 	reportHosts map[string]bool // Reporting API / NEL endpoints named in response headers
+	headerHints map[string]bool // preconnect and other hints named in Link response headers
 	dataURLs    int
 	dialogs     []*reportv0.Dialog
 	downloads   map[string]*reportv0.Download
@@ -289,6 +290,7 @@ func newBuilder() *builder {
 		tls:         map[string]*reportv0.Tls{},
 		hosts:       map[string]bool{},
 		reportHosts: map[string]bool{},
+		headerHints: map[string]bool{},
 		downloads:   map[string]*reportv0.Download{},
 	}
 }
@@ -323,6 +325,11 @@ func (b *builder) add(e event) {
 		for _, h := range reportEndpointHosts(p.Response.Headers) {
 			if len(b.reportHosts) < maxReportHosts {
 				b.reportHosts[h] = true
+			}
+		}
+		for _, h := range linkHeaderHosts(p.Response.Headers, p.Response.URL) {
+			if len(b.headerHints) < maxHeaderHints {
+				b.headerHints[h] = true
 			}
 		}
 		if p.Type == "Document" && b.isMain(p.FrameID) {

@@ -4,6 +4,7 @@ import (
 	"io"
 	"net/url"
 	"os"
+	"regexp"
 	"strings"
 
 	"golang.org/x/net/html"
@@ -69,4 +70,47 @@ func isHint(rel string) bool {
 		}
 	}
 	return false
+}
+
+// maxHeaderHints caps the hint hosts one run's response headers can name (server-controlled).
+const maxHeaderHints = 64
+
+var linkValue = regexp.MustCompile(`<([^>]*)>([^,<]*)`)
+
+// linkHeaderHosts returns the hosts a response's Link header tells the browser to connect to
+// ahead of time, the header form of <link rel=preconnect>. Google Fonts stylesheets send
+// "<https://fonts.gstatic.com>; rel=preconnect" (found in P7: Chrome connected to
+// fonts.gstatic.com and the page never requested it).
+func linkHeaderHosts(headers map[string]any, base string) []string {
+	var hosts []string
+	b, _ := url.Parse(base)
+	for name, v := range headers {
+		val, ok := v.(string)
+		if !ok || len(val) > 16<<10 || !strings.EqualFold(name, "link") {
+			continue
+		}
+		for _, m := range linkValue.FindAllStringSubmatch(val, maxHeaderHints) {
+			rel := ""
+			for _, param := range strings.Split(m[2], ";") {
+				k, v, ok := strings.Cut(strings.TrimSpace(param), "=")
+				if ok && strings.EqualFold(strings.TrimSpace(k), "rel") {
+					rel = strings.ToLower(strings.Trim(strings.TrimSpace(v), `"`))
+				}
+			}
+			if !isHint(rel) {
+				continue
+			}
+			u, err := url.Parse(strings.TrimSpace(m[1]))
+			if err != nil {
+				continue
+			}
+			if b != nil {
+				u = b.ResolveReference(u)
+			}
+			if h := strings.ToLower(u.Hostname()); h != "" {
+				hosts = append(hosts, h)
+			}
+		}
+	}
+	return hosts
 }
