@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"github.com/KhaledSaeed18/urljail/internal/cdp"
 	"math/rand/v2"
 	"os"
 	"path/filepath"
@@ -15,6 +16,7 @@ import (
 	"github.com/chromedp/cdproto/dom"
 	"github.com/chromedp/cdproto/network"
 	"github.com/chromedp/cdproto/page"
+	"github.com/chromedp/cdproto/runtime"
 	"github.com/chromedp/cdproto/target"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
@@ -91,7 +93,7 @@ func (a *agent) detonate(ctx context.Context, req *guestv1.DetonateRequest, out 
 	fwdDone := make(chan struct{})
 	go func() {
 		defer close(fwdDone)
-		a.forward(fwdCtx, ch.conn.Events(), out, act, pctx)
+		a.forward(fwdCtx, ch.conn.Events(), out, act, pctx, ch.conn)
 	}()
 
 	if err := out.progress(guestv1.Stage_STAGE_NAVIGATING, req.GetUrl()); err != nil {
@@ -235,7 +237,7 @@ func (a *agent) collect(pctx, bctx context.Context, targetID target.ID, out *sen
 
 // forward streams every CDP event to the host, feeds the network-idle tracker, and
 // dismisses JavaScript dialogs so they can't stall the page.
-func (a *agent) forward(ctx context.Context, events <-chan *cdproto.Message, out *sender, act *activity, pctx context.Context) {
+func (a *agent) forward(ctx context.Context, events <-chan *cdproto.Message, out *sender, act *activity, pctx context.Context, conn *cdp.Conn) {
 	for {
 		var msg *cdproto.Message
 		select {
@@ -247,7 +249,7 @@ func (a *agent) forward(ctx context.Context, events <-chan *cdproto.Message, out
 					if !ok {
 						return
 					}
-					a.forwardOne(m, out, act, pctx)
+					a.forwardOne(m, out, act, pctx, conn)
 				default:
 					return
 				}
@@ -258,11 +260,11 @@ func (a *agent) forward(ctx context.Context, events <-chan *cdproto.Message, out
 			}
 			msg = m
 		}
-		a.forwardOne(msg, out, act, pctx)
+		a.forwardOne(msg, out, act, pctx, conn)
 	}
 }
 
-func (a *agent) forwardOne(msg *cdproto.Message, out *sender, act *activity, pctx context.Context) {
+func (a *agent) forwardOne(msg *cdproto.Message, out *sender, act *activity, pctx context.Context, conn *cdp.Conn) {
 	_ = out.send(&guestv1.DetonateResponse{Msg: &guestv1.DetonateResponse_Event{Event: &guestv1.Event{
 		Time:      timestamppb.Now(),
 		SessionId: string(msg.SessionID),
@@ -284,6 +286,8 @@ func (a *agent) forwardOne(msg *cdproto.Message, out *sender, act *activity, pct
 		if e.Name == "networkIdle" {
 			act.networkIdle()
 		}
+	case *target.EventAttachedToTarget:
+		go attachChild(pctx, conn, e.SessionID, string(e.TargetInfo.Type))
 	case *page.EventJavascriptDialogOpening:
 		go func() {
 			ctx, cancel := context.WithTimeout(pctx, 2*time.Second)
@@ -350,5 +354,22 @@ func sendBytes(out *sender, name string, b []byte) error {
 			return nil
 		}
 		b = b[n:]
+	}
+}
+
+// attachChild sets up a worker or out-of-process iframe the page auto-attached to: its
+// Network domain (its requests aren't the page session's), auto-attach for what it starts in
+// turn, then lets it run. It was paused at start so no request is missed, and is always
+// released, even if setting up failed. Found in P7: a worker's request (logx.optimizely.com on
+// www.bbc.com) seen by the host and missing from the guest's report.
+func attachChild(parent context.Context, conn *cdp.Conn, id target.SessionID, kind string) {
+	ctx, cancel := context.WithTimeout(context.WithoutCancel(parent), 5*time.Second)
+	defer cancel()
+	sctx := cdpctx.WithExecutor(ctx, conn.Session(id))
+	defer func() { _ = runtime.RunIfWaitingForDebugger().Do(sctx) }()
+	switch kind {
+	case "worker", "shared_worker", "service_worker", "iframe":
+		_ = network.Enable().Do(sctx)
+		_ = target.SetAutoAttach(true, true).WithFlatten(true).Do(sctx)
 	}
 }

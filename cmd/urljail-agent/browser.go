@@ -58,6 +58,9 @@ func startBrowser(ctx context.Context, bp *guestv1.BrowserProfile, browserVersio
 		func() error { return network.Enable().Do(pctx) },
 		func() error { return page.Enable().Do(pctx) },
 		func() error { return page.SetLifecycleEventsEnabled(true).Do(pctx) },
+		// Workers and out-of-process iframes: attached paused, set up by attachChild, then
+		// released, so their requests are in the report too (P7).
+		func() error { return target.SetAutoAttach(true, true).WithFlatten(true).Do(pctx) },
 		func() error {
 			return cdpbrowser.SetDownloadBehavior(cdpbrowser.SetDownloadBehaviorBehaviorAllowAndName).
 				WithDownloadPath(downloadDir).WithEventsEnabled(true).Do(bctx)
