@@ -135,6 +135,14 @@ func (s *Server) Doctor(ctx context.Context, _ *daemonv1.DoctorRequest) (*daemon
 		default:
 			add("VMM confinement", "ok", "VMMs run confined in urljail_vmm_t")
 		}
+		if s.net != nil {
+			switch d := s.net.ResolverDomain(); {
+			case d == "named_t":
+				add("Resolver confinement", "ok", "unbound runs in named_t")
+			case d != "":
+				add("Resolver confinement", "warn", "unbound runs in "+d+" (not confined: development run or -confine-resolver=false)")
+			}
+		}
 		if avcs, err := urljailAVCs(s.cfg.Started); err != nil {
 			add("SELinux denials", "warn", err.Error())
 		} else if len(avcs) == 0 {
@@ -151,7 +159,7 @@ func (s *Server) Doctor(ctx context.Context, _ *daemonv1.DoctorRequest) (*daemon
 		if err != nil {
 			continue // exited meanwhile
 		}
-		if bad := c.check(-1, "", s.cfg.SELinuxModule != ""); bad != "" {
+		if bad := c.check(-1, s.cfg.CgroupParent, "", s.cfg.SELinuxModule != ""); bad != "" {
 			unjailed = append(unjailed, fmt.Sprintf("pid %d: %s", pid, bad))
 		}
 	}

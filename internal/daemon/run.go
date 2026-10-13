@@ -271,7 +271,7 @@ func (s *Server) bootVM(ctx context.Context, r *run, slot int, runDir string, ad
 	// checked on every run rather than assumed).
 	conf, err := readConfinement(machine.PID())
 	if err == nil {
-		if bad := conf.check(jail.UID, "/"+cgroupParent+"/"+jail.ID, s.cfg.SELinuxModule != ""); bad != "" {
+		if bad := conf.check(jail.UID, s.cfg.CgroupParent, "/"+s.cfg.CgroupParent+"/"+jail.ID, s.cfg.SELinuxModule != ""); bad != "" {
 			err = fmt.Errorf("VMM is not confined: %s", bad)
 		}
 	}

@@ -15,6 +15,9 @@ ExecStart=/usr/local/sbin/urljaild -operator ${URLJAIL_OPERATOR} -egress ${URLJA
     -selinux-module /usr/local/share/urljail/urljail.pp $URLJAIL_EXTRA_ARGS
 # The daemon tears its VMs down itself on SIGTERM (bounded); a second signal makes it exit.
 KillMode=mixed
+# The daemon puts VM cgroups under its own (internal/daemon/jail.go ServiceCgroup): a stop or a
+# crash then kills every VMM with it. It needs these controllers delegated.
+Delegate=cpu memory pids
 TimeoutStopSec=60
 Restart=on-failure
 RestartSec=5

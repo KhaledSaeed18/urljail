@@ -23,7 +23,6 @@ import (
 	"github.com/KhaledSaeed18/urljail/internal/netns"
 	"github.com/KhaledSaeed18/urljail/internal/operator"
 	"github.com/KhaledSaeed18/urljail/internal/policy"
-	"github.com/KhaledSaeed18/urljail/internal/report"
 	"github.com/KhaledSaeed18/urljail/internal/version"
 )
 
@@ -51,6 +50,7 @@ type Config struct {
 	Operator      operator.Operator // owns run directories and runs the VMMs
 	SocketDir     string            // Firecracker API sockets (short paths: Unix sockets are limited to 108 bytes)
 	SnapshotsDir  string            // built snapshots; empty: cold boot every run
+	CgroupParent  string            // VM cgroups, relative to /sys/fs/cgroup (ServiceCgroup)
 	WorkDir       string            // per-run scratch (disk clones), deleted at teardown
 	MaxVMs        int
 	VCPUs         int
@@ -177,11 +177,12 @@ func (s *Server) Detonate(req *daemonv1.DetonateRequest, stream daemonv1.DaemonS
 	// Every run that got a run directory gets a report, failed ones included: its gaps
 	// say what couldn't be observed.
 	if _, statErr := os.Stat(filepath.Join(runDir, "meta.json")); statErr == nil {
-		if _, rerr := report.Write(runDir); rerr != nil {
-			r.log.Warn("writing report", "err", rerr)
-		}
 		if cerr := s.cfg.Operator.ChownTree(runDir); cerr != nil {
 			r.log.Warn("giving the run directory to the operator", "err", cerr)
+		}
+		// Built after the hand-over, as the operator: not root parsing guest data.
+		if rerr := s.buildReport(context.WithoutCancel(stream.Context()), runDir); rerr != nil {
+			r.log.Warn("writing report", "err", rerr)
 		}
 	} else {
 		runDir = ""

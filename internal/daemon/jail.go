@@ -21,9 +21,10 @@ const (
 	jailGID     = 64000
 	buildSlot   = 99
 
-	// cgroupParent is /sys/fs/cgroup/urljail; the jailer creates one child per VM.
-	cgroupParent = "urljail"
-	jailNoFile   = 1024
+	// DevCgroupParent holds the VM cgroups when the daemon doesn't run as a systemd service
+	// with a delegated cgroup (development); the jailer creates one child per VM.
+	DevCgroupParent = "urljail"
+	jailNoFile      = 1024
 )
 
 func jailUID(slot int) int { return jailUIDBase + slot }
@@ -38,7 +39,7 @@ func (s *Server) jailFor(id string, slot int, ns string) *vm.Jail {
 		UID:          jailUID(slot),
 		GID:          jailGID,
 		NetNS:        ns,
-		ParentCgroup: cgroupParent,
+		ParentCgroup: s.cfg.CgroupParent,
 		Cgroups: map[string]string{
 			// Guest memory plus room for the VMM itself; the snapshot's shared pages are
 			// charged to whichever cgroup first read them.
@@ -72,12 +73,26 @@ func SetupJails(cfg Config) error {
 		_ = os.RemoveAll(filepath.Join(cfg.JailDir, e.Name()))
 	}
 
-	parent := filepath.Join("/sys/fs/cgroup", cgroupParent)
+	parent := filepath.Join("/sys/fs/cgroup", cfg.CgroupParent)
 	if err := os.MkdirAll(parent, 0o755); err != nil {
 		return fmt.Errorf("cgroup: %w", err)
 	}
 	// Every jailed VMM lives in a child cgroup: kill what a crashed daemon left there, then
-	// remove the cgroups.
+	// remove the cgroups. Also in the development location, in case a dev run left VMs.
+	reapCgroups(parent)
+	if cfg.CgroupParent != DevCgroupParent {
+		dev := filepath.Join("/sys/fs/cgroup", DevCgroupParent)
+		reapCgroups(dev)
+		_ = os.Remove(dev)
+	}
+	if err := os.WriteFile(filepath.Join(parent, "cgroup.subtree_control"), []byte("+cpu +memory +pids"), 0); err != nil {
+		return fmt.Errorf("cgroup: delegating controllers: %w", err)
+	}
+	return nil
+}
+
+// reapCgroups kills every process in parent's child cgroups and removes them.
+func reapCgroups(parent string) {
 	children, _ := os.ReadDir(parent)
 	for _, c := range children {
 		if !c.IsDir() {
@@ -98,10 +113,44 @@ func SetupJails(cfg Config) error {
 			time.Sleep(20 * time.Millisecond)
 		}
 	}
-	if err := os.WriteFile(filepath.Join(parent, "cgroup.subtree_control"), []byte("+cpu +memory +pids"), 0); err != nil {
-		return fmt.Errorf("cgroup: delegating controllers: %w", err)
+}
+
+// ServiceCgroup sets up the VM cgroup parent inside the daemon's own cgroup when systemd
+// delegated it (Delegate= in deploy/urljaild.service): the daemon moves into a "daemon" leaf
+// (cgroup v2 allows no processes in a node with enabled controllers) and VMs go under "vms".
+// Then stopping the service, or the daemon crashing, takes every VMM with it (threat model:
+// "daemon crash leaves live VMs browsing"). It returns the parent relative to
+// /sys/fs/cgroup, or DevCgroupParent when the cgroup isn't delegated.
+func ServiceCgroup() (string, error) {
+	b, err := os.ReadFile("/proc/self/cgroup")
+	if err != nil {
+		return "", err
 	}
-	return nil
+	own := strings.TrimPrefix(strings.TrimSpace(string(b)), "0::")
+	own = strings.TrimSuffix(own, "/daemon") // a restart within the same cgroup
+	if !strings.HasSuffix(own, ".service") {
+		return DevCgroupParent, nil
+	}
+	svc := filepath.Join("/sys/fs/cgroup", own)
+	if ctl, err := os.ReadFile(filepath.Join(svc, "cgroup.controllers")); err != nil ||
+		!strings.Contains(string(ctl), "memory") || !strings.Contains(string(ctl), "pids") || !strings.Contains(string(ctl), "cpu") {
+		return DevCgroupParent, nil // not delegated with the controllers the jails need
+	}
+	leaf := filepath.Join(svc, "daemon")
+	if err := os.MkdirAll(leaf, 0o755); err != nil {
+		return "", err
+	}
+	if err := os.WriteFile(filepath.Join(leaf, "cgroup.procs"), []byte(strconv.Itoa(os.Getpid())), 0); err != nil {
+		return "", fmt.Errorf("moving the daemon into %s: %w", leaf, err)
+	}
+	if err := os.WriteFile(filepath.Join(svc, "cgroup.subtree_control"), []byte("+cpu +memory +pids"), 0); err != nil {
+		return "", fmt.Errorf("cgroup: enabling controllers in %s: %w", svc, err)
+	}
+	vms := filepath.Join(own, "vms")
+	if err := os.MkdirAll(filepath.Join("/sys/fs/cgroup", vms), 0o755); err != nil {
+		return "", err
+	}
+	return strings.TrimPrefix(vms, "/"), nil
 }
 
 // Rate limits for every VM (P5): generous for loading pages, but a hostile guest can't

@@ -1,4 +1,4 @@
-policy_module(urljail, 1.2.0)
+policy_module(urljail, 1.3.0)
 
 # SELinux confinement for urljail's VMMs (P5). The jailer runs unconfined (it's started by the
 # root daemon) and execs the Firecracker copy it placed in the jail; that exec moves the VMM into
@@ -29,8 +29,14 @@ files_type(urljail_run_t)
 type urljail_vmm_tmpfs_t;
 files_tmpfs_file(urljail_vmm_tmpfs_t)
 
+# The resolver's configuration (/run/urljail/unbound): readable by named_t, nothing else of
+# named_t's (P5 follow-up, threat model).
+type urljail_dns_conf_t;
+files_type(urljail_dns_conf_t)
+
 require {
 	type unconfined_t, unconfined_service_t;
+	type named_t;
 	role unconfined_r, system_r;
 }
 
@@ -74,3 +80,19 @@ allow urljail_vmm_t urljail_run_t:file { getattr write append ioctl };
 # The serial console and stdio are inherited from the daemon.
 allow urljail_vmm_t { unconfined_t unconfined_service_t }:fd use;
 allow urljail_vmm_t { unconfined_t unconfined_service_t }:process sigchld;
+
+########################################
+# The resolver: unbound parses answers from attacker-controlled nameservers. The daemon starts
+# it with `runcon -t named_t` (internal/netns/resolver.go), Fedora's own domain for it, so a
+# compromised unbound is held by the distribution's resolver policy instead of running
+# unconfined. Only the service's domain may make this switch; development runs (sudo,
+# unconfined_t) don't confine the resolver.
+
+allow unconfined_service_t named_t:process transition;
+# Its stdin/stdout are /dev/null and its stderr (the reply log) a pipe to the daemon.
+allow named_t unconfined_service_t:fd use;
+allow named_t unconfined_service_t:fifo_file { getattr read write append ioctl };
+allow named_t unconfined_service_t:process sigchld;
+list_dirs_pattern(named_t, urljail_dns_conf_t, urljail_dns_conf_t)
+read_files_pattern(named_t, urljail_dns_conf_t, urljail_dns_conf_t)
+

@@ -17,6 +17,11 @@ type EgressConfig struct {
 	Upstreams []string
 	// StateDir holds the resolver's configuration (root-owned).
 	StateDir string
+	// ResolverDomain is the SELinux domain unbound is started in ("named_t"); "": the
+	// daemon's own. Startup fails if unbound doesn't end up in it.
+	ResolverDomain string
+	// Relabel applies the SELinux file contexts to the resolver's files (nil: skip).
+	Relabel func(paths ...string) error
 	// WG makes the egress live: WireGuard is the only exit, and the resolver forwards to the
 	// VPN's DNS (Upstreams is ignored). Nil: the dev exit through the host.
 	WG *WGConfig
@@ -209,4 +214,12 @@ func DeleteAll(ctx context.Context, log *slog.Logger) error {
 		}
 	}
 	return nil
+}
+
+// ResolverDomain is the SELinux type unbound runs as ("" if unknown or not running).
+func (e *Egress) ResolverDomain() string {
+	if e == nil || e.resolver == nil {
+		return ""
+	}
+	return e.resolver.domain()
 }

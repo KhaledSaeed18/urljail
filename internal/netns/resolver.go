@@ -106,9 +106,19 @@ func startResolver(ctx context.Context, ns string, cfg EgressConfig, log *slog.L
 	if _, err := run(ctx, nil, "unbound-checkconf", conf); err != nil {
 		return nil, err
 	}
+	if cfg.Relabel != nil {
+		if err := cfg.Relabel(cfg.StateDir); err != nil {
+			return nil, err
+		}
+	}
 
 	r := &Resolver{log: log.With("component", "resolver"), done: make(chan struct{}), sinks: map[string]func(Query){}}
-	r.cmd = exec.Command("ip", "netns", "exec", ns, "unbound", "-d", "-c", conf)
+	// ip netns exec and runcon both exec in place: the pid is unbound's.
+	args := []string{"netns", "exec", ns}
+	if cfg.ResolverDomain != "" {
+		args = append(args, "runcon", "-t", cfg.ResolverDomain)
+	}
+	r.cmd = exec.Command("ip", append(args, "unbound", "-d", "-c", conf)...)
 	r.cmd.SysProcAttr = &syscall.SysProcAttr{Pdeathsig: syscall.SIGKILL}
 	stderr, err := r.cmd.StderrPipe()
 	if err != nil {
@@ -126,6 +136,12 @@ func startResolver(ctx context.Context, ns string, cfg EgressConfig, log *slog.L
 
 	select {
 	case <-ready:
+		if want := cfg.ResolverDomain; want != "" {
+			if got := r.domain(); got != want {
+				r.stop()
+				return nil, fmt.Errorf("resolver: unbound runs as %q, not %q (SELinux transition missing?)", got, want)
+			}
+		}
 		return r, nil
 	case <-r.done:
 		return nil, errors.New("unbound exited during startup (see the daemon log)")
@@ -213,4 +229,21 @@ func (r *Resolver) stop() {
 		_ = r.cmd.Process.Kill()
 		<-r.done
 	}
+}
+
+// domain is the SELinux type unbound runs as ("" if unknown).
+func (r *Resolver) domain() string {
+	if r.cmd == nil || r.cmd.Process == nil {
+		return ""
+	}
+	b, err := os.ReadFile(fmt.Sprintf("/proc/%d/attr/current", r.cmd.Process.Pid))
+	if err != nil {
+		return ""
+	}
+	// user:role:type:level
+	f := strings.Split(strings.TrimRight(string(b), "\x00\n"), ":")
+	if len(f) < 3 {
+		return ""
+	}
+	return f[2]
 }

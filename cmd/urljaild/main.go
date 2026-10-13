@@ -37,6 +37,14 @@ const exitInterlock = 3
 type interlockError struct{ error }
 
 func main() {
+	// The unprivileged report builder (internal/daemon/reporthelper.go), before anything else.
+	if len(os.Args) == 3 && os.Args[1] == daemon.ReportHelperArg {
+		if err := daemon.RunReportHelper(os.Args[2]); err != nil {
+			fmt.Fprintln(os.Stderr, "urljaild report helper:", err)
+			os.Exit(1)
+		}
+		return
+	}
 	if err := run(); err != nil {
 		fmt.Fprintln(os.Stderr, "urljaild:", err)
 		var ie interlockError
@@ -60,6 +68,7 @@ func run() error {
 	jailer := flag.String("jailer", "", "jailer binary (default ~operator/.local/bin/jailer)")
 	selinuxModule := flag.String("selinux-module", "", "SELinux policy module (default: selinux/urljail.pp next to bin/)")
 	maxVMs := flag.Int("max-vms", 3, "concurrent VMs (snapshot clones share memory: ~125 MiB each here)")
+	confineResolver := flag.Bool("confine-resolver", true, "run unbound in SELinux's named_t when started by systemd (threat model)")
 	exitTZ := flag.String("exit-timezone", "", "IANA time zone of the VPN exit (e.g. America/Chicago), used by the stealth profiles")
 	vcpus := flag.Int("vcpus", 2, "vCPUs per VM")
 	mem := flag.Int("mem", 1024, "guest memory per VM, MiB")
@@ -190,34 +199,9 @@ func run() error {
 		os.Exit(1)
 	}()
 
-	daemon.Reap(ctx, cfg, log)
-	var eg *netns.Egress
-	if mode != policy.EgressOff {
-		if eg, err = netns.Up(ctx, netns.EgressConfig{
-			Upstreams: splitList(*upstreams),
-			StateDir:  filepath.Join(paths.RunDir, "unbound"),
-			WG:        wg,
-			TestVPN:   mode == policy.EgressLiveTest,
-		}, log); err != nil {
-			return fmt.Errorf("egress: %w", err)
-		}
-		defer eg.Close(context.Background())
-		if eg.Live() {
-			hctx, cancel := context.WithTimeout(ctx, 20*time.Second)
-			err := eg.WaitHandshake(hctx, time.Time{})
-			cancel()
-			if err != nil {
-				return interlockError{fmt.Errorf("live interlock: %w", err)}
-			}
-			log.Info("WireGuard tunnel up")
-		}
-	}
-	// After the namespace cleanup above, which kills whatever was left inside them.
-	if err := daemon.SetupJails(cfg); err != nil {
-		return err
-	}
-	// SELinux: confine the VMMs in urljail_vmm_t. Fail closed if SELinux is on but the
-	// module can't be loaded.
+	// SELinux: confine the VMMs in urljail_vmm_t and the resolver in named_t. Fail closed if
+	// SELinux is on but the module can't be loaded. Before the egress namespace: the module
+	// carries the resolver's transition.
 	if daemon.SELinuxEnabled() {
 		if *selinuxModule == "" {
 			exe, _ := os.Executable()
@@ -235,6 +219,39 @@ func run() error {
 			return err
 		}
 		cfg.SELinuxModule = *selinuxModule
+	}
+	daemon.Reap(ctx, cfg, log)
+	var eg *netns.Egress
+	if mode != policy.EgressOff {
+		if eg, err = netns.Up(ctx, netns.EgressConfig{
+			Upstreams:      splitList(*upstreams),
+			StateDir:       filepath.Join(paths.RunDir, "unbound"),
+			ResolverDomain: resolverDomain(cfg.SELinuxModule != "" && *confineResolver),
+			Relabel:        daemon.Relabel,
+			WG:             wg,
+			TestVPN:        mode == policy.EgressLiveTest,
+		}, log); err != nil {
+			return fmt.Errorf("egress: %w", err)
+		}
+		defer eg.Close(context.Background())
+		if eg.Live() {
+			hctx, cancel := context.WithTimeout(ctx, 20*time.Second)
+			err := eg.WaitHandshake(hctx, time.Time{})
+			cancel()
+			if err != nil {
+				return interlockError{fmt.Errorf("live interlock: %w", err)}
+			}
+			log.Info("WireGuard tunnel up")
+		}
+	}
+	// VMs live in the service's own cgroup when systemd delegated it, so they can't outlive
+	// the daemon. After the namespace cleanup above, which kills whatever was left inside them.
+	if cfg.CgroupParent, err = daemon.ServiceCgroup(); err != nil {
+		return err
+	}
+	log.Info("VM cgroups", "parent", "/sys/fs/cgroup/"+cfg.CgroupParent)
+	if err := daemon.SetupJails(cfg); err != nil {
+		return err
 	}
 
 	srv := daemon.New(cfg, eg, log)
@@ -336,4 +353,14 @@ func singleInstance() (func(), error) {
 		return nil, fmt.Errorf("another urljaild is running (lock %s held)", f.Name())
 	}
 	return func() { f.Close() }, nil
+}
+
+// resolverDomain is the SELinux domain unbound runs in: named_t, Fedora's own domain for it,
+// when the daemon runs as a systemd service (unconfined_service_t, whose role may enter it).
+// Development runs (sudo, unconfined_t) and SELinux off: "" (not confined).
+func resolverDomain(want bool) string {
+	if want && daemon.CurrentDomain() == "unconfined_service_t" {
+		return "named_t"
+	}
+	return ""
 }

@@ -59,7 +59,7 @@ func readConfinement(pid int) (confinement, error) {
 
 // check reports how c falls short of a jailed, confined VMM ("" if it doesn't).
 // wantUID < 0 accepts any jail uid; selinux says whether urljail_vmm_t is required.
-func (c confinement) check(wantUID int, wantCgroup string, selinux bool) string {
+func (c confinement) check(wantUID int, cgroupParent, wantCgroup string, selinux bool) string {
 	var bad []string
 	switch {
 	case wantUID >= 0 && c.UID != wantUID:

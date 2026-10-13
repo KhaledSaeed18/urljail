@@ -21,6 +21,15 @@ import (
 
 const selinuxState = "/var/lib/urljail/selinux-module.sha256"
 
+// CurrentDomain is the daemon's own SELinux type ("" when unknown).
+func CurrentDomain() string {
+	b, err := os.ReadFile("/proc/self/attr/current")
+	if err != nil {
+		return ""
+	}
+	return ctxType(bytes.TrimRight(b, "\x00\n"))
+}
+
 // SELinuxEnabled reports whether SELinux is on (enforcing or permissive).
 func SELinuxEnabled() bool {
 	_, err := os.Stat("/sys/fs/selinux/enforce")
@@ -110,7 +119,9 @@ func urljailAVCs(t time.Time) ([]string, error) {
 	sc.Buffer(make([]byte, 64<<10), 1<<20)
 	for sc.Scan() {
 		line := sc.Bytes()
-		if !bytes.Contains(line, []byte("avc:")) || !bytes.Contains(line, []byte("urljail_")) {
+		// urljail's own types, and named_t: the resolver's domain (Fedora's, shared with any
+		// system resolver).
+		if !bytes.Contains(line, []byte("avc:")) || !bytes.Contains(line, []byte("urljail_")) && !bytes.Contains(line, []byte(":named_t:")) {
 			continue
 		}
 		m := avcRe.FindSubmatch(line)
