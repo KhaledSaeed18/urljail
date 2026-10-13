@@ -132,6 +132,7 @@ func Build(runDir string) (*reportv0.Report, error) {
 			r.Page.ScreenshotPhash = h.String()
 		}
 	}
+	r.Indicators = indicators(r, filepath.Join(runDir, "guest", "dom.html"))
 	if !addHost(r, runDir, b.reportHosts, b.headerHints) {
 		r.Gaps = append(r.Gaps, "No host-side records (run from before P3): every network observation is guest-attested (source guest.cdp)")
 	}

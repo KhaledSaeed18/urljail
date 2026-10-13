@@ -33,6 +33,7 @@ commands:
   gc [-pcap-days 7] [-pcap-cap 10G] [-dry-run]
                                              delete old packet captures (reports are kept)
   similar [-max 6] <run> | -groups           runs whose screenshots look alike
+  brands refs > internal/brands/refs.json    take reference screenshots of brands' sign-in pages
   version                                    show CLI and daemon versions
 `
 
@@ -89,6 +90,8 @@ func run() error {
 		return cmdGC(args)
 	case "similar":
 		return cmdSimilar(args)
+	case "brands":
+		return cmdBrands(ctx, client, args)
 	default:
 		fmt.Fprintf(os.Stderr, "unknown command %q\n\n", cmd)
 		flag.Usage()

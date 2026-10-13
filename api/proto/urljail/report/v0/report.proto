@@ -21,6 +21,9 @@ message Report {
   repeated string gaps = 7;
   // The host's view of the network against the guest's (design goal G2).
   Reconciliation reconciliation = 8;
+  // Explainable signals that the page is phishing, each with its reason (internal/report/
+  // indicators.go). None is a verdict on its own.
+  repeated Indicator indicators = 9;
 }
 
 message Run {
@@ -268,4 +271,17 @@ message Artifacts {
   string firecracker_log = 7;
   // Host packet capture; empty once retention deleted it (see gaps).
   string pcap = 8;
+}
+
+message Indicator {
+  // Stable name: "password-form-cross-origin", "brand-name-off-domain", "brand-look-off-domain".
+  string id = 1;
+  // "medium" or "high".
+  string severity = 2;
+  // One sentence saying what was seen.
+  string detail = 3;
+  // The impersonated brand's ID (internal/brands), when the indicator is about one.
+  string brand = 4;
+  // Where the evidence came from ("guest.dom", "guest.screenshot").
+  string source = 5;
 }

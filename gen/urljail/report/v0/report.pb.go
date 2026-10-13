@@ -41,8 +41,11 @@ type Report struct {
 	Gaps []string `protobuf:"bytes,7,rep,name=gaps,proto3" json:"gaps,omitempty"`
 	// The host's view of the network against the guest's (design goal G2).
 	Reconciliation *Reconciliation `protobuf:"bytes,8,opt,name=reconciliation,proto3" json:"reconciliation,omitempty"`
-	unknownFields  protoimpl.UnknownFields
-	sizeCache      protoimpl.SizeCache
+	// Explainable signals that the page is phishing, each with its reason (internal/report/
+	// indicators.go). None is a verdict on its own.
+	Indicators    []*Indicator `protobuf:"bytes,9,rep,name=indicators,proto3" json:"indicators,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
 }
 
 func (x *Report) Reset() {
@@ -127,6 +130,13 @@ func (x *Report) GetGaps() []string {
 func (x *Report) GetReconciliation() *Reconciliation {
 	if x != nil {
 		return x.Reconciliation
+	}
+	return nil
+}
+
+func (x *Report) GetIndicators() []*Indicator {
+	if x != nil {
+		return x.Indicators
 	}
 	return nil
 }
@@ -1892,11 +1902,92 @@ func (x *Artifacts) GetPcap() string {
 	return ""
 }
 
+type Indicator struct {
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// Stable name: "password-form-cross-origin", "brand-name-off-domain", "brand-look-off-domain".
+	Id string `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
+	// "medium" or "high".
+	Severity string `protobuf:"bytes,2,opt,name=severity,proto3" json:"severity,omitempty"`
+	// One sentence saying what was seen.
+	Detail string `protobuf:"bytes,3,opt,name=detail,proto3" json:"detail,omitempty"`
+	// The impersonated brand's ID (internal/brands), when the indicator is about one.
+	Brand string `protobuf:"bytes,4,opt,name=brand,proto3" json:"brand,omitempty"`
+	// Where the evidence came from ("guest.dom", "guest.screenshot").
+	Source        string `protobuf:"bytes,5,opt,name=source,proto3" json:"source,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *Indicator) Reset() {
+	*x = Indicator{}
+	mi := &file_urljail_report_v0_report_proto_msgTypes[21]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *Indicator) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*Indicator) ProtoMessage() {}
+
+func (x *Indicator) ProtoReflect() protoreflect.Message {
+	mi := &file_urljail_report_v0_report_proto_msgTypes[21]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use Indicator.ProtoReflect.Descriptor instead.
+func (*Indicator) Descriptor() ([]byte, []int) {
+	return file_urljail_report_v0_report_proto_rawDescGZIP(), []int{21}
+}
+
+func (x *Indicator) GetId() string {
+	if x != nil {
+		return x.Id
+	}
+	return ""
+}
+
+func (x *Indicator) GetSeverity() string {
+	if x != nil {
+		return x.Severity
+	}
+	return ""
+}
+
+func (x *Indicator) GetDetail() string {
+	if x != nil {
+		return x.Detail
+	}
+	return ""
+}
+
+func (x *Indicator) GetBrand() string {
+	if x != nil {
+		return x.Brand
+	}
+	return ""
+}
+
+func (x *Indicator) GetSource() string {
+	if x != nil {
+		return x.Source
+	}
+	return ""
+}
+
 var File_urljail_report_v0_report_proto protoreflect.FileDescriptor
 
 const file_urljail_report_v0_report_proto_rawDesc = "" +
 	"\n" +
-	"\x1eurljail/report/v0/report.proto\x12\x11urljail.report.v0\x1a\x1fgoogle/protobuf/timestamp.proto\"\x87\x03\n" +
+	"\x1eurljail/report/v0/report.proto\x12\x11urljail.report.v0\x1a\x1fgoogle/protobuf/timestamp.proto\"\xc5\x03\n" +
 	"\x06Report\x12\x16\n" +
 	"\x06schema\x18\x01 \x01(\tR\x06schema\x12(\n" +
 	"\x03run\x18\x02 \x01(\v2\x16.urljail.report.v0.RunR\x03run\x12=\n" +
@@ -1907,7 +1998,10 @@ const file_urljail_report_v0_report_proto_rawDesc = "" +
 	"\x04page\x18\x05 \x01(\v2\x17.urljail.report.v0.PageR\x04page\x12:\n" +
 	"\tartifacts\x18\x06 \x01(\v2\x1c.urljail.report.v0.ArtifactsR\tartifacts\x12\x12\n" +
 	"\x04gaps\x18\a \x03(\tR\x04gaps\x12I\n" +
-	"\x0ereconciliation\x18\b \x01(\v2!.urljail.report.v0.ReconciliationR\x0ereconciliation\"\x83\x04\n" +
+	"\x0ereconciliation\x18\b \x01(\v2!.urljail.report.v0.ReconciliationR\x0ereconciliation\x12<\n" +
+	"\n" +
+	"indicators\x18\t \x03(\v2\x1c.urljail.report.v0.IndicatorR\n" +
+	"indicators\"\x83\x04\n" +
 	"\x03Run\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\x12#\n" +
 	"\rsubmitted_url\x18\x02 \x01(\tR\fsubmittedUrl\x12\x18\n" +
@@ -2069,7 +2163,13 @@ const file_urljail_report_v0_report_proto_rawDesc = "" +
 	"\n" +
 	"serial_log\x18\x06 \x01(\tR\tserialLog\x12'\n" +
 	"\x0ffirecracker_log\x18\a \x01(\tR\x0efirecrackerLog\x12\x12\n" +
-	"\x04pcap\x18\b \x01(\tR\x04pcapB\xc2\x01\n" +
+	"\x04pcap\x18\b \x01(\tR\x04pcap\"}\n" +
+	"\tIndicator\x12\x0e\n" +
+	"\x02id\x18\x01 \x01(\tR\x02id\x12\x1a\n" +
+	"\bseverity\x18\x02 \x01(\tR\bseverity\x12\x16\n" +
+	"\x06detail\x18\x03 \x01(\tR\x06detail\x12\x14\n" +
+	"\x05brand\x18\x04 \x01(\tR\x05brand\x12\x16\n" +
+	"\x06source\x18\x05 \x01(\tR\x06sourceB\xc2\x01\n" +
 	"\x15com.urljail.report.v0B\vReportProtoP\x01Z6github.com/KhaledSaeed18/urljail/gen/urljail/report/v0\xa2\x02\x03URV\xaa\x02\x11Urljail.Report.V0\xca\x02\x11Urljail\\Report\\V0\xe2\x02\x1dUrljail\\Report\\V0\\GPBMetadata\xea\x02\x13Urljail::Report::V0b\x06proto3"
 
 var (
@@ -2084,7 +2184,7 @@ func file_urljail_report_v0_report_proto_rawDescGZIP() []byte {
 	return file_urljail_report_v0_report_proto_rawDescData
 }
 
-var file_urljail_report_v0_report_proto_msgTypes = make([]protoimpl.MessageInfo, 22)
+var file_urljail_report_v0_report_proto_msgTypes = make([]protoimpl.MessageInfo, 23)
 var file_urljail_report_v0_report_proto_goTypes = []any{
 	(*Report)(nil),                // 0: urljail.report.v0.Report
 	(*Run)(nil),                   // 1: urljail.report.v0.Run
@@ -2107,8 +2207,9 @@ var file_urljail_report_v0_report_proto_goTypes = []any{
 	(*Dialog)(nil),                // 18: urljail.report.v0.Dialog
 	(*Download)(nil),              // 19: urljail.report.v0.Download
 	(*Artifacts)(nil),             // 20: urljail.report.v0.Artifacts
-	nil,                           // 21: urljail.report.v0.Run.VersionsEntry
-	(*timestamppb.Timestamp)(nil), // 22: google.protobuf.Timestamp
+	(*Indicator)(nil),             // 21: urljail.report.v0.Indicator
+	nil,                           // 22: urljail.report.v0.Run.VersionsEntry
+	(*timestamppb.Timestamp)(nil), // 23: google.protobuf.Timestamp
 }
 var file_urljail_report_v0_report_proto_depIdxs = []int32{
 	1,  // 0: urljail.report.v0.Report.run:type_name -> urljail.report.v0.Run
@@ -2117,36 +2218,37 @@ var file_urljail_report_v0_report_proto_depIdxs = []int32{
 	15, // 3: urljail.report.v0.Report.page:type_name -> urljail.report.v0.Page
 	20, // 4: urljail.report.v0.Report.artifacts:type_name -> urljail.report.v0.Artifacts
 	11, // 5: urljail.report.v0.Report.reconciliation:type_name -> urljail.report.v0.Reconciliation
-	4,  // 6: urljail.report.v0.Run.egress:type_name -> urljail.report.v0.Egress
-	22, // 7: urljail.report.v0.Run.started_at:type_name -> google.protobuf.Timestamp
-	22, // 8: urljail.report.v0.Run.ended_at:type_name -> google.protobuf.Timestamp
-	21, // 9: urljail.report.v0.Run.versions:type_name -> urljail.report.v0.Run.VersionsEntry
-	3,  // 10: urljail.report.v0.Run.clone:type_name -> urljail.report.v0.Clone
-	2,  // 11: urljail.report.v0.Run.feed:type_name -> urljail.report.v0.Feed
-	22, // 12: urljail.report.v0.Feed.first_seen:type_name -> google.protobuf.Timestamp
-	22, // 13: urljail.report.v0.Feed.feed_time:type_name -> google.protobuf.Timestamp
-	6,  // 14: urljail.report.v0.Navigation.redirect_chain:type_name -> urljail.report.v0.Hop
-	12, // 15: urljail.report.v0.Network.requests:type_name -> urljail.report.v0.Request
-	13, // 16: urljail.report.v0.Network.tls:type_name -> urljail.report.v0.Tls
-	14, // 17: urljail.report.v0.Network.domains:type_name -> urljail.report.v0.Domain
-	8,  // 18: urljail.report.v0.Network.dns:type_name -> urljail.report.v0.DnsQuery
-	9,  // 19: urljail.report.v0.Network.flows:type_name -> urljail.report.v0.Flow
-	10, // 20: urljail.report.v0.Network.blocked:type_name -> urljail.report.v0.Blocked
-	22, // 21: urljail.report.v0.DnsQuery.time:type_name -> google.protobuf.Timestamp
-	22, // 22: urljail.report.v0.Flow.first:type_name -> google.protobuf.Timestamp
-	22, // 23: urljail.report.v0.Flow.last:type_name -> google.protobuf.Timestamp
-	22, // 24: urljail.report.v0.Blocked.first:type_name -> google.protobuf.Timestamp
-	22, // 25: urljail.report.v0.Tls.not_before:type_name -> google.protobuf.Timestamp
-	22, // 26: urljail.report.v0.Tls.not_after:type_name -> google.protobuf.Timestamp
-	18, // 27: urljail.report.v0.Page.dialogs:type_name -> urljail.report.v0.Dialog
-	19, // 28: urljail.report.v0.Page.downloads:type_name -> urljail.report.v0.Download
-	16, // 29: urljail.report.v0.Page.forms:type_name -> urljail.report.v0.Form
-	17, // 30: urljail.report.v0.Form.fields:type_name -> urljail.report.v0.Field
-	31, // [31:31] is the sub-list for method output_type
-	31, // [31:31] is the sub-list for method input_type
-	31, // [31:31] is the sub-list for extension type_name
-	31, // [31:31] is the sub-list for extension extendee
-	0,  // [0:31] is the sub-list for field type_name
+	21, // 6: urljail.report.v0.Report.indicators:type_name -> urljail.report.v0.Indicator
+	4,  // 7: urljail.report.v0.Run.egress:type_name -> urljail.report.v0.Egress
+	23, // 8: urljail.report.v0.Run.started_at:type_name -> google.protobuf.Timestamp
+	23, // 9: urljail.report.v0.Run.ended_at:type_name -> google.protobuf.Timestamp
+	22, // 10: urljail.report.v0.Run.versions:type_name -> urljail.report.v0.Run.VersionsEntry
+	3,  // 11: urljail.report.v0.Run.clone:type_name -> urljail.report.v0.Clone
+	2,  // 12: urljail.report.v0.Run.feed:type_name -> urljail.report.v0.Feed
+	23, // 13: urljail.report.v0.Feed.first_seen:type_name -> google.protobuf.Timestamp
+	23, // 14: urljail.report.v0.Feed.feed_time:type_name -> google.protobuf.Timestamp
+	6,  // 15: urljail.report.v0.Navigation.redirect_chain:type_name -> urljail.report.v0.Hop
+	12, // 16: urljail.report.v0.Network.requests:type_name -> urljail.report.v0.Request
+	13, // 17: urljail.report.v0.Network.tls:type_name -> urljail.report.v0.Tls
+	14, // 18: urljail.report.v0.Network.domains:type_name -> urljail.report.v0.Domain
+	8,  // 19: urljail.report.v0.Network.dns:type_name -> urljail.report.v0.DnsQuery
+	9,  // 20: urljail.report.v0.Network.flows:type_name -> urljail.report.v0.Flow
+	10, // 21: urljail.report.v0.Network.blocked:type_name -> urljail.report.v0.Blocked
+	23, // 22: urljail.report.v0.DnsQuery.time:type_name -> google.protobuf.Timestamp
+	23, // 23: urljail.report.v0.Flow.first:type_name -> google.protobuf.Timestamp
+	23, // 24: urljail.report.v0.Flow.last:type_name -> google.protobuf.Timestamp
+	23, // 25: urljail.report.v0.Blocked.first:type_name -> google.protobuf.Timestamp
+	23, // 26: urljail.report.v0.Tls.not_before:type_name -> google.protobuf.Timestamp
+	23, // 27: urljail.report.v0.Tls.not_after:type_name -> google.protobuf.Timestamp
+	18, // 28: urljail.report.v0.Page.dialogs:type_name -> urljail.report.v0.Dialog
+	19, // 29: urljail.report.v0.Page.downloads:type_name -> urljail.report.v0.Download
+	16, // 30: urljail.report.v0.Page.forms:type_name -> urljail.report.v0.Form
+	17, // 31: urljail.report.v0.Form.fields:type_name -> urljail.report.v0.Field
+	32, // [32:32] is the sub-list for method output_type
+	32, // [32:32] is the sub-list for method input_type
+	32, // [32:32] is the sub-list for extension type_name
+	32, // [32:32] is the sub-list for extension extendee
+	0,  // [0:32] is the sub-list for field type_name
 }
 
 func init() { file_urljail_report_v0_report_proto_init() }
@@ -2160,7 +2262,7 @@ func file_urljail_report_v0_report_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_urljail_report_v0_report_proto_rawDesc), len(file_urljail_report_v0_report_proto_rawDesc)),
 			NumEnums:      0,
-			NumMessages:   22,
+			NumMessages:   23,
 			NumExtensions: 0,
 			NumServices:   0,
 		},

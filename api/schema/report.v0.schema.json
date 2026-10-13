@@ -668,6 +668,39 @@
       "title": "Hop",
       "type": "object"
     },
+    "urljail.report.v0.Indicator.schema.json": {
+      "$schema": "https://json-schema.org/draft/2020-12/schema",
+      "additionalProperties": false,
+      "properties": {
+        "brand": {
+          "default": "",
+          "description": "The impersonated brand's ID (internal/brands), when the indicator is about one.",
+          "type": "string"
+        },
+        "detail": {
+          "default": "",
+          "description": "One sentence saying what was seen.",
+          "type": "string"
+        },
+        "id": {
+          "default": "",
+          "description": "Stable name: \"password-form-cross-origin\", \"brand-name-off-domain\", \"brand-look-off-domain\".",
+          "type": "string"
+        },
+        "severity": {
+          "default": "",
+          "description": "\"medium\" or \"high\".",
+          "type": "string"
+        },
+        "source": {
+          "default": "",
+          "description": "Where the evidence came from (\"guest.dom\", \"guest.screenshot\").",
+          "type": "string"
+        }
+      },
+      "title": "Indicator",
+      "type": "object"
+    },
     "urljail.report.v0.Navigation.schema.json": {
       "$schema": "https://json-schema.org/draft/2020-12/schema",
       "additionalProperties": false,
@@ -1000,6 +1033,13 @@
           "description": "What could not be observed in this run, stated explicitly (design goal G4).",
           "items": {
             "type": "string"
+          },
+          "type": "array"
+        },
+        "indicators": {
+          "description": "Explainable signals that the page is phishing, each with its reason (internal/report/\n indicators.go). None is a verdict on its own.",
+          "items": {
+            "$ref": "#/$defs/urljail.report.v0.Indicator.schema.json"
           },
           "type": "array"
         },
