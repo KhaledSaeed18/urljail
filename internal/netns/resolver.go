@@ -113,12 +113,14 @@ func startResolver(ctx context.Context, ns string, cfg EgressConfig, log *slog.L
 	}
 
 	r := &Resolver{log: log.With("component", "resolver"), done: make(chan struct{}), sinks: map[string]func(Query){}}
-	// ip netns exec and runcon both exec in place: the pid is unbound's.
-	args := []string{"netns", "exec", ns}
+	// nsenter enters only the network namespace: `ip netns exec` also remounts /sys, which
+	// hides selinuxfs, and runcon then refuses ("only on a SELinux kernel", found on the first
+	// confined start). nsenter and runcon both exec in place: the pid is unbound's.
+	args := []string{"--net=/run/netns/" + ns, "--"}
 	if cfg.ResolverDomain != "" {
 		args = append(args, "runcon", "-t", cfg.ResolverDomain)
 	}
-	r.cmd = exec.Command("ip", append(args, "unbound", "-d", "-c", conf)...)
+	r.cmd = exec.Command("nsenter", append(args, "unbound", "-d", "-c", conf)...)
 	r.cmd.SysProcAttr = &syscall.SysProcAttr{Pdeathsig: syscall.SIGKILL}
 	stderr, err := r.cmd.StderrPipe()
 	if err != nil {
