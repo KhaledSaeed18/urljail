@@ -99,18 +99,37 @@ func (a *agent) detonate(ctx context.Context, req *guestv1.DetonateRequest, out 
 		return done, err
 	}
 	start := time.Now()
-	_, _, navErr, _, err := page.Navigate(req.GetUrl()).Do(pctx)
-	if err != nil {
+	// Page.navigate returns once the server answers. A server that accepts the connection and
+	// never answers (found in P6) would hold it until the run's deadline and lose every
+	// artifact, so it's bounded by the longest observation.
+	// 12 s at most: with stopping (2 s) and collection (12 s) it stays inside the daemon's
+	// default 30 s run limit.
+	navLimit := min(req.GetMaxDwell().AsDuration(), 12*time.Second)
+	if navLimit <= 0 {
+		navLimit = 12 * time.Second
+	}
+	nctx, ncancel := context.WithTimeout(pctx, navLimit)
+	_, _, navErr, _, err := page.Navigate(req.GetUrl()).Do(nctx)
+	ncancel()
+	reason := ""
+	switch {
+	case err != nil && nctx.Err() == context.DeadlineExceeded && ctx.Err() == nil:
+		done.NavigationError = fmt.Sprintf("navigation timed out after %s (no response)", navLimit)
+		sctx, scancel := context.WithTimeout(pctx, 2*time.Second)
+		_ = page.StopLoading().Do(sctx)
+		scancel()
+		reason = "navigation timeout"
+	case err != nil:
 		stopFwd()
 		return done, err
+	default:
+		done.NavigationError = navErr
+		if err := out.progress(guestv1.Stage_STAGE_OBSERVING, "waiting for network idle"); err != nil {
+			stopFwd()
+			return done, err
+		}
+		reason = observe(ctx, act, start, req)
 	}
-	done.NavigationError = navErr
-
-	if err := out.progress(guestv1.Stage_STAGE_OBSERVING, "waiting for network idle"); err != nil {
-		stopFwd()
-		return done, err
-	}
-	reason := observe(ctx, act, start, req)
 	done.Dwell = durationpb.New(time.Since(start))
 	done.DwellReason = reason
 

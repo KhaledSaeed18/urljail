@@ -133,6 +133,14 @@ func TestMinAgeFeedPauseLock(t *testing.T) {
 		t.Error("a young candidate must wait, not expire")
 	}
 
+	s.Items["https://ready.test/"].NotBefore = now.Add(time.Minute)
+	if got := s.Next(5, now, l); len(got) != 0 {
+		t.Errorf("retry before NotBefore: %v", got)
+	}
+	if got := s.Next(5, now.Add(2*time.Minute), l); len(got) == 0 {
+		t.Error("no retry after NotBefore")
+	}
+
 	if s.IsPaused() {
 		t.Fatal("paused at start")
 	}

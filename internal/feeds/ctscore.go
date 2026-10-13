@@ -23,13 +23,8 @@ var brands = []string{
 	"td", "tdbank", "rbc", "scotiabank", "interac", "commbank", "westpac", "anz", "nab",
 	"ing", "bbva", "pnc", "capitalone", "amex", "americanexpress", "venmo", "cashapp", "zelle",
 	"rakuten", "docomo", "aeon", "smbc", "mufg", "jcb", "mercari", "yamato", "sagawa", "japanpost",
-	"lineme", "kakao", "naver", "orange", "laposte", "ameli", "correos", "posteitaliane",
+	"kakao", "naver", "orange", "laposte", "ameli", "correos", "posteitaliane",
 }
-
-// shortBrands match only as a whole token: as substrings they'd hit ordinary words.
-var shortBrands = map[string]bool{"ups": true, "dhl": true, "irs": true, "ato": true, "wise": true, "evri": true,
-	"ebay": true, "chase": true, "steam": true, "apple": true, "ledger": true, "rbc": true, "anz": true, "nab": true,
-	"ing": true, "td": true, "pnc": true, "amex": true, "aeon": true, "smbc": true, "jcb": true, "orange": true, "ameli": true}
 
 var actions = []string{
 	"login", "signin", "logon", "verify", "verification", "secure", "security", "account", "update",
@@ -63,6 +58,13 @@ var legit = map[string]bool{
 	"workers.dev": true, "github.io": true, "web.app": true, "firebaseapp.com": true,
 }
 
+// legitLabels are registered names (any TLD) that belong to the brands' own infrastructure.
+var legitLabels = map[string]bool{
+	"amazonaws": true, "amazonwebservices": true, "amazonaws-us-gov": true, "microsoftonline": true,
+	"microsoft-int": true, "stripe-terminal-local-reader": true, "shopifyapps": true, "googleusercontent": true,
+	"gstatic": true, "fbcdn": true, "akamaized": true, "cloudflare": true,
+}
+
 // homoglyphs are the substitutions lookalike domains use most.
 var homoglyphs = strings.NewReplacer("0", "o", "1", "l", "3", "e", "4", "a", "5", "s", "rn", "m", "vv", "w")
 
@@ -82,25 +84,30 @@ func Score(name string) (score int, reasons []string) {
 	tokens := split(rest)
 	plain := strings.Join(tokens, "")
 
+	// The brand's own name in any TLD (amazon.dev, instagram.co) is almost always the company:
+	// phishers rarely get those.
+	if legitLabels[regLabel] || slices.Contains(brands, regLabel) {
+		return 0, nil
+	}
 	// A brand in the registered name itself (paypal-verify.com) counts more than one in a
 	// subdomain of an unrelated name (paypal.verify.example.com), which hosting setups produce.
-	brand, inReg := "", false
+	brand, inReg, look := "", false, false
 	for _, b := range brands {
-		regTokens := split(regLabel)
 		switch {
-		case shortBrands[b] && (slices.Contains(regTokens, b) || gluedToAction(regTokens, b)),
-			!shortBrands[b] && strings.Contains(strings.Join(regTokens, ""), b):
+		case brandToken(split(regLabel), b):
 			brand, inReg = b, true
-		case !shortBrands[b] && strings.Contains(homoglyphs.Replace(strings.ReplaceAll(regLabel, "-", "")), b):
-			brand, inReg = b, true
-			score++
-			reasons = append(reasons, "lookalike")
-		case shortBrands[b] && slices.Contains(tokens, b), !shortBrands[b] && strings.Contains(plain, b):
+		case brandToken(split(homoglyphs.Replace(regLabel)), b):
+			brand, inReg, look = b, true, true
+		case brandToken(tokens, b):
 			brand = b
 		}
 		if brand != "" {
 			break
 		}
+	}
+	if look {
+		score++
+		reasons = append(reasons, "lookalike")
 	}
 	if brand != "" {
 		if inReg {
@@ -159,15 +166,26 @@ func generated(rest string) bool {
 	return false
 }
 
-// gluedToAction reports a token that is a short brand followed by an action word, as
-// lookalikes write them ("tdaccounts", "dhldelivery", "upstracking").
-func gluedToAction(tokens []string, brand string) bool {
+// brandToken reports a token that is the brand, or the brand glued to an action word or to
+// at most three other characters ("paypalsecure", "securepaypal", "facebookabc",
+// "microsoftonline"), but not the brand inside an ordinary word ("forticloud", "applesauce").
+func brandToken(tokens []string, brand string) bool {
+	glued := func(rest string, prefix bool) bool {
+		if len(rest) <= 3 && len(brand) > 4 { // short brands ("ato", "ing") hide in ordinary words
+			return true
+		}
+		for _, a := range actions {
+			if prefix && strings.HasPrefix(rest, a) || !prefix && strings.HasSuffix(rest, a) {
+				return true
+			}
+		}
+		return false
+	}
 	for _, t := range tokens {
-		if rest, ok := strings.CutPrefix(t, brand); ok && rest != "" {
-			for _, a := range actions {
-				if strings.HasPrefix(rest, a) {
-					return true
-				}
+		if i := strings.Index(t, brand); i >= 0 {
+			before, after := t[:i], t[i+len(brand):]
+			if (before == "" || glued(before, false)) && (after == "" || glued(after, true)) {
+				return true
 			}
 		}
 	}

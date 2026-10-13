@@ -60,3 +60,14 @@ Decision (2026-10-13): find candidates in Certificate Transparency instead of wa
 - First scoring pass, 3 min live: 8 candidates, all false positives (Microsoft's internal `microsoft-int.com`, machine-generated hostnames). Tuned: brand position, hyphens counted in the registered name only, generated labels penalized, those domains excluded. 10 min live afterwards: 0 candidates in 41,539 names.
 - Dumped 7,540 names (4 min) to check: genuine brand impersonation is rare. The one plausible candidate, `accounts.tdaccounts.online`, needed a general rule (short brand glued to an action word: `td`+`accounts`), not a memorized name.
 
+### First hour of `feeds watch` (2026-10-13, 03:3x–04:3x)
+
+114 candidates queued, 35 detonated under all five profiles, about 5 min after each certificate.
+
+- **Differential treatment caught, on a non-phishing site.** `mirror.tools.amazon.dev` (an Amazon-internal tool): `baseline` and `stealth-no-ua`, the two profiles still sending `HeadlessChrome`, got `403 Forbidden`; the three with the desktop User-Agent were redirected to Amazon's login (`midway-auth.amazon.com`). The ablation pinned it on the User-Agent alone: the comparison P6 is built for works.
+- **Fresh phishing reached.** `facebookabc.cc` was already behind Cloudflare's "Suspected Phishing" interstitial 5 min after its certificate. Two Cloudflare-fronted names answered 521/525 (origin not up yet) at 5 min.
+- **AWS GovCloud sign-in** showed a password field in some profiles and not others across two runs (`baseline` never did). With only two runs this is as likely page timing as treatment; noted, not concluded.
+- **Most candidates were false positives:** Amazon's own infrastructure in other TLDs (`amazon.dev`, `amazonwebservices.cn`/`.eu`, `amazonaws-us-gov.com`), `americanexpress.com` itself, Stripe's card-reader domain, and brands inside ordinary words (`icloud` in "forticloud", `sagawa` in "bitsagawallet", `lineme` in "onlinemedical"). Fixed: brands match on word boundaries (whole word, or glued to an action word or at most three characters, and short brands only to action words); a registered name that is exactly a brand, in any TLD, is the company; known infrastructure names are excluded in every TLD. Re-scored offline, the hour's 114 candidates drop to 7, all plausible.
+- **Navigation without an answer.** One server accepted the connection and never answered: `Page.navigate` held the run until its deadline and every artifact was lost. Fixed in the agent: navigation waits at most 12 s, then the run records "navigation timed out (no response)", stops loading and still collects.
+- **Retry:** when every profile found a site not up (DNS failure, no answer, refused, Cloudflare 52x), the URL is queued once more for 30 min later; the first round's runs are kept as `<profile>#1`.
+

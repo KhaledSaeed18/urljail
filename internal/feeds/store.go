@@ -21,7 +21,9 @@ type Item struct {
 	Runs      map[string]string `json:"runs,omitempty"`   // profile → run ID
 	RunAt     time.Time         `json:"run_at,omitzero"`
 	Error     string            `json:"error,omitempty"`
-	Score     int               `json:"score,omitempty"` // own discovery: score and why
+	Attempts  int               `json:"attempts,omitempty"`  // detonation rounds so far
+	NotBefore time.Time         `json:"not_before,omitzero"` // retry not before (site wasn't up yet)
+	Score     int               `json:"score,omitempty"`     // own discovery: score and why
 	Reasons   []string          `json:"reasons,omitempty"`
 }
 
@@ -167,7 +169,7 @@ func (s *Store) Next(n int, now time.Time, l Limits) []*Item {
 				daily[it.Domain]++
 			}
 		}
-		if it.Status == "queued" && (l.Feed == "" || it.Feed == l.Feed) && now.Sub(it.FirstSeen) >= l.MinAge {
+		if it.Status == "queued" && (l.Feed == "" || it.Feed == l.Feed) && now.Sub(it.FirstSeen) >= l.MinAge && !now.Before(it.NotBefore) {
 			if now.Sub(it.FirstSeen) > l.MaxAge {
 				it.Status = "expired"
 				continue

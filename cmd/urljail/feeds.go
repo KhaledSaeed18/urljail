@@ -5,10 +5,12 @@ import (
 	"errors"
 	"flag"
 	"fmt"
+	"google.golang.org/protobuf/encoding/protojson"
 	"io"
 	"net/http"
 	"os"
 	"path/filepath"
+	"regexp"
 	"slices"
 	"sort"
 	"strings"
@@ -16,6 +18,7 @@ import (
 	"time"
 
 	daemonv1 "github.com/KhaledSaeed18/urljail/gen/urljail/daemon/v1"
+	reportv0 "github.com/KhaledSaeed18/urljail/gen/urljail/report/v0"
 	"github.com/KhaledSaeed18/urljail/internal/ctlog"
 	"github.com/KhaledSaeed18/urljail/internal/feeds"
 	"github.com/KhaledSaeed18/urljail/internal/paths"
@@ -254,11 +257,56 @@ func runItem(ctx context.Context, c daemonv1.DaemonServiceClient, st *feeds.Stor
 	printProfileTable(results)
 	mu.Lock()
 	defer mu.Unlock()
-	it.Runs, it.Status, it.Error = runs, "done", strings.Join(errs, "; ")
-	if ran == 0 {
+	if it.Runs == nil {
+		it.Runs = map[string]string{}
+	}
+	for p, id := range runs { // a retry keeps the first round's runs under "<profile>#1"
+		if old, ok := it.Runs[p]; ok {
+			it.Runs[p+"#1"] = old
+		}
+		it.Runs[p] = id
+	}
+	it.Attempts++
+	it.Status, it.Error = "done", strings.Join(errs, "; ")
+	switch {
+	case ran == 0:
 		it.Status = "refused"
+	case it.Attempts < 2 && allNotUp(results):
+		// A fresh site often isn't up minutes after its certificate: try once more later.
+		it.Status, it.NotBefore = "queued", time.Now().UTC().Add(retryAfter)
+		fmt.Printf("  not up yet in any profile: retry after %s\n", it.NotBefore.Local().Format(time.TimeOnly))
 	}
 	return st.Save()
+}
+
+const retryAfter = 30 * time.Minute
+
+var cloudflareOriginDown = regexp.MustCompile(`\| 52[0-9]: `)
+
+// allNotUp reports whether no profile reached a site: DNS failure, no response, refused
+// connection, or Cloudflare's "origin down" pages (52x).
+func allNotUp(results []profileResult) bool {
+	for _, res := range results {
+		if res.runDir == "" {
+			continue
+		}
+		b, err := os.ReadFile(filepath.Join(res.runDir, "report.json"))
+		if err != nil {
+			return false
+		}
+		var r reportv0.Report
+		if (protojson.UnmarshalOptions{DiscardUnknown: true}).Unmarshal(b, &r) != nil {
+			return false
+		}
+		n := r.GetNavigation()
+		e := n.GetError()
+		down := strings.Contains(e, "ERR_NAME_NOT_RESOLVED") || strings.Contains(e, "ERR_CONNECTION") ||
+			strings.Contains(e, "timed out") || cloudflareOriginDown.MatchString(n.GetTitle())
+		if !down {
+			return false
+		}
+	}
+	return true
 }
 
 // watchCT follows the CT logs and detonates candidates once they're minAge old, newest first,
