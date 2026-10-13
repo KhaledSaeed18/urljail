@@ -106,6 +106,29 @@ func TestScore(t *testing.T) {
 		"secure-login-portal.example.com": false, // no brand
 		"applesauce-recipes.com":          false, // apple is token-only
 		"ups-tracking-delivery.xyz":       true,
+		// Found live in P6 (CT watch): false positives and real candidates.
+		"auto-s1285612mzi2-pbi-kv-httpszonede.zde.w.api.fabric.microsoft-int.com": false,
+		"fihcbalkjidde0604d0-f14d-49fa-848a-d1acc7altlinkedin123.t.jfdir.com":     false,
+		"m.whm.whm.teprwuqv.forticloud.online":                                    false, // icloud inside a word
+		"bitsagawallet.com":                                                       false,
+		"onlinemedical.cz":                                                        false,
+		"tomato-shop.top":                                                         false, // "ato" inside a word
+		"bahmanaccounting.com":                                                    false, // not account+ING
+		"hightopaccounting.com":                                                   false,
+		"bookingsupport.example.com":                                              false,
+		"tdkonline.com":                                                           false, // "td" + not an action word
+		"verify-r1.americanexpress.com":                                           false, // the brand's own domain
+		"api.prod.lws.kuiper.amazon.dev":                                          false,
+		"schemas.cn-north-1.api.amazonwebservices.com.cn":                         false,
+		"instagram.co":                                                            false,
+		"accounts.tdaccounts.online":                                              true,
+		"dhldelivery-status.com":                                                  true,
+		"facebookabc.cc":                                                          true, // Cloudflare-flagged 5 min after its certificate
+		"www.microsoftonline3.com":                                                true,
+		"canadapost-delivery.top":                                                 true,
+		"secure-account-verify.top":                                               true, // words only, on a cheap TLD
+		"paypal.secure-login.top":                                                 true, // brand in a subdomain
+		"track.hibuzdrinks.com":                                                   false,
 	} {
 		s, why := Score(name)
 		if (s >= CandidateScore) != want {

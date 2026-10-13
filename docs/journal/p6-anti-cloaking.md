@@ -105,4 +105,19 @@ Decision (2026-10-13): test headless mode itself, the largest browser-side signa
 - Profile `stealth-headful`: stealth's webdriver and time-zone countermeasures, headful, no User-Agent override (a headful browser's UA is already the desktop one).
 - **Attribution tightened:** a countermeasure explains a split only with at least two runs on each side, all agreeing; control runs count on their twin's side. `stealth-headful` is alone on its side, so `watch` now runs controls for `baseline` and `stealth-headful` by default (8 runs per URL). The two User-Agent attributions from M4 still hold under the stricter rule.
 - **Found on the first check (bot.sannysoft.com):** headful Chrome on Xvfb had no WebGL at all ("Canvas has no webgl context"): without a GPU it disables WebGL rather than fall back to SwiftShader, as headless does. That would make `stealth-headful` differ from `stealth` in two signals at once (and no WebGL is rarer on a desktop than software WebGL). Fixed with `--enable-unsafe-swiftshader` for headful: the same software WebGL headless exposes, inside the same disposable VM. Everything else matched `stealth`: User-Agent, webdriver hidden, languages, plugins, window within a pixel.
+- After the fix both profiles reported the same SwiftShader renderer: `stealth` and `stealth-headful` differ only in headless vs headful.
+
+### Correction: the gate label was wrong (2026-10-13)
+
+Testing the "gated in every profile" URLs under `stealth` and `stealth-headful` (two runs each) showed that 8 of the 10 were **ordinary pages**: the classifier called a page a gate when its DOM loaded Google reCAPTCHA (contact forms do), or Cloudflare's `/cdn-cgi/challenge-platform/` script (Cloudflare injects it into normal pages for visitors who passed). Fixed: a gate is a challenge title, or challenge markup (Turnstile, the challenge host, hCaptcha/reCAPTCHA widgets, "verify you are human") on a small page (< 64 KiB) without a login form. Corrected M4 numbers: **3–4 gates per profile out of 55, not 9; 2 gated in every profile.** The M4 statement "8 of 9 gates challenged every profile" was an artifact of the bad label and is withdrawn. `www.tdaccounting.net` remains a User-Agent split (Cloudflare challenge for `HeadlessChrome`, the page for the desktop UA).
+
+### Headful against the real gates
+
+The two real gates blocked `stealth-headful` as well (2 runs each, both profiles): headless mode isn't what holds them.
+- `betteraccounting.uk`: an ordinary business behind a challenge for every visitor.
+- `auspost.adqwi.com` (the Australia Post lure from the first OpenPhish batch, still up hours later): a **kit-made click gate**. 22 KB imitating Cloudflare's "Verify you are human" page, no CAPTCHA provider, no external script; its 10 KB of inline code reads only `navigator.languages` and, on a click, POSTs a `verify_code` to its own path. No browser profile can pass it, only interaction.
+
+Also: most "accounting" names were candidates because "account**ing**" matched the short brand ING glued after an action word. Short brands now count only first in a word (`tdaccounts` still matches).
+
+**Process note:** several earlier test additions for the CT scoring had silently not been applied (an edit script replaced text that `gofmt` had re-aligned, with no match check). They are in now (29 cases, all passing), and edits are checked for a match.
 
