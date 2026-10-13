@@ -45,3 +45,28 @@ After the report fixes, without re-running anything: **42 of 1,344 not consisten
 ## Exit
 
 Met: a URL submitted through the dashboard's form is detonated and its report rendered (redirect chain, network graph, screenshot); the control plane, its database and queue run as the operator, so `urljaild` stays the only privileged component. The installed daemon builds reports with the code from before M3's two report fixes (WebSockets, `Link` headers) until its next reinstall; the CLI and `urljail report` already use them.
+
+## Side quest: look-alike pages and brand signals (2026-10-14)
+
+### S1: screenshot hash
+
+`page.screenshot_phash` (`internal/visual`): a 64-bit DCT perceptual hash (32×32 grey, 8×8 low frequencies, bit = above the median of the AC terms). Decoding refuses PNGs over 4096×4096 before reading pixels; 2.1 M fuzz executions without a crash. ~50 ms per 1920×1080 screenshot, most of it PNG decoding. Screenshots with almost no contrast (luminance σ < 2) are `screenshot_blank` with no hash: 118 of 1,321 (9 %).
+
+**How close is "the same page"? Measured, not guessed.** Pairs that should match: same final URL and title (2,374 pairs). Pairs that shouldn't: different registrable domain and different, non-generic titles (215k pairs). First pass on every screenshot gave 1.2 % false matches even at distance 3, all from Chrome's own error page, which looks the same everywhere and takes the domain as its title. Restricted to pages that loaded (no navigation error, last status < 400; 761 pages):
+
+| Distance ≤ | Same-page pairs found | Different-page pairs matched |
+| ---------- | --------------------- | ---------------------------- |
+| 3 | 44 % | 0 |
+| 6 | 61 % | 0 |
+| 8 | 75 % | 30 (0.014 %) |
+| 12 | 86 % | 276 |
+
+The 30 at distance 8 all go through one nginx welcome page (a few lines of text on white), 8 bits from both a "coming soon" page and BBVA's real login. **6 is the default** (`visual.DefaultMaxDistance`). A 256-bit variant (64×64, 16×16) separated no better per unit of recall and was dropped. Same-page recall is limited by what changes between visits: cookie banners, rotating hero images, headful vs headless rendering.
+
+### S2: `urljail similar`
+
+`urljail similar <run>` lists runs whose screenshots are within the distance; `urljail similar -groups` groups all loaded pages and lists groups that span several domains. Groups are formed against each group's first member, not by chaining (single linkage first put BBVA's login, an nginx page and "A-C-S" into one cluster through the nginx page). On the corpus, 9 groups span more than one domain:
+
+- **A family of look-alike domains found by look alone:** `{clear,prime,sure}facilityservicesteam.com` share one template ("Corporate Cleaning Group"), `{pro,try,top}facilityservicesteam.com` another ("Moore's General Services"). The CT discovery found them separately.
+- Shared software, not kits: Meta's Signals Gateway on `tracking.clawdispatch.com` and `tracking.mayhemfights.com`, Authelia on two self-hosted domains, `example.{com,org,net}`. A look-alike group is a lead, not a verdict.
+- Roblox "script" pages on two `pages.dev` projects.
