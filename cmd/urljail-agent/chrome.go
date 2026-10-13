@@ -40,7 +40,10 @@ func chromeArgs(profile string, bp *guestv1.BrowserProfile, browserVersion strin
 		"--window-size=1920,1080",
 	}
 	if bp.GetHeadful() {
-		args = append(args, "--ozone-platform=x11", "--window-position=0,0") // on Xvfb (display)
+		// On Xvfb. Without a GPU, headful Chrome turns WebGL off instead of falling back to
+		// SwiftShader as headless does (found in P6 M5); "unsafe" means exposing SwiftShader to
+		// pages, which headless already does, inside the disposable VM.
+		args = append(args, "--ozone-platform=x11", "--window-position=0,0", "--enable-unsafe-swiftshader")
 	} else {
 		args = append(args, "--headless=new") // the real browser, not the old headless shell (ADR 0009)
 	}
