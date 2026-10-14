@@ -141,3 +141,17 @@ heldout2-ct	01a139c7-ed1b-7a14-9ed0-dffe2b738a9f	benign	-	-	same food business: 
 heldout2-ct	01a139cf-dc61-7483-ac57-55f0dd359e21	benign	-	-	same Worker host (header echo)	
 heldout2-ct	01a139d6-ba2f-77e1-b6e7-664674834b58	benign	-	roblox	Roblox script SEO page on pages.dev	
 heldout2-ct	01a139e3-3d5c-75d1-ac7d-95aba811f8b3	benign	-	-	"Content update in progress" placeholder	
+heldout2-feed	01a13a7b-060c-714d-a1cb-2eac58a8aecc	phish	credential	-	Korean email/password "Account Verification" on Bluehost (same kit, another path)	
+heldout2-feed	01a13a7b-36a7-7d22-8381-4d4b5fec590e	benign	-	-	"Clear Ledger" private family-budget app with a Supabase login, on pages.dev	form-on-free-hosting/medium
+heldout2-feed	01a13a7c-c0c2-7661-814a-8a303b10d1ca	phish	gate	-	"Access Restricted" VPN/bot gate on netlify.app (same kit)	
+heldout2-feed	01a13a7d-4770-7f41-a4e8-b550e53db149	phish	lure	exodus	"Official Exodus Website" wallet page on pages.dev	
+heldout2-feed	01a13a7e-2d2e-76ec-8dbe-11d165a860b7	phish	credential	microsoft	"Security verification - Microsoft account" on replit.app	brand-name-off-domain/high,form-on-free-hosting/medium
+heldout2-feed	01a13a7b-6bbc-71e6-90f3-2fa03c02e616	real-site	-	facebook	www.facebook.com itself	
+heldout2-feed	01a13a7d-5e82-713e-a143-e18361656a73	real-site	-	facebook	www.facebook.com itself	
+heldout2-feed	01a13a7d-bcb3-7ec9-b6b8-20c3531df649	real-site	-	facebook	www.facebook.com itself	
+heldout2-feed	01a13a7f-dd58-7d39-a322-e38d6071f3b6	real-site	-	facebook	www.facebook.com itself	
+heldout2-feed	01a13a93-8516-7b59-9242-119eee14c96d	real-site	-	facebook	www.facebook.com itself	
+heldout2-feed	01a13a94-7a63-7a69-9f0c-f247f27dd470	real-site	-	facebook	www.facebook.com itself	
+heldout2-feed	01a13a95-c706-7976-a871-9d5316b17cb1	real-site	-	facebook	www.facebook.com itself	
+heldout2-feed	01a13a96-503b-7d4f-b982-e195d6c9a92b	real-site	-	facebook	www.facebook.com itself	
+heldout2-feed	01a13a96-91c7-7d6b-8875-60293dd6fd32	real-site	-	facebook	www.facebook.com itself	
