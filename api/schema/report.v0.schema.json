@@ -41,6 +41,11 @@
           "default": "",
           "type": "string"
         },
+        "har": {
+          "default": "",
+          "description": "The guest's requests as HAR 1.2 (opens in browser devtools); built with the report.",
+          "type": "string"
+        },
         "pcap": {
           "default": "",
           "description": "Host packet capture; empty once retention deleted it (see gaps).",

@@ -1811,7 +1811,9 @@ type Artifacts struct {
 	SerialLog      string                 `protobuf:"bytes,6,opt,name=serial_log,json=serialLog,proto3" json:"serial_log,omitempty"`
 	FirecrackerLog string                 `protobuf:"bytes,7,opt,name=firecracker_log,json=firecrackerLog,proto3" json:"firecracker_log,omitempty"`
 	// Host packet capture; empty once retention deleted it (see gaps).
-	Pcap          string `protobuf:"bytes,8,opt,name=pcap,proto3" json:"pcap,omitempty"`
+	Pcap string `protobuf:"bytes,8,opt,name=pcap,proto3" json:"pcap,omitempty"`
+	// The guest's requests as HAR 1.2 (opens in browser devtools); built with the report.
+	Har           string `protobuf:"bytes,9,opt,name=har,proto3" json:"har,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -1898,6 +1900,13 @@ func (x *Artifacts) GetFirecrackerLog() string {
 func (x *Artifacts) GetPcap() string {
 	if x != nil {
 		return x.Pcap
+	}
+	return ""
+}
+
+func (x *Artifacts) GetHar() string {
+	if x != nil {
+		return x.Har
 	}
 	return ""
 }
@@ -2151,7 +2160,7 @@ const file_urljail_report_v0_report_proto_rawDesc = "" +
 	"\bfilename\x18\x02 \x01(\tR\bfilename\x12\x14\n" +
 	"\x05state\x18\x03 \x01(\tR\x05state\x12\x14\n" +
 	"\x05bytes\x18\x04 \x01(\rR\x05bytes\x12\x16\n" +
-	"\x06source\x18\x05 \x01(\tR\x06source\"\xee\x01\n" +
+	"\x06source\x18\x05 \x01(\tR\x06source\"\x80\x02\n" +
 	"\tArtifacts\x12\x1e\n" +
 	"\n" +
 	"screenshot\x18\x01 \x01(\tR\n" +
@@ -2164,7 +2173,8 @@ const file_urljail_report_v0_report_proto_rawDesc = "" +
 	"\n" +
 	"serial_log\x18\x06 \x01(\tR\tserialLog\x12'\n" +
 	"\x0ffirecracker_log\x18\a \x01(\tR\x0efirecrackerLog\x12\x12\n" +
-	"\x04pcap\x18\b \x01(\tR\x04pcap\"}\n" +
+	"\x04pcap\x18\b \x01(\tR\x04pcap\x12\x10\n" +
+	"\x03har\x18\t \x01(\tR\x03har\"}\n" +
 	"\tIndicator\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\x12\x1a\n" +
 	"\bseverity\x18\x02 \x01(\tR\bseverity\x12\x16\n" +

@@ -28,8 +28,14 @@ const Schema = "urljail.report/v0"
 
 const guestCDP = "guest.cdp"
 
-// Write builds the report for runDir and writes runDir/report.json.
+// Write builds the report for runDir and writes runDir/report.json, and runDir/har.json first
+// when the run has guest events (the report lists it among the artifacts).
 func Write(runDir string) (*reportv0.Report, error) {
+	if _, err := os.Stat(filepath.Join(runDir, "guest", "events.jsonl")); err == nil {
+		if err := WriteHAR(runDir); err != nil {
+			return nil, err
+		}
+	}
 	r, err := Build(runDir)
 	if err != nil {
 		return nil, err
@@ -142,8 +148,9 @@ func Build(runDir string) (*reportv0.Report, error) {
 
 // event is one line of guest/events.jsonl.
 type event struct {
-	Method string          `json:"method"`
-	Params json.RawMessage `json:"params"`
+	Session string          `json:"session"` // CDP session: the page's, or a worker's or iframe's
+	Method  string          `json:"method"`
+	Params  json.RawMessage `json:"params"`
 }
 
 func readEvents(path string) ([]event, error) {
@@ -210,6 +217,7 @@ func artifacts(runDir string) *reportv0.Artifacts {
 		SerialLog:      rel("host/serial.log"),
 		FirecrackerLog: rel("host/firecracker.log"),
 		Pcap:           rel("host/capture.pcap"),
+		Har:            rel("har.json"),
 	}
 }
 

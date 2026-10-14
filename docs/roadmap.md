@@ -100,6 +100,6 @@ See [research/anti-cloaking.md](./research/anti-cloaking.md).
 
 ## Side quests (can slot in anywhere after P4)
 - **Snapshot entropy study**: [research/snapshot-entropy.md](./research/snapshot-entropy.md); a good standalone write-up.
-- **HAR export**.
+- ~~HAR export~~: done 2026-10-14 (`har.json` beside each report, "Download HAR" on the run page).
 - ~~pHash of screenshots, brand-impersonation heuristics~~: done 2026-10-14 (`urljail similar`, report `indicators`; [journal](./journal/p7-control-plane.md)).
 - **Rust rewrite of one component** (e.g. the eBPF loader with aya) as a comparison exercise.

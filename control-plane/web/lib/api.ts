@@ -66,6 +66,7 @@ export const api = {
   submit: (url: string, profile: string) =>
     json<{ id: string }>('/api/runs', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ url, profile }) }),
   similar: (id: string) => json<{ maxDistance: number; runs: (RunRow & { distance: number })[] }>(`/api/runs/${encodeURIComponent(id)}/similar`),
+  har: (id: string) => call(`/api/runs/${encodeURIComponent(id)}/har`),
   screenshot: (id: string) => call(`/api/runs/${encodeURIComponent(id)}/screenshot`),
 };
 

@@ -271,6 +271,8 @@ message Artifacts {
   string firecracker_log = 7;
   // Host packet capture; empty once retention deleted it (see gaps).
   string pcap = 8;
+  // The guest's requests as HAR 1.2 (opens in browser devtools); built with the report.
+  string har = 9;
 }
 
 message Indicator {

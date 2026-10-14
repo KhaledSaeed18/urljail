@@ -69,6 +69,7 @@ export default async function Run({ params }: { params: Promise<{ id: string }> 
           <NetworkGraph domains={counted} page={pageDomain} />
           <p className="muted" style={{ margin: 0, fontSize: 13 }}>
             {(net.requests ?? []).length} requests, {(net.flows ?? []).length} host-observed flows, {(net.blocked ?? []).length} blocked destinations
+            {rep.artifacts?.har && <> · <a href={`/runs/${id}/har`} download>Download HAR</a></>}
           </p>
         </section>
       </div>

@@ -103,6 +103,25 @@ export class ApiController {
     return { maxDistance: d, runs: await this.db.similar(id, d, 50) };
   }
 
+  // The run's HAR (built with the report from the guest's CDP events), as a download.
+  @Get('runs/:id/har')
+  async har(@Param('id') id: string, @Res() res: Response) {
+    if (!UUID.test(id)) throw new HttpException('bad id', HttpStatus.BAD_REQUEST);
+    const row = await this.db.get(id);
+    if (!row?.runId || !isRunId(row.runId)) throw new HttpException('no HAR', HttpStatus.NOT_FOUND);
+    let buf: Buffer;
+    try {
+      buf = await readFile(insideDir(this.cfg.runsDir, row.runId, 'har.json'));
+    } catch {
+      throw new HttpException('no HAR (rebuild the report with urljail report)', HttpStatus.NOT_FOUND);
+    }
+    if (buf.length > 64 << 20) throw new HttpException('HAR too large', HttpStatus.UNPROCESSABLE_ENTITY);
+    res.setHeader('Content-Type', 'application/json');
+    res.setHeader('Content-Disposition', `attachment; filename="urljail-${row.runId}.har"`);
+    res.setHeader('X-Content-Type-Options', 'nosniff');
+    res.send(buf);
+  }
+
   // The screenshot, only if it really is a PNG, served as one.
   @Get('runs/:id/screenshot')
   async screenshot(@Param('id') id: string, @Res() res: Response) {

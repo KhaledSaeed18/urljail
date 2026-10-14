@@ -106,3 +106,7 @@ The 30 at distance 8 all go through one nginx welcome page (a few lines of text 
 - **The screenshot match fired once** in the whole study (a Google clone, tuning set): kits copy mobile or older layouts.
 - **Found on the way:** a kit that renders its page from a `blob:` URL (the final URL's domain came back empty and every brand rule was skipped; now read from the blob's origin, plus a `blob-document` indicator); kit headings built from `<div class=title>` (counted, but only next to a password, a details form or sign-in wording: alone they flagged Wikipedia's "Meta" link and a "Google Chrome" requirement on chase.com); Stripe's own `stripe-terminal-local-reader.net` pages, titled with their host, read as "presenting Stripe" (titles are now matched without the host).
 - 15 phishing URLs led to the brand's real site (facebook.com, google.com); none was flagged.
+
+### HAR export
+
+Each report build also writes `har.json` (HAR 1.2) from the guest's CDP events, listed as `artifacts.har`; the run page has "Download HAR" (served as an attachment, never rendered). Requests are keyed by CDP session plus request ID (iframes and workers reuse IDs), redirects become one entry per hop, timings come from Chrome's ResourceTiming. Response bodies aren't captured, so content has sizes and types only (said in the HAR's comment). On the BBC run: 87 entries for 87 requests; 37 had no response event before collection (status 0, with a comment).
