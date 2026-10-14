@@ -6,8 +6,13 @@ import { StatePill, when } from './state';
 
 export const dynamic = 'force-dynamic';
 
-export default async function Home() {
-  const [status, { runs }] = await Promise.all([api.status(), api.list()]);
+const VIEWS: Array<[string, string]> = [['all', 'All runs'], ['unlabelled', 'Needs a label'], ['labelled', 'Labelled']];
+
+export default async function Home({ searchParams }: { searchParams: Promise<Record<string, string | undefined>> }) {
+  const q = await searchParams;
+  const view = VIEWS.some(([v]) => v === q.view) ? q.view! : 'all';
+  const indicator = q.indicator && /^[a-z-]{1,60}$/.test(q.indicator) ? q.indicator : '';
+  const [status, { runs }] = await Promise.all([api.status(), api.list({ view, indicator })]);
   const d = status.daemon;
   return (
     <>
@@ -22,6 +27,7 @@ export default async function Home() {
           <span className="pill bad">daemon unreachable</span>
         )}
         <span className="muted mono">queue: {status.queue.waiting ?? 0} waiting, {status.queue.active ?? 0} running</span>
+        <Link href="/evaluate">Indicators vs labels</Link>
       </header>
       {status.daemonError && <div className="error">urljaild: {status.daemonError}</div>}
 
@@ -42,13 +48,27 @@ export default async function Home() {
 
       <section className="card">
         <h2>Runs</h2>
+        <nav className="filters">
+          {VIEWS.map(([v, text]) => (
+            <Link key={v} className={v === view ? 'on' : ''} href={v === 'all' ? '/' : `/?view=${v}`}>{text}</Link>
+          ))}
+          <form method="get" action="/">
+            {view !== 'all' && <input type="hidden" name="view" value={view} />}
+            <select name="indicator" defaultValue={indicator} aria-label="Only runs with this indicator">
+              <option value="">any indicator</option>
+              {['brand-name-off-domain', 'brand-favicon-off-domain', 'brand-look-off-domain', 'brand-lookalike-domain', 'form-on-free-hosting',
+                'password-form-cross-origin', 'blob-document', 'brand-presented-off-domain'].map((i) => <option key={i} value={i}>{i}</option>)}
+            </select>{' '}
+            <button type="submit">Filter</button>
+          </form>
+        </nav>
         {runs.length === 0 ? (
-          <p className="muted">No runs yet. Submit a URL above; it appears here while it runs.</p>
+          <p className="muted">{view === 'all' && !indicator ? 'No runs yet. Submit a URL above; it appears here while it runs.' : view === 'unlabelled' ? 'Nothing left to label.' : 'No runs match.'}</p>
         ) : (
           <div className="table">
             <table>
               <thead>
-                <tr><th>Submitted</th><th>State</th><th>URL</th><th>Final page</th><th className="num">Requests</th><th>Profile</th><th>Via</th></tr>
+                <tr><th>Submitted</th><th>State</th><th>Label</th><th>URL</th><th>Final page</th><th className="num">Requests</th><th>Profile</th><th>Via</th></tr>
               </thead>
               <tbody>
                 {runs.map((r) => (
@@ -58,6 +78,7 @@ export default async function Home() {
                       <StatePill state={r.state} consistent={r.summary?.consistent} />
                       {(r.summary?.indicators ?? []).some((x) => x.severity !== 'info') && <> <span className={`pill ${r.summary!.indicators!.some((x) => x.severity === 'high') ? 'bad' : 'warn'}`} title={r.summary!.indicators!.filter((x) => x.severity !== 'info').map((x) => x.id).join(', ')}>{r.summary!.indicators!.find((x) => x.severity !== 'info')!.brand || 'flag'}</span></>}
                     </td>
+                    <td>{r.label ? <span className={`pill ${r.label.verdict === 'phish' ? 'bad' : r.label.verdict === 'unsure' ? '' : 'ok'}`}>{r.label.verdict}</span> : ''}</td>
                     <td className="urlcell"><span className="url">{r.url}</span></td>
                     <td>{r.summary ? (r.summary.navError ? <span className="muted">{r.summary.navError}</span> : r.summary.title || <span className="muted">(no title)</span>) : <span className="muted">{r.error || r.message}</span>}</td>
                     <td className="num">{r.summary?.requests ?? ''}</td>

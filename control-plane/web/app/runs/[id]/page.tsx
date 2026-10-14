@@ -4,6 +4,7 @@ import { api, active } from '@/lib/api';
 import { Refresh } from '../../refresh';
 import { StatePill, when } from '../../state';
 import { NetworkGraph } from './graph';
+import { saveLabel } from '../../actions';
 
 export const dynamic = 'force-dynamic';
 
@@ -55,6 +56,34 @@ export default async function Run({ params }: { params: Promise<{ id: string }> 
             <li key={i}><span className={`pill ${x.severity === 'high' ? 'bad' : x.severity === 'medium' ? 'warn' : ''}`}>{x.severity}</span> <span className="mono">{x.id}</span>: {x.detail}</li>
           ))}</ul>
           <p className="muted" style={{ margin: 0, fontSize: 13 }}>Signals with their reasons, not a verdict.</p>
+        </section>
+      )}
+
+      {!active(run.state) && (
+        <section className="card">
+          <h2>Label</h2>
+          <form className="label" action={saveLabel}>
+            <input type="hidden" name="id" value={id} />
+            <div className="verdicts">
+              {[['phish', 'Phishing'], ['benign', 'Benign'], ['unsure', 'Unsure'], ['real-site', "The brand's real site"]].map(([v, text]) => (
+                <label key={v}><input type="radio" name="verdict" value={v} required defaultChecked={run.label?.verdict === v} /> {text}</label>
+              ))}
+            </div>
+            <div className="fields">
+              <select name="kind" defaultValue={run.label?.kind ?? ''} aria-label="Kind of phishing">
+                <option value="">kind (phishing only)</option>
+                {['credential', 'payment', 'lure', 'gate', 'device-code'].map((k) => <option key={k} value={k}>{k}</option>)}
+              </select>
+              <input name="brand" defaultValue={run.label?.brand ?? ''} placeholder="brand (e.g. paypal)" pattern="[a-z0-9-]{0,40}" maxLength={40} aria-label="Brand" />
+              <input name="note" defaultValue={run.label?.note ?? ''} placeholder="note: what the page is" maxLength={300} aria-label="Note" />
+            </div>
+            <div className="buttons">
+              <button type="submit">Save</button>
+              <button type="submit" name="next" value="1">Save and next unlabelled</button>
+              {run.label && <button type="submit" name="clear" value="1" formNoValidate className="secondary">Clear label</button>}
+              {run.label?.labelledAt && <span className="muted" style={{ fontSize: 13 }}>labelled {when(run.label.labelledAt)}</span>}
+            </div>
+          </form>
         </section>
       )}
 

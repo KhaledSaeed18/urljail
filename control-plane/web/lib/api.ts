@@ -34,7 +34,23 @@ export interface RunRow {
   startedAt: string | null;
   finishedAt: string | null;
   summary: Summary | null;
+  label?: Label | null;
 }
+
+export interface Label { verdict: string; kind: string; brand: string; note: string; labelledAt?: string }
+
+export interface Evaluation {
+  phish: number;
+  other: number;
+  unsure: number;
+  thresholds: Array<{ name: string; flaggedPhish: number; flaggedOther: number }>;
+  indicators: Array<{ id: string; flaggedPhish: number; flaggedOther: number }>;
+  byKind: Array<{ kind: string; phish: number; flagged: number }>;
+  missed: Array<{ id: string; url: string; kind: string; brand: string; note: string }>;
+  falsePositives: Array<{ id: string; url: string; verdict: string; note: string; indicators: string[] }>;
+}
+
+export interface ListFilter { view?: string; indicator?: string; brand?: string }
 
 export interface Summary {
   status: string;
@@ -61,7 +77,16 @@ export interface Status {
 
 export const api = {
   status: () => json<Status>('/api/status'),
-  list: () => json<{ runs: RunRow[] }>('/api/runs?limit=100'),
+  list: (f: ListFilter = {}) => {
+    const q = new URLSearchParams({ limit: '100' });
+    for (const [k, v] of Object.entries(f)) if (v) q.set(k, v);
+    return json<{ runs: RunRow[] }>(`/api/runs?${q}`);
+  },
+  label: (id: string, l: Label) =>
+    json<{ ok: boolean }>(`/api/runs/${encodeURIComponent(id)}/label`, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(l) }),
+  unlabel: (id: string) => json<{ ok: boolean }>(`/api/runs/${encodeURIComponent(id)}/label`, { method: 'DELETE' }),
+  evaluation: () => json<Evaluation>('/api/evaluation'),
+  labelsTsv: () => call('/api/labels.tsv'),
   get: (id: string) => json<RunRow & { report: any }>(`/api/runs/${encodeURIComponent(id)}`),
   submit: (url: string, profile: string) =>
     json<{ id: string }>('/api/runs', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ url, profile }) }),

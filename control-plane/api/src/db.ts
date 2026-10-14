@@ -35,7 +35,25 @@ CREATE INDEX IF NOT EXISTS runs_created ON runs (created_at DESC);
 ALTER TABLE runs ADD COLUMN IF NOT EXISTS source text NOT NULL DEFAULT 'dashboard';
 CREATE UNIQUE INDEX IF NOT EXISTS runs_run_id ON runs (run_id) WHERE run_id IS NOT NULL;
 ALTER TABLE runs ADD COLUMN IF NOT EXISTS report_mtime timestamptz;
+CREATE TABLE IF NOT EXISTS labels (
+  run         uuid PRIMARY KEY REFERENCES runs(id) ON DELETE CASCADE,
+  verdict     text NOT NULL,
+  kind        text NOT NULL DEFAULT '',
+  brand       text NOT NULL DEFAULT '',
+  note        text NOT NULL DEFAULT '',
+  labelled_at timestamptz NOT NULL DEFAULT now()
+);
 `;
+
+// A run's label as a JSON object (null when unlabelled), for the row queries.
+const LABEL = `(SELECT row_to_json(l) FROM (SELECT verdict, kind, brand, note, labelled_at AS "labelledAt"
+  FROM labels WHERE labels.run = runs.id) l) AS label`;
+
+export interface ListFilter {
+  view?: 'all' | 'unlabelled' | 'labelled';
+  indicator?: string;
+  brand?: string;
+}
 
 const COLS = `id, url, profile, state, message, error, source, run_id AS "runId", created_at AS "createdAt",
   started_at AS "startedAt", finished_at AS "finishedAt", summary`;
@@ -57,15 +75,54 @@ export class Db {
   }
 
   async get(id: string): Promise<(RunRow & { report: unknown }) | null> {
-    const r = await this.pool.query(`SELECT ${COLS}, report FROM runs WHERE id = $1`, [id]);
+    const r = await this.pool.query(`SELECT ${COLS}, ${LABEL}, report FROM runs WHERE id = $1`, [id]);
     return r.rows[0] ?? null;
   }
 
-  async list(limit: number, before?: Date): Promise<RunRow[]> {
-    const r = before
-      ? await this.pool.query(`SELECT ${COLS} FROM runs WHERE created_at < $1 ORDER BY created_at DESC LIMIT $2`, [before, limit])
-      : await this.pool.query(`SELECT ${COLS} FROM runs ORDER BY created_at DESC LIMIT $1`, [limit]);
+  // Newest first. "unlabelled" is the review queue: finished runs whose page loaded (no
+  // navigation error) and that nobody has labelled yet.
+  async list(limit: number, before?: Date, f: ListFilter = {}): Promise<RunRow[]> {
+    const where: string[] = [];
+    const args: unknown[] = [];
+    const arg = (v: unknown) => `$${args.push(v)}`;
+    if (before) where.push(`created_at < ${arg(before)}`);
+    if (f.view === 'unlabelled') {
+      where.push(`state = 'done' AND COALESCE(summary->>'navError', '') = '' AND NOT EXISTS (SELECT 1 FROM labels WHERE labels.run = runs.id)`);
+    } else if (f.view === 'labelled') {
+      where.push('EXISTS (SELECT 1 FROM labels WHERE labels.run = runs.id)');
+    }
+    if (f.indicator) where.push(`summary->'indicators' @> ${arg(JSON.stringify([{ id: f.indicator }]))}::jsonb`);
+    if (f.brand) where.push(`summary->'indicators' @> ${arg(JSON.stringify([{ brand: f.brand }]))}::jsonb`);
+    const sql = `SELECT ${COLS}, ${LABEL} FROM runs ${where.length ? 'WHERE ' + where.join(' AND ') : ''}
+      ORDER BY created_at DESC LIMIT ${arg(limit)}`;
+    return (await this.pool.query(sql, args)).rows;
+  }
+
+  async setLabel(id: string, l: { verdict: string; kind: string; brand: string; note: string }): Promise<boolean> {
+    const r = await this.pool.query(
+      `INSERT INTO labels (run, verdict, kind, brand, note) SELECT id, $2, $3, $4, $5 FROM runs WHERE id = $1
+       ON CONFLICT (run) DO UPDATE SET verdict = $2, kind = $3, brand = $4, note = $5, labelled_at = now()`,
+      [id, l.verdict, l.kind, l.brand, l.note]);
+    return (r.rowCount ?? 0) > 0;
+  }
+
+  async deleteLabel(id: string): Promise<void> {
+    await this.pool.query('DELETE FROM labels WHERE run = $1', [id]);
+  }
+
+  // Every labelled run with its indicators, for scoring and export.
+  async labelled(): Promise<Array<{ id: string; runId: string | null; url: string; createdAt: Date; verdict: string; kind: string;
+    brand: string; note: string; indicators: Array<{ id: string; severity: string; brand: string }> }>> {
+    const r = await this.pool.query(
+      `SELECT runs.id, runs.run_id AS "runId", runs.url, runs.created_at AS "createdAt", l.verdict, l.kind, l.brand, l.note,
+              COALESCE(runs.summary->'indicators', '[]'::jsonb) AS indicators
+         FROM runs JOIN labels l ON l.run = runs.id ORDER BY runs.created_at`);
     return r.rows;
+  }
+
+  async idForRunId(runId: string): Promise<string | null> {
+    const r = await this.pool.query('SELECT id FROM runs WHERE run_id = $1', [runId]);
+    return r.rows[0]?.id ?? null;
   }
 
   async progress(id: string, state: string, message: string, runId: string | null): Promise<void> {

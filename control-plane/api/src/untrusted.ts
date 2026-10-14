@@ -22,6 +22,24 @@ export function validateSubmission(body: unknown): { url: string; profile: strin
   return { url, profile: (profile as string | undefined) ?? '' };
 }
 
+// A person's judgement of a run, for measuring the indicators (journal P7).
+export const VERDICTS = ['phish', 'benign', 'unsure', 'real-site'] as const;
+export const KINDS = ['', 'credential', 'payment', 'lure', 'gate', 'device-code'] as const;
+export interface Label { verdict: string; kind: string; brand: string; note: string }
+
+export function validateLabel(body: unknown): Label {
+  if (typeof body !== 'object' || body === null) throw new Error('body must be a JSON object');
+  const { verdict, kind, brand, note } = body as Record<string, unknown>;
+  if (typeof verdict !== 'string' || !(VERDICTS as readonly string[]).includes(verdict)) throw new Error(`verdict must be one of ${VERDICTS.join(', ')}`);
+  const k = kind ?? '';
+  if (typeof k !== 'string' || !(KINDS as readonly string[]).includes(k)) throw new Error(`kind must be one of ${KINDS.filter(Boolean).join(', ')} or empty`);
+  const b = brand ?? '';
+  if (typeof b !== 'string' || !/^[a-z0-9-]{0,40}$/.test(b)) throw new Error('brand: lowercase letters, digits and hyphens, at most 40');
+  const n = note ?? '';
+  if (typeof n !== 'string' || n.length > 300) throw new Error('note: at most 300 characters');
+  return { verdict, kind: verdict === 'phish' ? k : '', brand: b, note: n.replace(/[\u0000-\u001f\u007f]/g, ' ').trim() };
+}
+
 // insideDir resolves name under dir and refuses anything that escapes it.
 export function insideDir(dir: string, ...parts: string[]): string {
   const p = resolve(dir, ...parts);

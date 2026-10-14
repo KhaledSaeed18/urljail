@@ -1,5 +1,5 @@
 // The HTTP API (ADR 0019): localhost only, bearer token on every request, strict headers.
-import { All, Body, Controller, Get, HttpException, HttpStatus, Inject, Injectable, Param, Post, Query, Res, CanActivate, ExecutionContext, NestMiddleware } from '@nestjs/common';
+import { All, Body, Controller, Delete, Get, HttpException, HttpStatus, Inject, Injectable, Param, Post, Put, Query, Res, CanActivate, ExecutionContext, NestMiddleware } from '@nestjs/common';
 import type { Request, Response, NextFunction } from 'express';
 import { Queue } from 'bullmq';
 import { readFile } from 'node:fs/promises';
@@ -7,7 +7,8 @@ import { timingSafeEqual, createHash } from 'node:crypto';
 import { Config } from './config';
 import { DaemonClient } from './daemon';
 import { Db } from './db';
-import { insideDir, isPng, isRunId, validateSubmission } from './untrusted';
+import { insideDir, isPng, isRunId, validateLabel, validateSubmission } from './untrusted';
+import { evaluate } from './evaluate';
 
 export const CONFIG = Symbol('config');
 export const QUEUE_TOKEN = Symbol('queue');
@@ -81,10 +82,65 @@ export class ApiController {
   }
 
   @Get('runs')
-  async list(@Query('limit') limit?: string, @Query('before') before?: string) {
+  async list(@Query('limit') limit?: string, @Query('before') before?: string, @Query('view') view?: string,
+    @Query('indicator') indicator?: string, @Query('brand') brand?: string) {
     const n = Math.min(Math.max(Number(limit) || 50, 1), 200);
     const b = before && !Number.isNaN(Date.parse(before)) ? new Date(before) : undefined;
-    return { runs: await this.db.list(n, b) };
+    const v = view === 'unlabelled' || view === 'labelled' ? view : 'all';
+    const ind = indicator && /^[a-z-]{1,60}$/.test(indicator) ? indicator : undefined;
+    const br = brand && /^[a-z0-9-]{1,40}$/.test(brand) ? brand : undefined;
+    return { runs: await this.db.list(n, b, { view: v, indicator: ind, brand: br }) };
+  }
+
+  // A person's label for a run (phish / benign / unsure / real-site), for scoring the indicators.
+  @Put('runs/:id/label')
+  async label(@Param('id') id: string, @Body() body: unknown) {
+    if (!UUID.test(id)) throw new HttpException('bad id', HttpStatus.BAD_REQUEST);
+    let l;
+    try {
+      l = validateLabel(body);
+    } catch (e) {
+      throw new HttpException((e as Error).message, HttpStatus.BAD_REQUEST);
+    }
+    if (!(await this.db.setLabel(id, l))) throw new HttpException('no such run', HttpStatus.NOT_FOUND);
+    return { ok: true };
+  }
+
+  @Delete('runs/:id/label')
+  async unlabel(@Param('id') id: string) {
+    if (!UUID.test(id)) throw new HttpException('bad id', HttpStatus.BAD_REQUEST);
+    await this.db.deleteLabel(id);
+    return { ok: true };
+  }
+
+  // The dashboard's id for a run directory's run ID (importing labels kept elsewhere).
+  @Get('by-run-id/:runId')
+  async byRunId(@Param('runId') runId: string) {
+    if (!isRunId(runId)) throw new HttpException('bad run id', HttpStatus.BAD_REQUEST);
+    const id = await this.db.idForRunId(runId);
+    if (!id) throw new HttpException('no such run', HttpStatus.NOT_FOUND);
+    return { id };
+  }
+
+  // The indicators scored against the labels.
+  @Get('evaluation')
+  async evaluation() {
+    return evaluate(await this.db.labelled());
+  }
+
+  // Every label with the run's indicators, as tab-separated values.
+  @Get('labels.tsv')
+  async labelsTsv(@Res() res: Response) {
+    const clean = (v: unknown) => String(v ?? '').replace(/[\t\r\n]/g, ' ');
+    const lines = ['run_id\turl\tverdict\tkind\tbrand\tnote\tindicators'];
+    for (const r of await this.db.labelled()) {
+      lines.push([r.runId, r.url, r.verdict, r.kind, r.brand, r.note,
+        r.indicators.map((i) => `${i.id}/${i.severity}`).join(',')].map(clean).join('\t'));
+    }
+    res.setHeader('Content-Type', 'text/tab-separated-values; charset=utf-8');
+    res.setHeader('Content-Disposition', 'attachment; filename="urljail-labels.tsv"');
+    res.setHeader('X-Content-Type-Options', 'nosniff');
+    res.send(lines.join('\n') + '\n');
   }
 
   @Get('runs/:id')
