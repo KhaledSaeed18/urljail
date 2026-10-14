@@ -1,0 +1,103 @@
+set	run	label	kind	brand	note	indicators_frozen
+tuning	01a137ad-aab7-7505-a0e3-069260643bbb	phish	payment	coinbase	fake fiat balance, asks bank/card details	brand-name-off-domain/medium
+tuning	01a137ad-f9bf-70c8-a255-2a532f797891	real-site	-	facebook	redirected to www.facebook.com itself	
+tuning	01a137ae-5d37-7d94-ad19-087ee36c0da4	phish	credential	-	generic webmail login ("example.com Mail Authentication")	
+tuning	01a137ae-7c00-7c31-9ead-293720adc49c	phish	gate	amex	"Verify you are human" on american-expiess.vip	brand-lookalike-domain/medium
+tuning	01a137ae-a6fd-7878-8d57-2dcba1890217	benign	-	-	hotel booking aggregator page	
+tuning	01a137af-b2bd-7458-81f5-25d6f010d46b	phish	credential	instagram	Instagram login clone	brand-name-off-domain/high
+tuning	01a137b0-5497-7c01-b600-cdc7c154b507	phish	device-code	docusign	sign-in code + Microsoft button	brand-name-off-domain/medium
+tuning	01a137b1-e069-7e52-80f8-2c079e1b9a58	unsure	-	netflix	"Create Next App" placeholder on netflix-cop.vercel.app	
+tuning	01a137b2-4516-7ec3-9728-ad301fd92689	unsure	-	-	half-rendered Chinese shop template	
+tuning	01a137b2-88d6-7a54-8da0-cfa60bffcff8	phish	credential	microsoft	"Microsoft | Login" clone	brand-name-off-domain/high
+tuning	01a137c4-82e5-74ca-a9cb-9f5493878ae8	phish	lure	santander	fake loan offer	brand-presented-off-domain/low
+tuning	01a137c4-b8e2-75b5-b618-d0e62cdcf84d	phish	lure	seur	parcel "delivery failed" lure	brand-presented-off-domain/low
+tuning	01a137c5-207a-7de9-8055-d7bf2995304b	real-site	-	facebook	redirected to www.facebook.com itself	
+tuning	01a137c5-d4d9-793e-93a6-ee7d443766bd	benign	-	-	university homepage (as seen)	
+tuning	01a137c5-fd96-7a73-b7d9-b352211f6f18	phish	lure	trezor	fake Trezor "get started" (seed/app lure) on squarespace	
+tuning	01a137c6-698f-7005-be6a-0da95903eb02	phish	lure	whatsapp	"WhatsApp account verification center"	brand-presented-off-domain/low
+tuning	01a137c7-abc3-71a1-b3db-7adb769e3679	phish	payment	dhl	DHL billing-information form (name, DOB, phone, address)	brand-name-off-domain/medium
+tuning	01a137c8-2e10-7c0a-b025-332209cbcaa3	phish	credential	-	generic "Webmail :: Welcome to Webmail" login on a compromised site	
+tuning	01a137c8-98b3-7c9d-8115-4083e6e9a01b	unsure	-	orange	Orange Money logo + repeated "enter Google verification code" (Arabic), blogspot	
+tuning	01a137e4-e52c-74c7-89ab-d37c5c1ff7c3	phish	lure	kraken	Kraken-branded "loading data" page on casmex.at	
+tuning	01a137e5-a378-7ad6-a50d-52c7999915ee	phish	credential	microsoft	Spanish Microsoft sign-in clone (email first, no password field yet)	brand-name-off-domain/medium
+tuning	01a137e5-c5bd-7534-a31a-cfffec588870	phish	gate	amex	"Verify you are human" on ameriean-expiess.vip	brand-lookalike-domain/medium
+tuning	01a137e6-6b7e-77d0-817e-e201fe12e988	real-site	-	facebook	www.facebook.com itself	
+tuning	01a137e6-b22a-7923-b008-a2eb875e177c	real-site	-	facebook	www.facebook.com itself	
+tuning	01a137e7-257b-7db5-a91a-f44be570c431	phish	credential	tiktok	fake "TikTok-Wholesale" merchant login	brand-name-off-domain/high
+tuning	01a137e8-cac8-7f3a-aacc-f05f2a3a6c83	phish	gate	-	"Verify you are human" on medizinische-versorgung.ink	
+tuning	01a137e9-0b9b-7cbd-b188-2cf808524e26	real-site	-	facebook	www.facebook.com itself	
+tuning	01a137e9-5d96-740e-a6ef-4defe2eac246	phish	credential	google	Google sign-in title on a blob: URL (white screenshot)	blob-document/medium,brand-name-off-domain/medium
+tuning	01a13805-c89e-7d96-8870-454f9632de17	phish	credential	microsoft	"Security verification - Microsoft account" on replit.app	brand-name-off-domain/high
+tuning	01a13805-e9d7-79d8-a456-cf17046d5839	real-site	-	google	www.google.com itself	
+tuning	01a13806-2b68-7b9e-869d-32314104169d	benign	-	-	default web-server "Success!" page (as seen)	
+tuning	01a13806-89cf-7ed8-99f3-83c5b45bdbe5	real-site	-	facebook	www.facebook.com itself	
+tuning	01a13806-c627-7272-a653-24ea7116c1e5	real-site	-	facebook	www.facebook.com itself	
+tuning	01a13808-301e-7908-bee2-62a5197ec87b	real-site	-	facebook	www.facebook.com itself	
+tuning	01a13809-8bc0-7447-ad03-f6a6aff53bc2	phish	payment	trustwallet	fake Trust Wallet "send USDC" to an attacker address	brand-presented-off-domain/low
+tuning	01a13825-76c0-77d6-b72f-d02c1eb2c7a2	phish	credential	meta	"Security Check - Meta" on vercel.app	brand-presented-off-domain/low
+tuning	01a13825-977d-77c3-a1bf-8d960a3264a5	phish	lure	apple	"Intruder Face Captured" Face ID scare, no brand named	
+tuning	01a13825-eb7d-7697-abde-e622cc2b2246	unsure	-	-	gambling site	
+tuning	01a13826-2eaa-71d3-bca0-f197631a0ba4	benign	-	facebook	empty Turkish blog titled "facebook" on faceebook.blogspot.com (as seen)	brand-lookalike-domain/medium,brand-presented-off-domain/low
+tuning	01a13826-4bda-7e20-bd36-e7afcf26bddc	phish	lure	shopee	Shopee prize scam	brand-presented-off-domain/low
+tuning	01a13826-98e3-71f7-baac-78522973cb52	unsure	-	netflix	free-movie streaming page titled "... | netflix"	
+tuning	01a13826-fe51-7c83-9fbc-d5c9b8afd35e	phish	credential	sunrise	Sunrise mail login clone (German)	brand-name-off-domain/medium
+tuning	01a13827-4ae3-7576-b823-76c4150dfb60	phish	gate	-	"Verification Required" gate	
+tuning	01a13827-9db5-7449-8659-8aba12c81bb5	phish	lure	microsoft	fake "Microsoft Support" (tech-support scam) on gitbook	brand-presented-off-domain/low
+tuning	01a13827-df44-76eb-8c0a-9f77f57437bf	phish	credential	google	Google sign-in clone on crestnovae.com	brand-name-off-domain/high,brand-look-off-domain/high
+tuning	01a13828-0254-7e52-90dc-e08811db4865	phish	lure	ledger	"Ledger Live" on accursystem.xyz	brand-presented-off-domain/low
+tuning	01a13828-2315-70ec-b088-95eac6d19727	benign	-	amazon	"Amazon Project" UI clone (tutorial)	brand-presented-off-domain/low
+tuning	01a13828-66fa-7712-97cf-48c36decffeb	phish	lure	meta	"Meta Center" loading screen on workers.dev	brand-presented-off-domain/low
+tuning	01a13828-7f50-71d0-8479-be3e4f6535b6	phish	lure	meta	"Meta Center" loading screen on workers.dev	brand-presented-off-domain/low
+tuning	01a13828-9b13-79ae-a6ca-d757f92e31a2	benign	-	netflix	"Netflix Clone" (tutorial) on github.io	brand-presented-off-domain/low
+tuning	01a13828-b8e1-7da3-8427-28b14c667925	phish	lure	apple	fake Apple Card credit-limit offer	brand-presented-off-domain/low
+tuning	01a13829-360e-7d2b-b50f-8d61147fddc9	phish	credential	naver	Naver sign-in clone	password-form-cross-origin/medium,brand-name-off-domain/high
+tuning	01a13829-591e-745a-b4d6-fb7e9e260ecd	phish	credential	att	BellSouth/AT&T sign-in on webflow.io	brand-name-off-domain/medium
+tuning	01a13829-a72f-73fd-84ea-1a5d7774047d	phish	credential	naver	Naver sign-in clone	password-form-cross-origin/medium,brand-name-off-domain/high
+tuning	01a13829-dfad-7a2e-ab5a-c60bce3212d7	phish	lure	dana	DANA e-wallet "support" lure	
+tuning	01a1382a-2a7d-7c12-961a-99e9423a4c9e	phish	credential	spotify	Spotify login clone (heading in a div)	brand-name-off-domain/high
+heldout	01a13846-1711-710d-bc1a-528f7f61e7bf	phish	lure	meta	"Meta Center" loading screen on workers.dev	brand-presented-off-domain/low
+heldout	01a13846-5601-745f-8a89-49f273fd3991	phish	gate	spotify	Spotify-branded CAPTCHA gate	brand-presented-off-domain/low
+heldout	01a13846-77a2-770b-8b9d-eb37eebc5897	phish	payment	pichincha	Banco Pichincha loan form (name, ID, phone)	
+heldout	01a13846-b896-72c2-a1bb-974c254c733e	phish	payment	pichincha	Banco Pichincha loan form (same kit)	
+heldout	01a13847-18bb-7a6d-827f-168ea0e1d97a	phish	credential	spotify	"Spotify" with a password field on a die-cast hobby shop	brand-name-off-domain/high
+heldout	01a13847-64b9-707d-9c5b-633fe22dd0b7	phish	payment	pichincha	Banco Pichincha loan form (same kit)	
+heldout	01a13847-8779-7cdc-ab60-604bc5105737	phish	payment	pichincha	Banco Pichincha loan form (same kit)	
+heldout	01a13847-c307-781c-aa5f-40b860964a88	benign	-	facebook	empty blog "FACEBOOK" on facebooksecure.blogspot.com (as seen)	brand-presented-off-domain/low
+heldout	01a13847-ee99-7ccf-8f6f-9c19d1e78677	benign	-	facebook	empty Turkish blog on faceebook.blogspot.com (as seen)	brand-lookalike-domain/medium,brand-presented-off-domain/low
+heldout	01a13848-2404-7a15-aa05-727be3f993d1	benign	-	amazon	Amazon homepage clone (tutorial) on github.io	brand-presented-off-domain/low
+heldout	01a13848-9243-7a23-be1e-9a88cf329433	phish	lure	adobe	fake Adobe Reader download page	brand-presented-off-domain/low
+heldout	01a13848-a9bc-73f1-87a6-0ab00122225f	phish	credential	-	generic webmail login, no title	
+heldout	01a13848-f6ab-79c7-86a2-f7544ca13131	phish	credential	microsoft	"SharePoint Adobe Document Cloud" login	brand-name-off-domain/high
+heldout	01a13849-24e9-7805-96a4-1eb751cd705b	phish	gate	-	"Security Check" gate on github.io	
+heldout	01a13849-42e2-70f3-802f-501212fd75bc	phish	credential	spectrum	Spectrum (Charter) sign-in clone	
+heldout	01a13849-89a7-796f-a5de-559e44a12452	phish	lure	kucoin	KuCoin homepage clone on webflow	
+heldout	01a13849-ce21-7a4b-af2f-3932cb9ee1ac	phish	credential	microsoft	"Sign in to your Microsoft account" on cv-t.xyz	password-form-cross-origin/medium,brand-name-off-domain/high
+heldout	01a13849-ec7d-7a35-a31a-3a94e2f8a900	phish	credential	microsoft	"Sign in to your Microsoft account" on loginservice.cloud	brand-name-off-domain/high
+heldout	01a1384a-35a2-7ed2-8140-1e9ffe941ee2	phish	credential	spotify	Spotify login clone (same kit as round 4)	brand-name-off-domain/high
+heldout	01a13866-4451-7a49-af14-7d56b95d0003	phish	credential	-	generic webmail login (same kit as round 5)	
+heldout	01a13866-87e9-76af-8d2f-dac30fae7bc5	phish	lure	-	"New Scanned Document Received" lure	
+heldout	01a13866-c124-784e-a417-1e4f02e87eb8	benign	-	metamask	MetaMask docs on a consensys Vercel preview URL (official)	brand-presented-off-domain/low
+heldout	01a13867-8b2c-76ba-bd15-496bc5870e05	benign	-	amazon	Amazon homepage clone (tutorial) on github.io	brand-presented-off-domain/low
+heldout	01a13867-c193-7ea0-89e7-0390a46dd294	phish	credential	naver	Naver sign-in clone	password-form-cross-origin/medium,brand-name-off-domain/high
+heldout	01a13868-c12e-7cf9-bbc6-1d03405a07bf	phish	credential	netflix	"Netflix" with password fields on a cPanel host	brand-name-off-domain/high
+heldout	01a13869-4ef0-7468-9309-5e8c0e4dba97	phish	credential	microsoft	Microsoft "Enter password" clone	
+heldout	01a13869-c050-7554-a3ea-949f9fa2ceef	phish	credential	-	"Webmail Portal" login	
+heldout	01a13869-df64-7ec8-a1d4-e0e7fb3c8c6e	phish	gate	-	"Verify you are human" on a parcel-service domain	
+heldout	01a1386a-1018-7b31-b257-a8a2e60b43e3	phish	credential	meta	"Meta Business Help Center" with a password field	brand-name-off-domain/high
+heldout	01a1386a-386c-788a-8866-0a0345004f92	real-site	-	facebook	www.facebook.com itself	
+heldout	01a1386a-cd3a-7980-8b67-2613fc3bebdf	phish	credential	roblox	"Log in to Roblox" on rbcode.net	brand-name-off-domain/high
+heldout	01a1386a-f6bf-7006-bdcc-f3e9fbaea87a	phish	gate	-	"Verify you are human" on a rewards domain	
+heldout	01a13886-d91f-7d9a-94b3-db45dc6492a0	phish	credential	-	generic webmail login (same kit)	
+heldout	01a13887-db64-7050-8f7d-5371613f933f	phish	lure	roblox	fake Roblox profile on robloxr.com.es	brand-name-off-domain/medium,brand-lookalike-domain/medium
+heldout	01a13888-343b-7be3-85ee-0980c08a29dd	phish	lure	steam	fake Steam "invitation to connect" on s.team-hz.com	
+heldout	01a13888-5326-7a95-8af6-4598b6546467	phish	lure	opensea	fake OpenSea "Mystery Box, minting now" (wallet drainer)	
+heldout	01a13888-a469-7d19-bd68-bf644eccc3df	benign	-	spotify	Spotify web player clone (tutorial) on github.io	brand-presented-off-domain/low
+heldout	01a13888-de4f-7100-b0f3-a6041ce49583	phish	payment	pichincha	Banco Pichincha loan form (same kit)	
+heldout	01a13889-0897-7269-a663-76a557179a9d	phish	credential	facebook	working Facebook login clone on github.io	brand-name-off-domain/high
+heldout	01a13889-7a40-7174-8f00-bbb49333cb94	phish	payment	pichincha	Banco Pichincha loan form (same kit)	
+heldout	01a13889-9e82-7638-a623-1edf4dbb3d96	real-site	-	facebook	www.facebook.com itself	
+heldout	01a138a8-487f-78e2-ad79-0e4c86da9ca9	real-site	-	facebook	www.facebook.com itself	
+heldout	01a138a9-f9d2-7acf-988f-fb7ee65dd86c	real-site	-	facebook	www.facebook.com itself	
+heldout	01a138aa-3c3c-7e6b-9a66-8ed5a16b78f9	real-site	-	facebook	www.facebook.com itself	
+heldout	01a138ac-b619-72da-a1c9-63db2b839dcb	real-site	-	facebook	www.facebook.com itself	
+heldout	01a138ad-3c9a-7adb-86b8-336cb711cb29	phish	credential	labanquepostale	La Banque Postale client login on netlify.app	

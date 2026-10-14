@@ -89,3 +89,20 @@ The 30 at distance 8 all go through one nginx welcome page (a few lines of text 
 - **Dashboard:** the run page shows indicators (severity, id, reason), forms (method, where they send, field names and types, "other domain" when cross-origin) and "Looks like" (runs within 6 bits, linking to their run pages); the list marks flagged runs with the brand. Summaries are versioned and recomputed from the stored reports when the summary format changes.
 - **Verified on the reinstalled daemon** (`dev-c2d19782`): the daemon's own report for the Facebook clone, re-run, carries `brand-name-off-domain` (high) and the screenshot hash. The DocuSign device-code kit was taken down within the hour (now `404 page not found`, blank screenshot, no indicator). Two of the four pages that had lost their DOM were re-run on the new image and kept it (6.9 KB and 66 KB); the race doesn't reproduce on demand, so that shows the read works, not that the retry fired.
 - **Mistake on the way:** the first reinstall installed a `bin/urljaild` built mid-way through S3 (version `ca371ac-dirty`), because later builds went to a scratch path; `scripts/install-daemon.sh` copies whatever `bin/` holds. Caught by checking the version the daemon logs at start; one more reinstall.
+
+### S4: detection run on live feeds (2026-10-14)
+
+349 fresh OpenPhish URLs under `stealth`, eight rounds over 4 hours (`feeds run -n 40`, newest first); 103 loaded a page, 102 labelled by hand from screenshot and title ([labels and frozen-rule indicators](../research/data/p7-indicator-labels.tsv)). The first batch and rounds 1–4 were for tuning; the rules were frozen at `fa8a848` and rounds 5–8 labelled before any indicator was looked at, then scored once with that binary.
+
+| Threshold | Tuning: flagged / FP | Held-out: flagged / FP |
+| --- | --- | --- |
+| High only | 8 of 36 / 0 of 20 | 10 of 34 / 0 of 12 |
+| Medium and up | 17 / 1 | 11 / 1 |
+| Any | 28 / 3 | 14 / 6 |
+
+- **High severity is precise and narrow:** no false positive on either set, a third of the phishing. `brand-name-off-domain` carried it (11 held-out hits, 0 false positives).
+- **Most of the tuning gain didn't transfer:** 78 % → 41 %. The tuning rounds added 21 brands after seeing them; the held-out rounds brought 5 more the list lacked (Banco Pichincha ×6 pages of one kit, Spectrum, KuCoin, OpenSea, La Banque Postale). 8 held-out misses name no brand at all: generic webmail kits, "verify you are human" gates, a scanned-document lure. Payment and details forms: 0 of 6.
+- **The low indicator failed:** `brand-presented-off-domain` fired on 3 phishing pages and 6 harmless ones (tutorial clones on github.io, empty look-alike blogs, MetaMask's own docs on a consensys Vercel preview). Demoted to `info` after scoring (`097b668`), reported as a post-hoc change.
+- **The screenshot match fired once** in the whole study (a Google clone, tuning set): kits copy mobile or older layouts.
+- **Found on the way:** a kit that renders its page from a `blob:` URL (the final URL's domain came back empty and every brand rule was skipped; now read from the blob's origin, plus a `blob-document` indicator); kit headings built from `<div class=title>` (counted, but only next to a password, a details form or sign-in wording: alone they flagged Wikipedia's "Meta" link and a "Google Chrome" requirement on chase.com); Stripe's own `stripe-terminal-local-reader.net` pages, titled with their host, read as "presenting Stripe" (titles are now matched without the host).
+- 15 phishing URLs led to the brand's real site (facebook.com, google.com); none was flagged.
