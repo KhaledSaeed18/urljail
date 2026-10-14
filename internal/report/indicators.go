@@ -52,9 +52,9 @@ func indicators(r *reportv0.Report, domPath string) []*reportv0.Indicator {
 	// neither's impersonation). High with a password field; medium with only sign-in wording,
 	// which catches device-code phishing ("use the code below to sign in": no password asked,
 	// found in P7 on a DocuSign look-alike).
-	heads := headings(domPath)
+	heads, classHeads := headings(domPath)
 	title := titleWithoutHost(r.GetNavigation().GetTitle(), r.GetNavigation().GetFinalUrl())
-	text := title + " \n " + strings.Join(heads, " \n ")
+	text := title + " \n " + strings.Join(heads, " \n ") + " \n " + strings.Join(classHeads, " \n ")
 	if named := brands.Named(text); len(named) > 0 {
 		owned := false
 		for _, b := range named {
@@ -161,44 +161,71 @@ func asksForDetails(forms []*reportv0.Form) bool {
 // maxHeadingText caps the heading text read from the DOM.
 const maxHeadingText = 4 << 10
 
-// headings returns the text of each of the top document's h1 and h2 elements, up to
-// maxHeadingText in all.
-func headings(domPath string) []string {
+// headings returns the text of the top document's h1 and h2 elements, and separately of short
+// elements whose class names them a title or heading (kits build headings from divs: "<div
+// class=title>Log in to Spotify", found in P7), up to maxHeadingText in all. Class-named ones
+// are noisier (Wikipedia's "Meta" project link, a "Google Chrome" requirement on chase.com):
+// they count only next to a password field, a details form or sign-in wording.
+func headings(domPath string) (heads, classHeads []string) {
 	f, err := os.Open(domPath)
 	if err != nil {
-		return nil
+		return nil, nil
 	}
 	defer f.Close()
-	var out []string
 	var b strings.Builder
 	total := 0
-	depth := 0
+	headTag, nest, byClass := "", 0, false // the element being read, and how deep in same-named elements
 	z := html.NewTokenizer(io.LimitReader(f, maxDOMScanned))
 	for total < maxHeadingText {
-		switch z.Next() {
+		tt := z.Next()
+		switch tt {
 		case html.ErrorToken:
-			return out
+			return heads, classHeads
 		case html.StartTagToken:
-			if n, _ := z.TagName(); string(n) == "h1" || string(n) == "h2" {
-				depth++
+			n, hasAttr := z.TagName()
+			name := string(n)
+			if headTag != "" {
+				if name == headTag {
+					nest++
+				}
+				continue
+			}
+			isHead := name == "h1" || name == "h2"
+			for hasAttr && !isHead {
+				var k, v []byte
+				k, v, hasAttr = z.TagAttr()
+				if string(k) == "class" {
+					c := strings.ToLower(string(v))
+					isHead = strings.Contains(c, "title") || strings.Contains(c, "heading")
+				}
+			}
+			if isHead && !voidElement[name] {
+				headTag, nest, byClass = name, 1, name != "h1" && name != "h2"
 			}
 		case html.EndTagToken:
-			if n, _ := z.TagName(); (string(n) == "h1" || string(n) == "h2") && depth > 0 {
-				depth--
-				if depth == 0 {
-					if h := strings.Join(strings.Fields(b.String()), " "); h != "" {
-						out = append(out, h)
+			if n, _ := z.TagName(); headTag != "" && string(n) == headTag {
+				if nest--; nest == 0 {
+					// Only short ones: a "title" class on a whole section isn't a heading.
+					if h := strings.Join(strings.Fields(b.String()), " "); h != "" && (!byClass || len(strings.Fields(h)) <= 12) {
+						if byClass {
+							classHeads = append(classHeads, h)
+						} else {
+							heads = append(heads, h)
+						}
 						total += len(h)
 					}
 					b.Reset()
+					headTag = ""
 				}
 			}
 		case html.TextToken:
-			if depth > 0 && b.Len() < maxHeadingText {
+			if headTag != "" && b.Len() < maxHeadingText {
 				b.Write(z.Text())
 				b.WriteByte(' ')
 			}
 		}
 	}
-	return out
+	return heads, classHeads
 }
+
+var voidElement = map[string]bool{"img": true, "input": true, "br": true, "hr": true, "meta": true, "link": true, "source": true, "area": true, "col": true, "embed": true, "wbr": true}

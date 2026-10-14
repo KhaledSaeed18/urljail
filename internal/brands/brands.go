@@ -35,7 +35,7 @@ var All = []Brand{
 	{"microsoft", "Microsoft", []string{"microsoft", "office 365", "microsoft 365", "outlook", "onedrive", "sharepoint"},
 		[]string{"microsoft.com", "microsoftonline.com", "live.com", "office.com", "outlook.com", "office365.com", "sharepoint.com", "onedrive.com", "microsoft365.com", "msauth.net", "msftauth.net"},
 		"https://login.microsoftonline.com/"},
-	{"apple", "Apple", []string{"apple id", "apple account", "icloud"}, []string{"apple.com", "icloud.com"}, "https://account.apple.com/sign-in"},
+	{"apple", "Apple", []string{"apple id", "apple account", "icloud", "apple card", "apple pay"}, []string{"apple.com", "icloud.com"}, "https://account.apple.com/sign-in"},
 	{"google", "Google", []string{"google", "gmail"}, []string{"google.com", "gmail.com", "youtube.com", "googleusercontent.com"}, "https://accounts.google.com/"},
 	{"amazon", "Amazon", []string{"amazon"}, []string{"amazon.com", "amazon.co.uk", "amazon.de", "amazon.co.jp", "amazon.fr", "amazon.ca", "amazon.in", "amazon.es", "amazon.it", "amazon.com.au", "amazon.dev"},
 		"https://www.amazon.com/gp/sign-in.html"},
@@ -79,6 +79,12 @@ var All = []Brand{
 	{"evri", "Evri", []string{"evri"}, []string{"evri.com"}, ""},
 	{"canadapost", "Canada Post", []string{"canada post", "postes canada"}, []string{"canadapost.ca", "canadapost-postescanada.ca"}, ""},
 	{"auspost", "Australia Post", []string{"australia post", "auspost"}, []string{"auspost.com.au"}, ""},
+	{"meta", "Meta", []string{"meta"}, []string{"meta.com", "facebook.com", "fb.com", "instagram.com", "whatsapp.com", "metastatus.com"}, ""},
+	{"shopee", "Shopee", []string{"shopee"}, []string{"shopee.com", "shopee.co.id", "shopee.com.my", "shopee.ph", "shopee.sg", "shopee.vn", "shopee.co.th", "shopee.tw", "shopee.com.br"}, ""},
+	{"naver", "Naver", []string{"naver"}, []string{"naver.com"}, ""},
+	{"ledger", "Ledger", []string{"ledger live", "ledger wallet"}, []string{"ledger.com"}, ""},
+	{"sunrise", "Sunrise", []string{"sunrise mail"}, []string{"sunrise.ch"}, ""},
+	{"att", "AT&T", []string{"bellsouth", "at t mail", "att mail", "at t sign in"}, []string{"att.com", "att.net", "bellsouth.net", "yahoo.com"}, ""},
 	{"steam", "Steam", []string{"steam community", "steampowered"}, []string{"steampowered.com", "steamcommunity.com"}, "https://store.steampowered.com/login/"},
 }
 
@@ -154,7 +160,7 @@ var signIn = []string{
 	// Spanish, Portuguese, French, German, Italian: kits are localised (found in P7: "Verificacion
 	// Microsoft", "Iniciar sesión").
 	"iniciar sesión", "iniciar sesion", "verificación", "verificacion", "verificar", "acceder", "entrar",
-	"connexion", "se connecter", "vérification", "anmelden", "einloggen", "bestätigen", "accedi", "verifica",
+	"connexion", "se connecter", "vérification", "anmelden", "anmeldung", "einloggen", "bestätigen", "accedi", "verifica",
 }
 
 // SignInWording reports whether text uses sign-in phrases.

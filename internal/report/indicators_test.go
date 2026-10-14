@@ -80,9 +80,11 @@ func TestIndicators(t *testing.T) {
 
 func TestHeadings(t *testing.T) {
 	dom := filepath.Join(t.TempDir(), "dom.html")
-	os.WriteFile(dom, []byte(`<title>x</title><h1>Sign in</h1><p>not this</p><h2>to <span>Netflix</span></h2><h3>nor this</h3>`), 0o600)
-	got := strings.Join(headings(dom), "|")
-	if got != "Sign in|to Netflix" {
+	os.WriteFile(dom, []byte(`<title>x</title><h1>Sign in</h1><p>not this</p><h2>to <span>Netflix</span></h2><h3>nor this</h3>`+
+		`<div class="card-title">Log in to <div>Spotify</div></div><img class="title"><section class="title">`+strings.Repeat("long section text ", 10)+`</section>`), 0o600)
+	heads, classHeads := headings(dom)
+	got := strings.Join(heads, "|") + " / " + strings.Join(classHeads, "|")
+	if got != "Sign in|to Netflix / Log in to Spotify" {
 		t.Errorf("headings = %q", got)
 	}
 }
