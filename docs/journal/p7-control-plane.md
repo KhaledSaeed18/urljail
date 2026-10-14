@@ -123,7 +123,7 @@ The misses in S4 suggested one new rule, **`form-on-free-hosting`** (medium): a 
 | OpenPhish | 4 of 17 | 2 of 24 | 2 / 0 |
 | CT discovery | – | 1 of 13 | – / 0 |
 
-- `form-on-free-hosting` caught 4 phishing pages and two real apps ("Card Ledger" and "Clear Ledger", private apps with a login on pages.dev; OpenPhish listed both, probably for the word). Its reach is set by the host list: 6 of the 13 missed phishing pages sat on hosting the list doesn't name (typedream.app, b12sites.com, Azure Front Door, cleverapps.io, Bluehost, a cPanel host). A list of hosting services has the same long tail as a list of brands.
+- `form-on-free-hosting` caught 4 phishing pages and two real apps ("Card Ledger" and "Clear Ledger", private apps with a login on pages.dev; OpenPhish listed both, probably for the word). Its reach is set by the host list: of the 13 missed phishing pages, 8 sat on hosting the list doesn't name (typedream.app ×2, Bluehost ×2, b12sites.com, Azure Front Door, cleverapps.io, a cPanel host), 4 on listed hosts but asked for nothing yet (two gates, a Steam lure, a wallet lure) and 1 on its own domain. A list of hosting services has the same long tail as a list of brands.
 - The CT false positive: `amazonex.app`, an ad tool's site, two letters from "amazon" (`brand-lookalike-domain`).
 - Across every held-out page so far (100: 46 + 41 + 13), **high severity never fired on a page that wasn't phishing**; it caught 12 of 51 phishing pages.
 - Six tutorial clones on github.io, netlify.app and vercel.app (Spotify, Netflix, Amazon, Instagram) got only the `info` indicator: the demotion in S4 holds.
