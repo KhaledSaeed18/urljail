@@ -222,6 +222,20 @@ message Page {
   // Password inputs anywhere in the top document, in a form or not (script-driven logins often
   // have no <form>).
   uint32 password_fields = 6;
+  // The favicons Chrome loaded for the page, with the SHA-256 of their bytes (at most 4).
+  // Kits copy a brand's favicon byte for byte, or point at the brand's own.
+  repeated Favicon favicons = 7;
+}
+
+message Favicon {
+  string url = 1;
+  string mime_type = 2;
+  uint32 size = 3;
+  // Hex SHA-256 of the bytes.
+  string sha256 = 4;
+  // The artifact under guest/ ("favicon-0".."favicon-3").
+  string file = 5;
+  string source = 6;
 }
 
 message Form {

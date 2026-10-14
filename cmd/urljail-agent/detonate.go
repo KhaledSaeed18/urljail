@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"math/rand/v2"
@@ -141,6 +142,9 @@ func (a *agent) detonate(ctx context.Context, req *guestv1.DetonateRequest, out 
 		return done, err
 	}
 	collectErr := a.collect(pctx, bctx, targetID, out, done)
+	if err := a.collectFavicons(ctx, ch.conn, act, out); err != nil && collectErr == nil {
+		collectErr = err
+	}
 	stopFwd()
 	<-fwdDone
 	done.DroppedEvents = ch.conn.Dropped()
@@ -234,6 +238,39 @@ func (a *agent) collect(pctx, bctx context.Context, targetID target.ID, out *sen
 	return errors.Join(errs...)
 }
 
+// maxFaviconBytes caps one favicon (a real one is a few KiB).
+const maxFaviconBytes = 256 << 10
+
+// collectFavicons sends the bodies of the favicons Chrome loaded (favicon-0..3) and a manifest
+// (favicons.json) naming each one's URL and type. Unreadable ones are left out.
+func (a *agent) collectFavicons(ctx context.Context, conn *cdp.Conn, act *activity, out *sender) error {
+	act.mu.Lock()
+	refs := append([]faviconRef(nil), act.favicons...)
+	act.mu.Unlock()
+	var sent []faviconRef
+	for _, f := range refs {
+		fctx, cancel := context.WithTimeout(cdpctx.WithExecutor(ctx, conn.Session(f.session)), 2*time.Second)
+		body, err := network.GetResponseBody(f.requestID).Do(fctx)
+		cancel()
+		if err != nil || len(body) == 0 || len(body) > maxFaviconBytes {
+			continue
+		}
+		f.File = fmt.Sprintf("favicon-%d", len(sent))
+		if err := sendBytes(out, f.File, body); err != nil {
+			return err
+		}
+		sent = append(sent, f)
+	}
+	if len(sent) == 0 {
+		return nil
+	}
+	b, err := json.Marshal(sent)
+	if err != nil {
+		return err
+	}
+	return sendBytes(out, "favicons.json", b)
+}
+
 // outerHTML serializes the document. A page that replaces its document between the two calls
 // (a script redirect or document.write during collection; found in P7 on 4 of 40 feed URLs)
 // invalidates the node ID: the read is retried once against the new document.
@@ -298,6 +335,13 @@ func (a *agent) forwardOne(msg *cdproto.Message, out *sender, act *activity, pct
 	switch e := ev.(type) {
 	case *network.EventRequestWillBeSent:
 		act.start(string(e.RequestID))
+	case *network.EventResponseReceived:
+		// Chrome loads favicons itself: type Other, an image. Bodies are read at collection
+		// from the browser's memory (no network request, nothing the page can see).
+		if e.Type == network.ResourceTypeOther && e.Response != nil && e.Response.Status == 200 &&
+			strings.HasPrefix(e.Response.MimeType, "image/") {
+			act.addFavicon(faviconRef{session: msg.SessionID, requestID: e.RequestID, URL: e.Response.URL, MimeType: e.Response.MimeType})
+		}
 	case *network.EventLoadingFinished:
 		act.finish(string(e.RequestID))
 	case *network.EventLoadingFailed:
@@ -323,6 +367,31 @@ type activity struct {
 	inflight map[string]bool
 	last     time.Time
 	idleSeen bool
+	favicons []faviconRef // browser-initiated image loads: the page's favicons
+}
+
+// faviconRef is a favicon response, kept so its body can be read at collection.
+type faviconRef struct {
+	session   target.SessionID
+	requestID network.RequestID
+	URL       string `json:"url"`
+	MimeType  string `json:"mime"`
+	File      string `json:"file,omitempty"`
+}
+
+const maxFavicons = 4
+
+func (a *activity) addFavicon(f faviconRef) {
+	a.mu.Lock()
+	defer a.mu.Unlock()
+	for _, g := range a.favicons {
+		if g.URL == f.URL {
+			return
+		}
+	}
+	if len(a.favicons) < maxFavicons {
+		a.favicons = append(a.favicons, f)
+	}
 }
 
 func newActivity() *activity { return &activity{inflight: map[string]bool{}, last: time.Now()} }

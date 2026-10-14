@@ -333,6 +333,56 @@
       "title": "Egress",
       "type": "object"
     },
+    "urljail.report.v0.Favicon.schema.json": {
+      "$schema": "https://json-schema.org/draft/2020-12/schema",
+      "additionalProperties": false,
+      "patternProperties": {
+        "^(mimeType)$": {
+          "default": "",
+          "type": "string"
+        }
+      },
+      "properties": {
+        "file": {
+          "default": "",
+          "description": "The artifact under guest/ (\"favicon-0\"..\"favicon-3\").",
+          "type": "string"
+        },
+        "mime_type": {
+          "default": "",
+          "type": "string"
+        },
+        "sha256": {
+          "default": "",
+          "description": "Hex SHA-256 of the bytes.",
+          "type": "string"
+        },
+        "size": {
+          "anyOf": [
+            {
+              "maximum": 4294967295,
+              "minimum": 0,
+              "type": "integer"
+            },
+            {
+              "pattern": "^[0-9]+$",
+              "type": "string"
+            }
+          ],
+          "default": 0
+        },
+        "source": {
+          "default": "",
+          "type": "string"
+        },
+        "url": {
+          "default": "",
+          "type": "string"
+        }
+      },
+      "title": "Favicon",
+      "type": "object"
+    },
     "urljail.report.v0.Feed.schema.json": {
       "$schema": "https://json-schema.org/draft/2020-12/schema",
       "additionalProperties": false,
@@ -874,6 +924,13 @@
         "downloads": {
           "items": {
             "$ref": "#/$defs/urljail.report.v0.Download.schema.json"
+          },
+          "type": "array"
+        },
+        "favicons": {
+          "description": "The favicons Chrome loaded for the page, with the SHA-256 of their bytes (at most 4).\n Kits copy a brand's favicon byte for byte, or point at the brand's own.",
+          "items": {
+            "$ref": "#/$defs/urljail.report.v0.Favicon.schema.json"
           },
           "type": "array"
         },

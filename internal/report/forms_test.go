@@ -89,3 +89,18 @@ func TestFreeHost(t *testing.T) {
 		}
 	}
 }
+
+func TestFavicons(t *testing.T) {
+	dir := t.TempDir()
+	g := filepath.Join(dir, "guest")
+	os.MkdirAll(g, 0o700)
+	os.WriteFile(filepath.Join(g, "favicon-0"), []byte("icon bytes"), 0o600)
+	os.WriteFile(filepath.Join(g, "dom.html"), []byte("<p>not an icon</p>"), 0o600)
+	os.WriteFile(filepath.Join(g, "favicons.json"), []byte(`[{"url":"https://a.test/favicon.ico","mime":"image/x-icon","file":"favicon-0"},
+		{"url":"https://a.test/x","mime":"image/png","file":"dom.html"},{"url":"https://a.test/y","file":"favicon-3"}]`), 0o600)
+	fs := favicons(dir)
+	if len(fs) != 1 || fs[0].GetFile() != "favicon-0" || fs[0].GetSize() != 10 ||
+		fs[0].GetSha256() != "683d6b4622c462c412fe42706f81aa73b9a2c4e9ddd9f34630f7dcff08a2c769" {
+		t.Errorf("favicons = %v", fs)
+	}
+}

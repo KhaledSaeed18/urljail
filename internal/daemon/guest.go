@@ -24,6 +24,11 @@ var guestArtifacts = map[string]int64{
 	"dom.html":       32 << 20,
 	"sslkeys.log":    4 << 20,
 	"chrome.log":     4 << 20,
+	"favicons.json":  16 << 10, // the favicons' URLs and types (agent: collectFavicons)
+	"favicon-0":      256 << 10,
+	"favicon-1":      256 << 10,
+	"favicon-2":      256 << 10,
+	"favicon-3":      256 << 10,
 }
 
 const (

@@ -108,8 +108,12 @@ func takeRef(ctx context.Context, c daemonv1.DaemonServiceClient, b brands.Brand
 		u.RawQuery, u.Fragment = "", ""
 		final = u.String()
 	}
+	var favs []string
+	for _, f := range rep.GetPage().GetFavicons() {
+		favs = append(favs, f.GetSha256())
+	}
 	return brands.Ref{Brand: b.ID, URL: b.Login, Final: final, Profile: profile, Phash: h.String(),
-		Taken: time.Now().UTC().Format("2006-01-02"), Run: filepath.Base(runDir)}, nil
+		Taken: time.Now().UTC().Format("2006-01-02"), Run: filepath.Base(runDir), Favicons: favs}, nil
 }
 
 // hasSignInInput: a password field anywhere, or a form with a text, email or tel field.

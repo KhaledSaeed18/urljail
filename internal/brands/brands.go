@@ -200,6 +200,8 @@ type Ref struct {
 	Phash   string `json:"phash"`   // visual.Hash
 	Taken   string `json:"taken"`   // date, YYYY-MM-DD
 	Run     string `json:"run"`     // run ID, for the screenshot
+	// SHA-256 of the favicons Chrome loaded on the sign-in page (hex).
+	Favicons []string `json:"favicons,omitempty"`
 }
 
 //go:embed refs.json
@@ -321,4 +323,19 @@ func editDistance(a, b string, max int) int {
 		prev = cur
 	}
 	return prev[len(b)]
+}
+
+// FaviconOf returns the brand whose real sign-in page loaded a favicon with this SHA-256.
+func FaviconOf(refs []Ref, sha string) (Brand, bool) {
+	if sha == "" {
+		return Brand{}, false
+	}
+	for _, r := range refs {
+		for _, f := range r.Favicons {
+			if f == sha {
+				return ByID(r.Brand)
+			}
+		}
+	}
+	return Brand{}, false
 }
