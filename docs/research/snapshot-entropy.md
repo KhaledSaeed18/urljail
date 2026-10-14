@@ -25,6 +25,18 @@ Firecracker documents this concern in `docs/snapshotting/random-for-clones.md` (
 
 Three clones of one snapshot, Chrome 155 prepared before the snapshot, guest kernel 6.18 with VMGenID: the kernel reseeded on every restore (`crng reseeded due to virtual machine fork`), guest `getrandom` output differed, and **all 25 TLS ClientHello randoms and session IDs** captured on the host were distinct. Not yet checked: key shares, V8 `Math.random`, other userspace state. See [the P4 journal](../journal/p4-snapshots.md#m2-notes).
 
+## Second data point (P7, 2026-10-14): every capture so far
+
+[`scripts/research/tls-hellos.py`](../../scripts/research/tls-hellos.py) reads every run's host capture and pulls each guest ClientHello's random, legacy session ID and X25519 key share (run with `python3 -I`; the pcaps are untrusted input and every length is bounds-checked). Over all retained captures, from 2,614 runs on six snapshots (812 restores of `baseline`, 631 of `stealth`, 556 of `stealth-headful`, about 185 of each other profile):
+
+| Value | Seen | Distinct | Seen in more than one run |
+| ----- | ---- | -------- | ------------------------- |
+| Client random | 34,955 | 34,750 | **0** |
+| Session ID | 34,955 | 34,736 | **0** |
+| X25519 key share | 34,758 | 34,725 | **0** |
+
+Every repeat is a TCP retransmission inside one run (same random, same session ID, the key share agreeing or past the captured segment in one copy: 186 of 186). So Chromium's TLS randomness is not cloned across restores of one snapshot: BoringSSL draws from the kernel, and the kernel reseeds on VMGenID. This closes the TLS part of experiment 1 for the configuration urljail runs (VMGenID on). Still open: V8 `Math.random()` and `crypto.getRandomValues()` in pages, which need a test page served to the guest, and anything cached in the browser process before the snapshot.
+
 ## Experiments
 
 1. **Baseline:** restore N clones *without* VMGenID/reseed; have each make a TLS connection to a test server we control; collect ClientHello random, session ID, key shares (from pcap) and `Math.random()` outputs (from a test page). Count duplicates.
