@@ -102,6 +102,20 @@ func Named(text string) []Brand {
 	return out
 }
 
+// signIn are phrases of a sign-in page, matched as whole words.
+var signIn = []string{"log in", "login", "sign in", "signin", "sign on", "logon", "log on", "verify", "verification", "sign in code", "authenticate"}
+
+// SignInWording reports whether text uses sign-in phrases.
+func SignInWording(text string) bool {
+	norm := " " + normalize(text) + " "
+	for _, w := range signIn {
+		if strings.Contains(norm, " "+w+" ") {
+			return true
+		}
+	}
+	return false
+}
+
 // normalize lowercases and turns every run of non-letters/digits into one space, so "PayPal:
 // Log in" and "paypal-login" both contain " paypal ".
 func normalize(s string) string {

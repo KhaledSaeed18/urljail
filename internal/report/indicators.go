@@ -38,20 +38,29 @@ func indicators(r *reportv0.Report, domPath string) []*reportv0.Indicator {
 		return out
 	}
 
-	// A brand named in the title or headings, a password asked for, and the domain belongs to
-	// none of the brands named ("Amazon Web Services" names Amazon and AWS; the AWS sign-in
-	// on an AWS domain is neither's impersonation).
-	if page.GetPasswordFields() > 0 {
-		named := brands.Named(r.GetNavigation().GetTitle() + " \n " + headings(domPath))
+	// A brand named in the title or headings, on a domain that belongs to none of the brands
+	// named ("Amazon Web Services" names Amazon and AWS; the AWS sign-in on an AWS domain is
+	// neither's impersonation). High with a password field; medium with only sign-in wording,
+	// which catches device-code phishing ("use the code below to sign in": no password asked,
+	// found in P7 on a DocuSign look-alike).
+	text := r.GetNavigation().GetTitle() + " \n " + headings(domPath)
+	if named := brands.Named(text); len(named) > 0 {
 		owned := false
 		for _, b := range named {
 			owned = owned || b.Owns(domain)
 		}
-		if len(named) > 0 && !owned {
-			b := named[0]
+		b := named[0]
+		switch {
+		case owned:
+		case page.GetPasswordFields() > 0:
 			out = append(out, &reportv0.Indicator{
 				Id: "brand-name-off-domain", Severity: "high", Brand: b.ID, Source: guestDOM,
 				Detail: fmt.Sprintf("The page names %s in its title or headings and asks for a password, on %s", b.Name, domain),
+			})
+		case brands.SignInWording(text):
+			out = append(out, &reportv0.Indicator{
+				Id: "brand-name-off-domain", Severity: "medium", Brand: b.ID, Source: guestDOM,
+				Detail: fmt.Sprintf("The page names %s in its title or headings with sign-in wording, on %s (no password field)", b.Name, domain),
 			})
 		}
 	}

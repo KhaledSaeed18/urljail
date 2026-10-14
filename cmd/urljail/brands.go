@@ -14,7 +14,9 @@ import (
 	"time"
 
 	daemonv1 "github.com/KhaledSaeed18/urljail/gen/urljail/daemon/v1"
+	reportv0 "github.com/KhaledSaeed18/urljail/gen/urljail/report/v0"
 	"github.com/KhaledSaeed18/urljail/internal/brands"
+	"github.com/KhaledSaeed18/urljail/internal/report"
 	"github.com/KhaledSaeed18/urljail/internal/visual"
 )
 
@@ -84,26 +86,23 @@ func takeRef(ctx context.Context, c daemonv1.DaemonServiceClient, b brands.Brand
 			break
 		}
 	}
-	var rep struct {
-		Navigation struct {
-			FinalURL string `json:"final_url"`
-		} `json:"navigation"`
-	}
-	f, err := os.ReadFile(filepath.Join(runDir, "report.json"))
+	rep, err := report.Build(runDir)
 	if err != nil {
 		return brands.Ref{}, err
 	}
-	if err := json.Unmarshal(f, &rep); err != nil {
-		return brands.Ref{}, err
-	}
-	final := rep.Navigation.FinalURL
+	final := rep.GetNavigation().GetFinalUrl()
 	if reg := brands.DomainOf(final); !b.Owns(reg) {
 		return brands.Ref{}, fmt.Errorf("ended on %s, not %s's", reg, b.Name)
 	}
-	h, err := visual.HashFile(filepath.Join(runDir, "guest", "screenshot.png"))
-	if err != nil {
-		return brands.Ref{}, err
+	// A sign-in page has somewhere to type. Without this, bot walls (Cloudflare, DataDome),
+	// error pages and pages caught mid-render became references (found in P7: 14 of 53).
+	if !hasSignInInput(rep) {
+		return brands.Ref{}, fmt.Errorf("no sign-in field on the page (title %q)", clip(rep.GetNavigation().GetTitle(), 60))
 	}
+	if rep.GetPage().GetScreenshotPhash() == "" {
+		return brands.Ref{}, errors.New("no screenshot hash (missing or blank screenshot)")
+	}
+	h, _ := visual.Parse(rep.GetPage().GetScreenshotPhash())
 	// Only scheme, host and path: sign-in redirects carry nonces and session state.
 	if u, err := url.Parse(final); err == nil {
 		u.RawQuery, u.Fragment = "", ""
@@ -111,4 +110,20 @@ func takeRef(ctx context.Context, c daemonv1.DaemonServiceClient, b brands.Brand
 	}
 	return brands.Ref{Brand: b.ID, URL: b.Login, Final: final, Profile: profile, Phash: h.String(),
 		Taken: time.Now().UTC().Format("2006-01-02"), Run: filepath.Base(runDir)}, nil
+}
+
+// hasSignInInput: a password field anywhere, or a form with a text, email or tel field.
+func hasSignInInput(r *reportv0.Report) bool {
+	if r.GetPage().GetPasswordFields() > 0 {
+		return true
+	}
+	for _, f := range r.GetPage().GetForms() {
+		for _, x := range f.GetFields() {
+			switch x.GetType() {
+			case "text", "email", "tel":
+				return true
+			}
+		}
+	}
+	return false
 }

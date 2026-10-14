@@ -1,1 +1,353 @@
-[]
+[
+  {
+    "brand": "apple",
+    "url": "https://account.apple.com/sign-in",
+    "final": "https://account.apple.com/sign-in",
+    "profile": "stealth",
+    "phash": "d5e638cc38cc30e7",
+    "taken": "2026-10-13",
+    "run": "01a137a9-91a8-7d05-85f8-2a905843d903"
+  },
+  {
+    "brand": "apple",
+    "url": "https://account.apple.com/sign-in",
+    "final": "https://account.apple.com/sign-in",
+    "profile": "baseline",
+    "phash": "d5e638cc38cc38e6",
+    "taken": "2026-10-13",
+    "run": "01a137a9-c088-7285-aa7c-b0f8bbea8a08"
+  },
+  {
+    "brand": "google",
+    "url": "https://accounts.google.com/",
+    "final": "https://accounts.google.com/v3/signin/identifier",
+    "profile": "stealth",
+    "phash": "ce963169c636c9c3",
+    "taken": "2026-10-13",
+    "run": "01a137a9-e9dc-7028-b155-46bd8747afb4"
+  },
+  {
+    "brand": "google",
+    "url": "https://accounts.google.com/",
+    "final": "https://accounts.google.com/v3/signin/identifier",
+    "profile": "baseline",
+    "phash": "e69b996499996613",
+    "taken": "2026-10-13",
+    "run": "01a137aa-0d94-7d63-b8da-ae3418c5a148"
+  },
+  {
+    "brand": "amazon",
+    "url": "https://www.amazon.com/gp/sign-in.html",
+    "final": "https://www.amazon.com/gp/sign-in.html",
+    "profile": "stealth",
+    "phash": "f34c4c674e4c4c67",
+    "taken": "2026-10-13",
+    "run": "01a137aa-221d-76d9-afbb-7d214f737bfa"
+  },
+  {
+    "brand": "amazon",
+    "url": "https://www.amazon.com/gp/sign-in.html",
+    "final": "https://www.amazon.com/gp/sign-in.html",
+    "profile": "baseline",
+    "phash": "f34c4c67494e664d",
+    "taken": "2026-10-13",
+    "run": "01a137aa-3758-7c7c-a547-6a2c9577e2cf"
+  },
+  {
+    "brand": "aws",
+    "url": "https://signin.aws.amazon.com/",
+    "final": "https://aws.amazon.com/",
+    "profile": "stealth",
+    "phash": "da4a4a5a5a3a3735",
+    "taken": "2026-10-13",
+    "run": "01a137aa-4b0e-70cc-a934-8bfa0f6168c1"
+  },
+  {
+    "brand": "aws",
+    "url": "https://signin.aws.amazon.com/",
+    "final": "https://aws.amazon.com/",
+    "profile": "baseline",
+    "phash": "da4a4a5a5a3a3e35",
+    "taken": "2026-10-13",
+    "run": "01a137aa-70cc-77ed-a281-3ac8fe4a9fdd"
+  },
+  {
+    "brand": "netflix",
+    "url": "https://www.netflix.com/login",
+    "final": "https://www.netflix.com/login",
+    "profile": "stealth",
+    "phash": "8adce233e333d132",
+    "taken": "2026-10-13",
+    "run": "01a137aa-8f81-719c-aaff-3305abc0a6ed"
+  },
+  {
+    "brand": "netflix",
+    "url": "https://www.netflix.com/login",
+    "final": "https://www.netflix.com/login",
+    "profile": "baseline",
+    "phash": "8accc273b37399a1",
+    "taken": "2026-10-13",
+    "run": "01a137aa-b8f9-7c51-a72a-ff9069c75db0"
+  },
+  {
+    "brand": "facebook",
+    "url": "https://www.facebook.com/login",
+    "final": "https://www.facebook.com/login",
+    "profile": "stealth",
+    "phash": "b3768c81ceccb887",
+    "taken": "2026-10-13",
+    "run": "01a137aa-df6a-7268-94ad-29b2935fd94f"
+  },
+  {
+    "brand": "facebook",
+    "url": "https://www.facebook.com/login",
+    "final": "https://www.facebook.com/login",
+    "profile": "baseline",
+    "phash": "b3728c81ceccb9a5",
+    "taken": "2026-10-13",
+    "run": "01a137aa-ffad-7077-a133-404bbc94faa4"
+  },
+  {
+    "brand": "instagram",
+    "url": "https://www.instagram.com/accounts/login/",
+    "final": "https://www.instagram.com/accounts/login/",
+    "profile": "stealth",
+    "phash": "b8c7c738cec0c39c",
+    "taken": "2026-10-13",
+    "run": "01a137ab-1f0f-72ac-8a15-88f8efc55a86"
+  },
+  {
+    "brand": "instagram",
+    "url": "https://www.instagram.com/accounts/login/",
+    "final": "https://www.instagram.com/accounts/login/",
+    "profile": "baseline",
+    "phash": "b8c7c7384318c7c7",
+    "taken": "2026-10-13",
+    "run": "01a137ab-403b-7f10-a67e-02b643876701"
+  },
+  {
+    "brand": "dropbox",
+    "url": "https://www.dropbox.com/login",
+    "final": "https://www.dropbox.com/login",
+    "profile": "stealth",
+    "phash": "b7c19c63988d728d",
+    "taken": "2026-10-13",
+    "run": "01a137ab-6be9-7123-a7bb-49df15816689"
+  },
+  {
+    "brand": "docusign",
+    "url": "https://account.docusign.com/",
+    "final": "https://account.docusign.com/",
+    "profile": "stealth",
+    "phash": "b3898c263399b367",
+    "taken": "2026-10-13",
+    "run": "01a137ab-b063-73e5-90c1-3559d90c2478"
+  },
+  {
+    "brand": "docusign",
+    "url": "https://account.docusign.com/",
+    "final": "https://account.docusign.com/",
+    "profile": "baseline",
+    "phash": "b38d8c263399b366",
+    "taken": "2026-10-13",
+    "run": "01a137ab-cef1-7d9d-b67e-f7c82c901f8d"
+  },
+  {
+    "brand": "adobe",
+    "url": "https://account.adobe.com/",
+    "final": "https://auth.services.adobe.com/en_US/deeplink.html",
+    "profile": "stealth",
+    "phash": "931f6c646d61ec2c",
+    "taken": "2026-10-13",
+    "run": "01a137ab-eacd-7d12-b983-703232011649"
+  },
+  {
+    "brand": "linkedin",
+    "url": "https://www.linkedin.com/login",
+    "final": "https://www.linkedin.com/login/",
+    "profile": "stealth",
+    "phash": "b3998c338ccc27cd",
+    "taken": "2026-10-13",
+    "run": "01a137ac-406c-78c1-b0fa-adb0fcbf3727"
+  },
+  {
+    "brand": "linkedin",
+    "url": "https://www.linkedin.com/login",
+    "final": "https://www.linkedin.com/login/",
+    "profile": "baseline",
+    "phash": "b3998c330dcc6637",
+    "taken": "2026-10-13",
+    "run": "01a137ac-641c-718d-b102-7ef24f16749b"
+  },
+  {
+    "brand": "coinbase",
+    "url": "https://login.coinbase.com/signin",
+    "final": "https://login.coinbase.com/signin",
+    "profile": "stealth",
+    "phash": "e3b249984d8e66b6",
+    "taken": "2026-10-13",
+    "run": "01a137ac-8658-7ceb-9d3e-69a7d2cb69ab"
+  },
+  {
+    "brand": "binance",
+    "url": "https://accounts.binance.com/en/login",
+    "final": "https://accounts.binance.com/en/login",
+    "profile": "stealth",
+    "phash": "cccc333399999933",
+    "taken": "2026-10-13",
+    "run": "01a137ac-bc74-7702-84e2-6e5a8f2a0f13"
+  },
+  {
+    "brand": "binance",
+    "url": "https://accounts.binance.com/en/login",
+    "final": "https://accounts.binance.com/en/login",
+    "profile": "baseline",
+    "phash": "cccc663333999933",
+    "taken": "2026-10-13",
+    "run": "01a137ac-e26d-74c0-9e23-d676631e6f53"
+  },
+  {
+    "brand": "chase",
+    "url": "https://secure.chase.com/web/auth/",
+    "final": "https://www.chase.com/digital/resources/privacy-security/security/system-requirements",
+    "profile": "baseline",
+    "phash": "aa42fdf5d7c80829",
+    "taken": "2026-10-13",
+    "run": "01a137ad-37f2-74fc-ae18-5c566c073d88"
+  },
+  {
+    "brand": "wellsfargo",
+    "url": "https://connect.secure.wellsfargo.com/auth/login/present",
+    "final": "https://connect.secure.wellsfargo.com/auth/login/present",
+    "profile": "stealth",
+    "phash": "8bb534347074d774",
+    "taken": "2026-10-13",
+    "run": "01a137ad-6776-75ce-a80a-d5de1a6422ba"
+  },
+  {
+    "brand": "wellsfargo",
+    "url": "https://connect.secure.wellsfargo.com/auth/login/present",
+    "final": "https://connect.secure.wellsfargo.com/auth/login/present",
+    "profile": "baseline",
+    "phash": "8b753474b470a5f2",
+    "taken": "2026-10-13",
+    "run": "01a137ad-96fe-7303-9704-fd2c125c46ec"
+  },
+  {
+    "brand": "bankofamerica",
+    "url": "https://secure.bankofamerica.com/login/sign-in/signOnV2Screen.go",
+    "final": "https://secure.bankofamerica.com/auth/signon/",
+    "profile": "stealth",
+    "phash": "f71d8c3733898872",
+    "taken": "2026-10-13",
+    "run": "01a137ad-e08e-77fe-ba70-0364f1ad2eee"
+  },
+  {
+    "brand": "bankofamerica",
+    "url": "https://secure.bankofamerica.com/login/sign-in/signOnV2Screen.go",
+    "final": "https://secure.bankofamerica.com/auth/signon/",
+    "profile": "baseline",
+    "phash": "b73f8c263399c862",
+    "taken": "2026-10-13",
+    "run": "01a137ae-1518-7e3d-9a24-0f8fcbb93171"
+  },
+  {
+    "brand": "usps",
+    "url": "https://reg.usps.com/entreg/LoginAction_input",
+    "final": "https://verified.usps.com/login/",
+    "profile": "baseline",
+    "phash": "bc67931867671c38",
+    "taken": "2026-10-13",
+    "run": "01a137ae-a6b6-7917-b4bd-da15930fe8e9"
+  },
+  {
+    "brand": "fedex",
+    "url": "https://www.fedex.com/secure-login/",
+    "final": "https://www.fedex.com/secure-login/",
+    "profile": "stealth",
+    "phash": "e747494347474d47",
+    "taken": "2026-10-13",
+    "run": "01a137ae-ec89-77f0-b95f-c8f3761359f7"
+  },
+  {
+    "brand": "spotify",
+    "url": "https://accounts.spotify.com/login",
+    "final": "https://accounts.spotify.com/en/login",
+    "profile": "stealth",
+    "phash": "cccc336633333366",
+    "taken": "2026-10-13",
+    "run": "01a137af-c376-710e-94bb-c4eed143e0f1"
+  },
+  {
+    "brand": "spotify",
+    "url": "https://accounts.spotify.com/login",
+    "final": "https://accounts.spotify.com/en/login",
+    "profile": "baseline",
+    "phash": "cccc336633339966",
+    "taken": "2026-10-13",
+    "run": "01a137af-ef46-7169-a6d4-ac0b7ef65c79"
+  },
+  {
+    "brand": "stripe",
+    "url": "https://dashboard.stripe.com/login",
+    "final": "https://dashboard.stripe.com/login",
+    "profile": "stealth",
+    "phash": "e9253665366c9c33",
+    "taken": "2026-10-13",
+    "run": "01a137b0-42fc-734c-8432-f4870012d221"
+  },
+  {
+    "brand": "stripe",
+    "url": "https://dashboard.stripe.com/login",
+    "final": "https://dashboard.stripe.com/login",
+    "profile": "baseline",
+    "phash": "f7999c66360c8c27",
+    "taken": "2026-10-13",
+    "run": "01a137b0-89ed-7c43-bfdd-e5739e2c1bf2"
+  },
+  {
+    "brand": "amex",
+    "url": "https://www.americanexpress.com/en-us/account/login",
+    "final": "https://www.americanexpress.com/en-us/account/login",
+    "profile": "baseline",
+    "phash": "d94ece3939ce0a31",
+    "taken": "2026-10-13",
+    "run": "01a137b1-001f-7164-8a30-667d4d1a24de"
+  },
+  {
+    "brand": "capitalone",
+    "url": "https://verified.capitalone.com/auth/signin",
+    "final": "https://verified.capitalone.com/auth/signin",
+    "profile": "stealth",
+    "phash": "b38cdc267c995d22",
+    "taken": "2026-10-13",
+    "run": "01a137b1-46de-79af-9a6e-e6094c214d4f"
+  },
+  {
+    "brand": "capitalone",
+    "url": "https://verified.capitalone.com/auth/signin",
+    "final": "https://verified.capitalone.com/auth/signin",
+    "profile": "baseline",
+    "phash": "b32cdc2676999d22",
+    "taken": "2026-10-13",
+    "run": "01a137b1-6d2a-79bf-b473-a0fc34a26dc3"
+  },
+  {
+    "brand": "steam",
+    "url": "https://store.steampowered.com/login/",
+    "final": "https://store.steampowered.com/login/",
+    "profile": "stealth",
+    "phash": "9bf36496936464ca",
+    "taken": "2026-10-13",
+    "run": "01a137b1-8b73-790e-b5d8-d73013b49752"
+  },
+  {
+    "brand": "steam",
+    "url": "https://store.steampowered.com/login/",
+    "final": "https://store.steampowered.com/login/",
+    "profile": "baseline",
+    "phash": "9bb364e493b36464",
+    "taken": "2026-10-13",
+    "run": "01a137b1-cbb8-7b7c-93ce-0b44006b98fb"
+  }
+]

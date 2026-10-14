@@ -33,6 +33,8 @@ func TestIndicators(t *testing.T) {
 		{name: "the real PayPal", final: "https://www.paypal.com/signin", title: "PayPal: Log in", phash: "ffff0000ffff0000",
 			dom: dom, passwords: 1, want: ""},
 		{name: "names PayPal but no password (a blog post)", final: "https://news.example/", title: "PayPal earnings", dom: noDOM, want: ""},
+		{name: "device-code phishing: names DocuSign, sign-in wording, no password", final: "https://loginservice.cloud/",
+			title: "DocuSign Login - Choose a login method to sign in", dom: noDOM, want: "brand-name-off-domain:docusign"},
 		{name: "AWS sign-in on an AWS domain names Amazon too", final: "https://signin.amazonaws-us-gov.com/", title: "Amazon Web Services Sign-In",
 			dom: noDOM, passwords: 1, want: ""},
 		{name: "screenshot far from every reference", final: "https://other.example/", title: "Login", phash: "0000ffff0000ffff",
