@@ -31,9 +31,10 @@ const feedsUsage = `usage: urljail feeds <command>
 
   fetch          fetch due feeds into the queue (no detonation)
   status         queue and source summary
-  run [-n N] [-profiles all|p1,p2]
+  run [-n N] [-profiles all|p1,p2] [-max-age 24h]
                  fetch, then detonate up to N queued URLs (default 3; live mode only), each
-                 under every profile at once (default: all the daemon has)
+                 under every profile at once (default: all the daemon has); only URLs first
+                 seen within -max-age (older queued ones expire)
   ct [-for d] [-dry-run]
                  follow Let's Encrypt's CT logs and queue names that look like phishing
                  (-dry-run: print candidates only)
@@ -90,10 +91,11 @@ func cmdFeeds(ctx context.Context, c daemonv1.DaemonServiceClient, args []string
 		n := fs.Int("n", 3, "maximum URLs to detonate")
 		profs := fs.String("profiles", "all", `browser profiles per URL: "all" or a comma-separated list`)
 		control := fs.String("control", "baseline,stealth-headful", `profiles run a second time per URL, to measure noise ("": none)`)
-		if err := fs.Parse(args[1:]); err != nil || *n < 1 {
+		maxAge := fs.Duration("max-age", feeds.DefaultLimits.MaxAge, "only URLs first seen within this long; older queued ones expire (stale phishing is mostly dead)")
+		if err := fs.Parse(args[1:]); err != nil || *n < 1 || *maxAge <= 0 {
 			return exitError(2)
 		}
-		return runFeeds(ctx, c, st, *n, *profs, *control)
+		return runFeeds(ctx, c, st, *n, *profs, *control, *maxAge)
 	case "ct":
 		fs := flag.NewFlagSet("feeds ct", flag.ContinueOnError)
 		dur := fs.Duration("for", 10*time.Minute, "how long to follow the logs")
@@ -234,7 +236,7 @@ func daemonProfile(key string) string {
 	return p
 }
 
-func runFeeds(ctx context.Context, c daemonv1.DaemonServiceClient, st *feeds.Store, n int, profileList, control string) error {
+func runFeeds(ctx context.Context, c daemonv1.DaemonServiceClient, st *feeds.Store, n int, profileList, control string, maxAge time.Duration) error {
 	if st.IsPaused() {
 		return errors.New("submissions are paused (urljail feeds resume)")
 	}
@@ -245,7 +247,9 @@ func runFeeds(ctx context.Context, c daemonv1.DaemonServiceClient, st *feeds.Sto
 	if err := fetchFeeds(ctx, st); err != nil {
 		fmt.Fprintln(os.Stderr, "fetch:", err) // the queue may still hold fresh URLs
 	}
-	batch := st.Next(n, time.Now().UTC(), feeds.DefaultLimits)
+	limits := feeds.DefaultLimits
+	limits.MaxAge = maxAge
+	batch := st.Next(n, time.Now().UTC(), limits)
 	if err := st.Save(); err != nil {
 		return err
 	}
