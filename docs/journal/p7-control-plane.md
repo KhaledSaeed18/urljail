@@ -115,15 +115,15 @@ Each report build also writes `har.json` (HAR 1.2) from the guest's CDP events, 
 
 The misses in S4 suggested one new rule, **`form-on-free-hosting`** (medium): a password field or a details form on a host anyone can publish to for free (replit.app, vercel.app, netlify.app, pages.dev, github.io, webflow.io, duckdns.org and ~40 others). On all S4 pages it would have flagged 27 phishing pages and nothing else, but it was written after seeing them, so it was frozen with the rest at `091ec7e` and tested on new pages. Two sets, labelled before any indicator was looked at (`set` column `heldout2-*` in [the labels](../research/data/p7-indicator-labels.tsv); `indicators_frozen` is `fa8a848` for the S4 rows, `091ec7e` for these):
 
-- **OpenPhish, fresh** (41 pages: 17 phishing, 11 benign, 13 the brand's real site). OpenPhish's free list didn't change from 03:51 to 15:28, so this set is that one update (two passes of 40) plus one earlier page; `feeds run -max-age` was added so a loop only spends VMs on URLs first seen recently.
+- **OpenPhish, fresh** (64 pages: 30 phishing, 14 benign, 20 the brand's real site). OpenPhish's free list didn't change from 03:51 to 15:28, so this set is that one update (three passes of 40) plus one earlier page; `feeds run -max-age` was added so a loop only spends VMs on URLs first seen recently.
 - **CT discovery** (`feeds watch -for 2h`, 13 pages that loaded, none phishing): a population of mostly ordinary new sites, which is where false positives show.
 
 | | Phishing flagged (medium+) | Others flagged (medium+) | High: phishing / others |
 | --- | --- | --- | --- |
-| OpenPhish | 4 of 17 | 2 of 24 | 2 / 0 |
+| OpenPhish | 8 of 30 | 2 of 34 | 4 / 0 |
 | CT discovery | – | 1 of 13 | – / 0 |
 
-- `form-on-free-hosting` caught 4 phishing pages and two real apps ("Card Ledger" and "Clear Ledger", private apps with a login on pages.dev; OpenPhish listed both, probably for the word). Its reach is set by the host list: of the 13 missed phishing pages, 8 sat on hosting the list doesn't name (typedream.app ×2, Bluehost ×2, b12sites.com, Azure Front Door, cleverapps.io, a cPanel host), 4 on listed hosts but asked for nothing yet (two gates, a Steam lure, a wallet lure) and 1 on its own domain. A list of hosting services has the same long tail as a list of brands.
+- `form-on-free-hosting` caught 7 of 30 phishing pages and two real apps ("Card Ledger" and "Clear Ledger", private apps with a login on pages.dev; OpenPhish listed both, probably for the word). Its reach is set by the host list and by the form: of the 22 missed phishing pages, 10 sat on hosting the list doesn't name (typedream.app, Bluehost, b12sites.com, Azure Front Door, cleverapps.io, cheap TLDs, a cPanel host), 8 on listed hosts but asked for nothing yet (gates, wallet, Steam and "free Robux" lures), 4 on their own domains. A list of hosting services has the same long tail as a list of brands.
 - The CT false positive: `amazonex.app`, an ad tool's site, two letters from "amazon" (`brand-lookalike-domain`).
-- Across every held-out page so far (100: 46 + 41 + 13), **high severity never fired on a page that wasn't phishing**; it caught 12 of 51 phishing pages.
+- Across every held-out page (123: 46 + 64 + 13), **high severity never fired on a page that wasn't phishing**; it caught 14 of 64 phishing pages. Medium and up: 19 of 64 phishing pages, 4 false positives (2 private apps on free hosting, a look-alike blog, an ad tool's look-alike domain).
 - Six tutorial clones on github.io, netlify.app and vercel.app (Spotify, Netflix, Amazon, Instagram) got only the `info` indicator: the demotion in S4 holds.

@@ -155,3 +155,26 @@ heldout2-feed	01a13a94-7a63-7a69-9f0c-f247f27dd470	real-site	-	facebook	www.face
 heldout2-feed	01a13a95-c706-7976-a871-9d5316b17cb1	real-site	-	facebook	www.facebook.com itself	
 heldout2-feed	01a13a96-503b-7d4f-b982-e195d6c9a92b	real-site	-	facebook	www.facebook.com itself	
 heldout2-feed	01a13a96-91c7-7d6b-8875-60293dd6fd32	real-site	-	facebook	www.facebook.com itself	
+heldout2-feed	01a13aaa-d2a5-71bc-93d0-f7480ece14e0	phish	gate	-	"Access Restricted" VPN/bot gate on netlify.app (same kit)	
+heldout2-feed	01a13aaa-f8bb-7046-b0bb-62f4bac8be37	phish	gate	-	"Access Restricted" VPN/bot gate on netlify.app (same kit)	
+heldout2-feed	01a13aab-f6da-700d-abb7-114acb05725b	phish	lure	-	"Your shared document" behind Turnstile, asks for the email address, on a restaurant's site	
+heldout2-feed	01a13aae-0ca2-72c3-a54f-dcf8177b7cca	phish	lure	roblox	"Roblox - Free Robux" on blogspot.com	brand-presented-off-domain/info
+heldout2-feed	01a13aae-94cf-7740-9f71-46473000581e	benign	-	abnamro	ABN AMRO employee-benefits portal run by VIP District (legitimate)	
+heldout2-feed	01a13aaf-27b9-751f-b10a-cb8fef7f9a2f	phish	credential	ar24	AR24 "registered mail" mailbox-password page on cleverapps.io (same kit)	
+heldout2-feed	01a13aaf-5a6a-76af-8ffe-e03bb065d28d	phish	credential	bnpparibas	"BNP Paribas | Ma banque en ligne" with a password field on github.io	form-on-free-hosting/medium
+heldout2-feed	01a13ac3-c43a-7800-b6b0-7eefc4aeca94	phish	lure	indiagov	"tax penalty notice - Government of India" on ckpotning.click	
+heldout2-feed	01a13ac4-6316-709e-9a95-786d89272115	phish	credential	-	generic webmail login (same kit) on vercel.app	form-on-free-hosting/medium
+heldout2-feed	01a13ac4-96ce-7d58-925a-2f69f1b06e59	benign	-	dhl	"DHL Engagement Co-pilot", an agency-built HR tool for DHL staff	brand-presented-off-domain/info
+heldout2-feed	01a13ac4-f517-78f5-a6ca-950486be9103	phish	lure	indiagov	"tax penalty notice - Government of India" on dotbcson.lat	
+heldout2-feed	01a13ac5-516f-76fb-b8d0-c7e9d3354b3b	benign	-	facebook	empty page titled "facebook" on facebook.tamil.bid (as seen)	brand-presented-off-domain/info
+heldout2-feed	01a13ac5-87bb-7128-83aa-8698b8bbbe83	phish	credential	finanzonline	"Login" with a password field on flnanzonlineid.info (FinanzOnline look-alike)	
+heldout2-feed	01a13ac6-254e-71b2-9e13-b05a25aca413	phish	lure	trezor	"Trezor.io/Start | The official wallet" on gitbook.io	brand-presented-off-domain/info
+heldout2-feed	01a13ac8-1b11-7842-b360-adfa3e81f441	phish	credential	instagram	Instagram login with a password field on lnstagram-logln.vercel.app	brand-name-off-domain/high,form-on-free-hosting/medium
+heldout2-feed	01a13ac8-66bb-76d5-984e-9c4ea25fc098	phish	credential	microsoft	"Connectez-vous à votre compte Microsoft" on login.alerte-noreply.fr	brand-name-off-domain/high
+heldout2-feed	01a13aac-c901-7a80-b7b1-95ee1d744391	real-site	-	facebook	www.facebook.com itself	
+heldout2-feed	01a13aad-16aa-765e-a35f-a6081bdf4e93	real-site	-	facebook	www.facebook.com itself	
+heldout2-feed	01a13aad-79e1-78ad-954b-83a41492a894	real-site	-	facebook	www.facebook.com itself	
+heldout2-feed	01a13ac3-7810-77e3-9eaa-178ad1fa7b3b	real-site	-	facebook	www.facebook.com itself	
+heldout2-feed	01a13ac4-11b5-7ed5-91e4-dc2130524ea5	real-site	-	facebook	www.facebook.com itself	
+heldout2-feed	01a13ac6-6ea7-7292-877d-c4e448e3b236	real-site	-	facebook	www.facebook.com itself	
+heldout2-feed	01a13ac7-8c0d-7d2f-a275-4ec2907877d1	real-site	-	google	www.google.com itself	
