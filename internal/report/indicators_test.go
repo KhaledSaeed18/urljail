@@ -8,6 +8,7 @@ import (
 
 	reportv0 "github.com/KhaledSaeed18/urljail/gen/urljail/report/v0"
 	"github.com/KhaledSaeed18/urljail/internal/brands"
+	"github.com/KhaledSaeed18/urljail/internal/kits"
 )
 
 func TestIndicators(t *testing.T) {
@@ -97,5 +98,33 @@ func TestHeadings(t *testing.T) {
 	got := strings.Join(heads, "|") + " / " + strings.Join(classHeads, "|")
 	if got != "Sign in|to Netflix / Log in to Spotify" {
 		t.Errorf("headings = %q", got)
+	}
+}
+
+func TestKitMatch(t *testing.T) {
+	page := `<html><body><div><div><img><h1>Sign in</h1><form><input type="email" name="ai"><input type="password" name="pr">` +
+		`<label><input type="checkbox" name="r">r</label><button type="submit">Go</button></form><a>f</a></div>` +
+		`<footer><p>c</p><p>p</p></footer></div><div><div><p>x</p><span>y</span><ul><li>a</li><li>b</li></ul></div></div>` +
+		`<nav><a>1</a><a>2</a><span><b>3</b><i>4</i></span></nav><section><article><h2>t</h2><p>u</p></article></section></body></html>`
+	dir := t.TempDir()
+	dom := filepath.Join(dir, "dom.html")
+	os.WriteFile(dom, []byte(page), 0o600)
+	fp, ok := kits.Of(strings.NewReader(page))
+	if !ok {
+		t.Fatal("fixture too small for a fingerprint")
+	}
+	kitRefs = func() []kits.Ref {
+		return []kits.Ref{{Run: "r1", Host: "loan.replit.app", Kind: "payment", Labelled: "2026-10-14", Fingerprint: fp}}
+	}
+	defer func() { kitRefs = kits.Refs }()
+	for final, want := range map[string]bool{"https://other.vercel.app/": true, "https://again.replit.app/": false, "https://accounts.google.com/": false} {
+		r := &reportv0.Report{Navigation: &reportv0.Navigation{FinalUrl: final}, Page: &reportv0.Page{}}
+		got := false
+		for _, i := range indicators(r, dom) {
+			got = got || i.GetId() == "kit-match"
+		}
+		if got != want {
+			t.Errorf("%s: kit-match %v, want %v", final, got, want)
+		}
 	}
 }

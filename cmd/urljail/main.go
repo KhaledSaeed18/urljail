@@ -34,6 +34,8 @@ commands:
                                              delete old packet captures (reports are kept)
   similar [-max 6] <run> | -groups           runs whose screenshots look alike
   brands refs > internal/brands/refs.json    take reference screenshots of brands' sign-in pages
+  kits refs -labels f > internal/kits/refs.json
+                                             fingerprint labelled phishing pages (kit-match)
   version                                    show CLI and daemon versions
 `
 
@@ -92,6 +94,8 @@ func run() error {
 		return cmdSimilar(args)
 	case "brands":
 		return cmdBrands(ctx, client, args)
+	case "kits":
+		return cmdKits(args)
 	default:
 		fmt.Fprintf(os.Stderr, "unknown command %q\n\n", cmd)
 		flag.Usage()

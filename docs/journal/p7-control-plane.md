@@ -138,3 +138,18 @@ The misses in S4 suggested one new rule, **`form-on-free-hosting`** (medium): a 
 ### Labelling in the dashboard
 
 The 179 labels of S4–S5 were a hand-written TSV; labelling is now part of the dashboard. A `labels` table (one row per run: verdict phish / benign / unsure / real-site, kind of phishing, brand, note), a label form on the run page ("Save and next unlabelled" walks the review queue), list views *All runs / Needs a label / Labelled* and a filter by indicator, and `/evaluate`: every labelled run scored at each severity and per indicator, by kind of phishing, with the false positives and the misses listed (URLs as text). `/labels.tsv` exports them with the indicators. The review queue opens runs blind (`?blind=1`): indicators and look-alike runs stay hidden until the run is labelled, as in the held-out sets. The 179 labels were imported through the API. The labels are a Server Action like submitting, so a post from another origin is refused (checked: 500, label unchanged). The evaluation page says what it is: all labelled runs, tuning pages included, so it overstates against the held-out numbers here.
+
+### S7: kit families (2026-10-14 night)
+
+The same kits came back all day on different hosts (one Banco Pichincha loan form on six replit/vercel hosts, one webmail login on four, a Naver clone on three, AR24, a Spotify clone, the Steam invitation). **`kit-match`** (medium) recognises them by structure: `internal/kits` fingerprints the final DOM as a 128-value MinHash of element paths (each element with its parent and grandparent; tag names, plus type and name of form fields; scripts, styles and text ignored), and a page matches a person-labelled phishing page when the estimated Jaccard similarity is at least **0.7**. A match only counts **across places**: another registrable domain and not the same hosting platform (two pages on github.io or gitbook.io share the platform's template: on the first calibration a GitBook tech-support scam and a GitBook Trezor page matched at 0.67 for that reason alone), and **never on a brand's own domain** (kits copy the real page: accounts.google.com matched a Google clone at 84 %).
+
+Calibration on S4–S5's labelled pages, leave-one-out, across places (131 of 179 big enough to fingerprint, at least 20 distinct paths):
+
+| Threshold | Phishing pages matching another | Other pages matching a phishing page |
+| --- | --- | --- |
+| 0.5 | 20 of 66 | 3 of 61 |
+| 0.6 | 17 of 66 | 0 of 61 |
+| 0.7 | 17 of 66 | 0 of 61 |
+| 0.8 | 15 of 66 | 0 of 61 |
+
+References (`internal/kits/refs.json`, `urljail kits refs -labels <tsv>`): the 66 labelled phishing pages with a fingerprint. Over every stored run (2,600+, rebuilt), `kit-match` fired only on those kits' hosts, their comparison-profile runs, and one unlabelled OpenPhish run on `h5.usakkkk.shop` titled "TikTok-Wholesale": the fake-merchant kit from round 2 on a new host. Most matched pages had no other indicator (the Pichincha forms, the webmail kits, the Steam lure). In-sample, so this says the rule finds today's families; whether kits come back the next day on new hosts is what the next held-out set measures. Frozen with the favicon rule.

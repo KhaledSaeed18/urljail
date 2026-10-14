@@ -340,3 +340,13 @@ func FaviconOf(refs []Ref, sha string) (Brand, bool) {
 	}
 	return Brand{}, false
 }
+
+// Owner returns the brand a registrable domain belongs to, if any.
+func Owner(registrable string) (Brand, bool) {
+	for _, b := range All {
+		if b.Owns(registrable) {
+			return b, true
+		}
+	}
+	return Brand{}, false
+}

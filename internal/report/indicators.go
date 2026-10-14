@@ -10,6 +10,7 @@ import (
 
 	reportv0 "github.com/KhaledSaeed18/urljail/gen/urljail/report/v0"
 	"github.com/KhaledSaeed18/urljail/internal/brands"
+	"github.com/KhaledSaeed18/urljail/internal/kits"
 	"github.com/KhaledSaeed18/urljail/internal/visual"
 )
 
@@ -17,6 +18,9 @@ const guestScreenshot = "guest.screenshot"
 
 // brandRefs are the brand reference screenshots (replaced in tests).
 var brandRefs = brands.Refs
+
+// kitRefs are the labelled phishing pages' structures (replaced in tests).
+var kitRefs = kits.Refs
 
 // indicators derives the phishing signals from what the report already holds. Each is a fact
 // with its reason; the brand ones only fire off the brand's own domains.
@@ -137,6 +141,30 @@ func indicators(r *reportv0.Report, domPath string) []*reportv0.Indicator {
 				Detail: fmt.Sprintf("The page's icon is %s's own (%s), on %s", b.Name, clipString(f.GetUrl(), 120), domain),
 			})
 			break
+		}
+	}
+
+	// The page has the structure of a phishing page a person labelled, seen at another site or
+	// platform: the same kit moved hosts (found in P7: one loan-form kit on six hosts). Never on
+	// a brand's own domain: kits copy the real page's structure, so accounts.google.com matched a
+	// Google clone at 84 %.
+	_, ownedByBrand := brands.Owner(domain)
+	if u, err := brands.ParseOrigin(r.GetNavigation().GetFinalUrl()); err == nil && !ownedByBrand {
+		if f, err := os.Open(domPath); err == nil {
+			fp, ok := kits.Of(f)
+			f.Close()
+			if ok {
+				if ref, sim, ok := kits.Match(kitRefs(), fp, u.Hostname()); ok {
+					what := "phishing page"
+					if ref.Kind != "" {
+						what = ref.Kind + " phishing page"
+					}
+					out = append(out, &reportv0.Indicator{
+						Id: "kit-match", Severity: "medium", Brand: ref.Brand, Source: guestDOM,
+						Detail: fmt.Sprintf("The page has the structure of a %s labelled %s on %s (%.0f %% alike)", what, ref.Labelled, ref.Host, sim*100),
+					})
+				}
+			}
 		}
 	}
 
