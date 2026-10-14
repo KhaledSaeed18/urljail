@@ -52,7 +52,7 @@ export default async function Run({ params }: { params: Promise<{ id: string }> 
         <section className="card">
           <h2>Indicators</h2>
           <ul className="gaps">{indicators.map((x, i) => (
-            <li key={i}><span className={`pill ${x.severity === 'high' ? 'bad' : 'warn'}`}>{x.severity}</span> <span className="mono">{x.id}</span>: {x.detail}</li>
+            <li key={i}><span className={`pill ${x.severity === 'high' ? 'bad' : x.severity === 'medium' ? 'warn' : ''}`}>{x.severity}</span> <span className="mono">{x.id}</span>: {x.detail}</li>
           ))}</ul>
           <p className="muted" style={{ margin: 0, fontSize: 13 }}>Signals with their reasons, not a verdict.</p>
         </section>
