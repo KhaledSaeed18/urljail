@@ -101,3 +101,43 @@ heldout	01a138a9-f9d2-7acf-988f-fb7ee65dd86c	real-site	-	facebook	www.facebook.c
 heldout	01a138aa-3c3c-7e6b-9a66-8ed5a16b78f9	real-site	-	facebook	www.facebook.com itself	
 heldout	01a138ac-b619-72da-a1c9-63db2b839dcb	real-site	-	facebook	www.facebook.com itself	
 heldout	01a138ad-3c9a-7adb-86b8-336cb711cb29	phish	credential	labanquepostale	La Banque Postale client login on netlify.app	
+heldout2-feed	01a13938-190b-73e9-89c8-0665110bb422	phish	credential	juno	Juno ISP "My Account" login with a password field on a cPanel host	
+heldout2-feed	01a13a61-84a2-7a6b-bbfb-31e4bbe484dc	real-site	-	facebook	www.facebook.com itself	
+heldout2-feed	01a13a61-f24a-77c2-9be9-06ab495bafc9	phish	credential	microsoft	Microsoft sign-in clone on framer.website	form-on-free-hosting/medium
+heldout2-feed	01a13a62-e67d-79ab-9d19-f4718c4ebd6c	benign	-	abnamro	ABN AMRO employee-benefits portal run by VIP District (legitimate)	
+heldout2-feed	01a13a63-270c-7dee-8a63-ef157f1b0f4b	benign	-	netflix	Netflix India clone (tutorial) on github.io	brand-presented-off-domain/info
+heldout2-feed	01a13a63-5e47-7061-b025-30e3787b177d	phish	credential	ar24	AR24 "registered mail" page asking for the mailbox password, on cleverapps.io	
+heldout2-feed	01a13a63-75d3-7a83-899a-b9df9f2c989a	benign	-	spotify	Spotify web player clone (tutorial) on github.io	brand-presented-off-domain/info
+heldout2-feed	01a13a63-bbb9-743d-894c-437ba49fd338	benign	-	spotify	Spotify clone (tutorial) on github.io	brand-presented-off-domain/info
+heldout2-feed	01a13a63-ea3a-78f1-a3e5-274d0c0aadd6	benign	-	amazon	Amazon homepage clone (tutorial) on github.io	
+heldout2-feed	01a13a64-06b6-72e8-a9c3-bd865e2d2c8e	real-site	-	facebook	www.facebook.com itself	
+heldout2-feed	01a13a64-a9b6-7d3f-90a2-5fbbf5064a75	benign	-	-	"Card Ledger" private inventory app with a login, on pages.dev	form-on-free-hosting/medium
+heldout2-feed	01a13a64-bfe2-7953-addb-603da59df7ed	phish	credential	callofduty	"LOGIN - CALL OF DUTY" with a password field on cpsgift.com	
+heldout2-feed	01a13a65-1589-7930-85f7-c6582d509680	phish	gate	-	"Access Restricted" VPN/bot gate on netlify.app	
+heldout2-feed	01a13a65-42d9-78e0-ae20-57441bb3d766	phish	credential	-	Korean email/password login "Account Verification" on Bluehost	
+heldout2-feed	01a13a65-65c3-74e6-b7e4-266b4db6e585	phish	lure	ledger	"Ledger Live getting started" on typedream.app	brand-presented-off-domain/info
+heldout2-feed	01a13a65-9cf5-7b48-80b7-93d919ddaa84	phish	lure	steam	fake Steam "invitation to connect" on netlify.app	brand-presented-off-domain/info
+heldout2-feed	01a13a65-e55b-7bf4-ba3f-db5bb1d39763	phish	lure	trezor	"Official Trezor Suite App" on b12sites.com	brand-presented-off-domain/info
+heldout2-feed	01a13a66-1da3-7b59-a031-10d5c5dc4338	phish	lure	facebook	"Facebook has suspended your account" on azurefd.net	
+heldout2-feed	01a13a66-7f21-7f25-970f-cd159b1cfe81	phish	credential	microsoft	"Security verification - Microsoft account" on vercel.app	brand-name-off-domain/high,form-on-free-hosting/medium
+heldout2-feed	01a13a66-a250-7b02-a82f-094611695481	real-site	-	facebook	www.facebook.com itself	
+heldout2-feed	01a13a66-e4be-7642-b31d-3a0b16843c59	benign	-	amazon	"Amazon Clone" (tutorial) on github.io	brand-presented-off-domain/info
+heldout2-feed	01a13a67-3e94-7bb0-89ab-133cf08e5059	benign	-	-	hosting provider's "access to this page is restricted" notice (taken down)	
+heldout2-feed	01a13a67-8418-7b30-8fa1-70673312b154	benign	-	instagram	Instagram-like social app (tutorial) on vercel.app	brand-presented-off-domain/info
+heldout2-feed	01a13a67-dcf3-7289-9f17-b730b9fb355d	phish	credential	ledger	"Ledger" with password fields on pages.dev	form-on-free-hosting/medium
+heldout2-feed	01a13a67-f6a2-76f1-9210-806ee81a9047	phish	lure	ledger	"Ledger Live App" on typedream.app	brand-presented-off-domain/info
+heldout2-feed	01a13a68-374e-7445-a45a-e5f27c7930d9	benign	-	spotify	Spotify web player clone (tutorial) on netlify.app	brand-presented-off-domain/info
+heldout2-feed	01a13a68-59fd-76a4-8ffe-78abbd339c22	real-site	-	facebook	www.facebook.com itself	
+heldout2-ct	01a1397b-05a4-7849-9661-bdbf1e1ebc83	benign	-	-	managed IT provider homepage	
+heldout2-ct	01a139a2-b1de-7ed1-92eb-62dcf1713fb6	unsure	-	-	Taiwanese food business "payment accounts" page (bank account numbers)	
+heldout2-ct	01a139a7-45c1-7e00-ba35-5d180b494b18	benign	-	steam	Steam Deck recommendations blog on pages.dev	
+heldout2-ct	01a139ad-ae5d-7b2d-9a1f-293024d721bb	benign	-	amazon	X Ads Editor Excel tool (Lovable app) on amazonex.app	brand-lookalike-domain/medium
+heldout2-ct	01a139b3-2c9e-7df2-9080-a8b90b8e9830	unsure	-	-	"terminal" page asking for a UUID (proxy panel)	
+heldout2-ct	01a139b5-286f-75da-8413-cf1c2ac7cddf	benign	-	-	same food business: plans page	
+heldout2-ct	01a139be-7741-785a-ada7-12311ca1201f	unsure	-	-	same food business: payment accounts page	
+heldout2-ct	01a139be-ec71-7ecf-b0f6-4176ed3afe78	benign	-	-	web developer portfolio	
+heldout2-ct	01a139c6-8d98-7bf6-91bb-65e3d553c2ea	benign	-	-	Cloudflare Worker echoing request headers	
+heldout2-ct	01a139c7-ed1b-7a14-9ed0-dffe2b738a9f	benign	-	-	same food business: bulletin board	
+heldout2-ct	01a139cf-dc61-7483-ac57-55f0dd359e21	benign	-	-	same Worker host (header echo)	
+heldout2-ct	01a139d6-ba2f-77e1-b6e7-664674834b58	benign	-	roblox	Roblox script SEO page on pages.dev	
+heldout2-ct	01a139e3-3d5c-75d1-ac7d-95aba811f8b3	benign	-	-	"Content update in progress" placeholder	
