@@ -4,10 +4,10 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"github.com/KhaledSaeed18/urljail/internal/cdp"
 	"math/rand/v2"
 	"os"
 	"path/filepath"
+	"strings"
 	"sync"
 	"time"
 
@@ -24,6 +24,7 @@ import (
 	"google.golang.org/protobuf/types/known/timestamppb"
 
 	guestv1 "github.com/KhaledSaeed18/urljail/gen/urljail/guest/v1"
+	"github.com/KhaledSaeed18/urljail/internal/cdp"
 )
 
 const (
@@ -216,9 +217,7 @@ func (a *agent) collect(pctx, bctx context.Context, targetID target.ID, out *sen
 	cancel()
 	// Read the DOM through the protocol, without running script in the page.
 	ctx, cancel = step(pctx, 5*time.Second)
-	if root, err := dom.GetDocument().Do(ctx); err != nil {
-		errs = append(errs, fmt.Errorf("dom: %w", err))
-	} else if html, err := dom.GetOuterHTML().WithNodeID(root.NodeID).Do(ctx); err != nil {
+	if html, err := outerHTML(ctx); err != nil {
 		errs = append(errs, fmt.Errorf("dom: %w", err))
 	} else if err := sendBytes(out, "dom.html", []byte(html)); err != nil {
 		cancel()
@@ -233,6 +232,27 @@ func (a *agent) collect(pctx, bctx context.Context, targetID target.ID, out *sen
 		return err
 	}
 	return errors.Join(errs...)
+}
+
+// outerHTML serializes the document. A page that replaces its document between the two calls
+// (a script redirect or document.write during collection; found in P7 on 4 of 40 feed URLs)
+// invalidates the node ID: the read is retried once against the new document.
+func outerHTML(ctx context.Context) (string, error) {
+	var err error
+	for range 2 {
+		var root *cdpctx.Node
+		if root, err = dom.GetDocument().Do(ctx); err != nil {
+			return "", err
+		}
+		var html string
+		if html, err = dom.GetOuterHTML().WithNodeID(root.NodeID).Do(ctx); err == nil {
+			return html, nil
+		}
+		if !strings.Contains(err.Error(), "Could not find node") {
+			return "", err
+		}
+	}
+	return "", err
 }
 
 // forward streams every CDP event to the host, feeds the network-idle tracker, and
