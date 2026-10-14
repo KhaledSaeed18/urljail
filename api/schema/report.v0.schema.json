@@ -684,12 +684,12 @@
         },
         "id": {
           "default": "",
-          "description": "Stable name: \"password-form-cross-origin\", \"brand-name-off-domain\", \"brand-look-off-domain\".",
+          "description": "Stable name: \"password-form-cross-origin\", \"brand-name-off-domain\", \"brand-look-off-domain\",\n \"brand-lookalike-domain\", \"blob-document\", \"brand-presented-off-domain\" (info).",
           "type": "string"
         },
         "severity": {
           "default": "",
-          "description": "\"medium\" or \"high\".",
+          "description": "\"info\" (context, not a flag), \"medium\" or \"high\".",
           "type": "string"
         },
         "source": {

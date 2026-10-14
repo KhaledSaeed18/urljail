@@ -274,9 +274,10 @@ message Artifacts {
 }
 
 message Indicator {
-  // Stable name: "password-form-cross-origin", "brand-name-off-domain", "brand-look-off-domain".
+  // Stable name: "password-form-cross-origin", "brand-name-off-domain", "brand-look-off-domain",
+  // "brand-lookalike-domain", "blob-document", "brand-presented-off-domain" (info).
   string id = 1;
-  // "medium" or "high".
+  // "info" (context, not a flag), "medium" or "high".
   string severity = 2;
   // One sentence saying what was seen.
   string detail = 3;

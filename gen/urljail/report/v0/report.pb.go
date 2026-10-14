@@ -1904,9 +1904,10 @@ func (x *Artifacts) GetPcap() string {
 
 type Indicator struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
-	// Stable name: "password-form-cross-origin", "brand-name-off-domain", "brand-look-off-domain".
+	// Stable name: "password-form-cross-origin", "brand-name-off-domain", "brand-look-off-domain",
+	// "brand-lookalike-domain", "blob-document", "brand-presented-off-domain" (info).
 	Id string `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
-	// "medium" or "high".
+	// "info" (context, not a flag), "medium" or "high".
 	Severity string `protobuf:"bytes,2,opt,name=severity,proto3" json:"severity,omitempty"`
 	// One sentence saying what was seen.
 	Detail string `protobuf:"bytes,3,opt,name=detail,proto3" json:"detail,omitempty"`

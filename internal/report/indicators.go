@@ -92,7 +92,8 @@ func indicators(r *reportv0.Report, domPath string) []*reportv0.Indicator {
 
 	// Presenting itself as a brand off its domains, without asking for anything yet: the first
 	// page of a lure ("delivery failed", a loan offer, a wallet setup) whose form comes next.
-	// Low: fan sites and resellers do this too.
+	// Info, not a flag: on held-out live feed pages it fired on 3 phishing pages and on 6 that
+	// weren't (tutorial clones, empty blogs, an official preview deployment; journal P7).
 	if presented := brands.PresentedAs(title, heads); len(presented) > 0 && !hasBrandIndicator(out) {
 		owned := false
 		for _, b := range presented {
@@ -101,7 +102,7 @@ func indicators(r *reportv0.Report, domPath string) []*reportv0.Indicator {
 		if !owned {
 			b := presented[0]
 			out = append(out, &reportv0.Indicator{
-				Id: "brand-presented-off-domain", Severity: "low", Brand: b.ID, Source: guestDOM,
+				Id: "brand-presented-off-domain", Severity: "info", Brand: b.ID, Source: guestDOM,
 				Detail: fmt.Sprintf("The page presents itself as %s (title or a short heading), on %s", b.Name, domain),
 			})
 		}
