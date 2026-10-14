@@ -70,3 +70,16 @@ func TestDomainOf(t *testing.T) {
 		}
 	}
 }
+
+func TestLookalikeDomain(t *testing.T) {
+	for dom, want := range map[string]string{
+		"american-expiess.vip": "amex", "ameriean-expiess.vip": "amex", "bantofamericas.com": "bankofamerica",
+		"microsoftonline3.com": "microsoft", "amazonn.app": "amazon",
+		"americanexpress.com": "", "paypal.com": "", "example.com": "", "ups.example": "", "wise.com": "",
+	} {
+		b, _, ok := LookalikeDomain(dom)
+		if got := map[bool]string{true: b.ID}[ok]; got != want {
+			t.Errorf("LookalikeDomain(%q) = %q, want %q", dom, got, want)
+		}
+	}
+}

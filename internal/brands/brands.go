@@ -61,9 +61,24 @@ var All = []Brand{
 	{"roblox", "Roblox", []string{"roblox"}, []string{"roblox.com"}, "https://www.roblox.com/login"},
 	{"spotify", "Spotify", []string{"spotify"}, []string{"spotify.com"}, "https://accounts.spotify.com/login"},
 	{"discord", "Discord", []string{"discord"}, []string{"discord.com", "discord.gg"}, "https://discord.com/login"},
-	{"stripe", "Stripe", []string{"stripe"}, []string{"stripe.com"}, "https://dashboard.stripe.com/login"},
+	{"stripe", "Stripe", []string{"stripe"}, []string{"stripe.com", "stripe-terminal-local-reader.net", "stripe.network"}, "https://dashboard.stripe.com/login"},
 	{"amex", "American Express", []string{"american express", "amex"}, []string{"americanexpress.com"}, "https://www.americanexpress.com/en-us/account/login"},
 	{"capitalone", "Capital One", []string{"capital one"}, []string{"capitalone.com"}, "https://verified.capitalone.com/auth/signin"},
+	{"whatsapp", "WhatsApp", []string{"whatsapp"}, []string{"whatsapp.com", "whatsapp.net", "wa.me"}, ""},
+	{"tiktok", "TikTok", []string{"tiktok"}, []string{"tiktok.com", "tiktokv.com"}, ""},
+	{"telegram", "Telegram", []string{"telegram"}, []string{"telegram.org", "t.me"}, ""},
+	{"trezor", "Trezor", []string{"trezor"}, []string{"trezor.io"}, ""},
+	{"metamask", "MetaMask", []string{"metamask"}, []string{"metamask.io"}, ""},
+	{"trustwallet", "Trust Wallet", []string{"trust wallet"}, []string{"trustwallet.com"}, ""},
+	{"santander", "Santander", []string{"santander"}, []string{"santander.com", "santander.co.uk", "santander.es", "santander.com.mx", "santander.com.br", "santander.cl", "santander.com.ar"}, ""},
+	{"seur", "SEUR", []string{"seur"}, []string{"seur.com"}, ""},
+	{"correos", "Correos", []string{"correos"}, []string{"correos.es", "correos.com"}, ""},
+	{"posteitaliane", "Poste Italiane", []string{"poste italiane"}, []string{"poste.it", "posteitaliane.it"}, ""},
+	{"laposte", "La Poste", []string{"la poste"}, []string{"laposte.fr", "laposte.net"}, ""},
+	{"royalmail", "Royal Mail", []string{"royal mail"}, []string{"royalmail.com"}, ""},
+	{"evri", "Evri", []string{"evri"}, []string{"evri.com"}, ""},
+	{"canadapost", "Canada Post", []string{"canada post", "postes canada"}, []string{"canadapost.ca", "canadapost-postescanada.ca"}, ""},
+	{"auspost", "Australia Post", []string{"australia post", "auspost"}, []string{"auspost.com.au"}, ""},
 	{"steam", "Steam", []string{"steam community", "steampowered"}, []string{"steampowered.com", "steamcommunity.com"}, "https://store.steampowered.com/login/"},
 }
 
@@ -102,8 +117,45 @@ func Named(text string) []Brand {
 	return out
 }
 
+// PresentedAs returns the brands a page presents itself as: named in the first three words of
+// the title, or in a short heading (at most six words). A page that mentions a brand further
+// in ("Rossman Partners - Blog on Amazon, Leadership") isn't presenting itself as it.
+func PresentedAs(title string, headings []string) []Brand {
+	cands := []string{firstWords(title, 3)}
+	for _, h := range headings {
+		if n := len(strings.Fields(normalize(h))); n > 0 && n <= 6 {
+			cands = append(cands, h)
+		}
+	}
+	seen := map[string]bool{}
+	var out []Brand
+	for _, c := range cands {
+		for _, b := range Named(c) {
+			if !seen[b.ID] {
+				seen[b.ID] = true
+				out = append(out, b)
+			}
+		}
+	}
+	return out
+}
+
+func firstWords(s string, n int) string {
+	f := strings.Fields(normalize(s))
+	if len(f) > n {
+		f = f[:n]
+	}
+	return strings.Join(f, " ")
+}
+
 // signIn are phrases of a sign-in page, matched as whole words.
-var signIn = []string{"log in", "login", "sign in", "signin", "sign on", "logon", "log on", "verify", "verification", "sign in code", "authenticate"}
+var signIn = []string{
+	"log in", "login", "sign in", "signin", "sign on", "logon", "log on", "verify", "verification", "authenticate",
+	// Spanish, Portuguese, French, German, Italian: kits are localised (found in P7: "Verificacion
+	// Microsoft", "Iniciar sesión").
+	"iniciar sesión", "iniciar sesion", "verificación", "verificacion", "verificar", "acceder", "entrar",
+	"connexion", "se connecter", "vérification", "anmelden", "einloggen", "bestätigen", "accedi", "verifica",
+}
 
 // SignInWording reports whether text uses sign-in phrases.
 func SignInWording(text string) bool {
@@ -198,4 +250,69 @@ func DomainOf(rawURL string) string {
 		return reg
 	}
 	return host
+}
+
+// LookalikeDomain returns the brand whose own domain name the registrable domain imitates:
+// within edit distance 2 of the name before the suffix ("american-expiess.vip" is 1 from
+// "americanexpress"), hyphens ignored, names of at least 6 letters (shorter ones collide with
+// ordinary words). A domain the brand owns isn't a lookalike, nor one equal to another brand's.
+func LookalikeDomain(registrable string) (Brand, int, bool) {
+	label := domainLabel(registrable)
+	if len(label) < 6 {
+		return Brand{}, 0, false
+	}
+	for _, b := range All {
+		if b.Owns(registrable) {
+			return Brand{}, 0, false
+		}
+	}
+	for _, b := range All {
+		for _, d := range b.Domains {
+			own := domainLabel(d)
+			if len(own) < 6 || own == label {
+				continue
+			}
+			if dist := editDistance(label, own, 2); dist <= 2 {
+				return b, dist, true
+			}
+		}
+	}
+	return Brand{}, 0, false
+}
+
+// domainLabel is the registrable domain without its public suffix, hyphens removed.
+func domainLabel(registrable string) string {
+	reg := strings.ToLower(registrable)
+	suffix, _ := publicsuffix.PublicSuffix(reg)
+	label := strings.TrimSuffix(strings.TrimSuffix(reg, suffix), ".")
+	return strings.ReplaceAll(label, "-", "")
+}
+
+// editDistance is the Levenshtein distance, or max+1 once it's known to exceed max.
+func editDistance(a, b string, max int) int {
+	if d := len(a) - len(b); d > max || -d > max {
+		return max + 1
+	}
+	prev := make([]int, len(b)+1)
+	for j := range prev {
+		prev[j] = j
+	}
+	for i := 1; i <= len(a); i++ {
+		cur := make([]int, len(b)+1)
+		cur[0] = i
+		best := cur[0]
+		for j := 1; j <= len(b); j++ {
+			cost := 1
+			if a[i-1] == b[j-1] {
+				cost = 0
+			}
+			cur[j] = min(prev[j]+1, cur[j-1]+1, prev[j-1]+cost)
+			best = min(best, cur[j])
+		}
+		if best > max {
+			return max + 1
+		}
+		prev = cur
+	}
+	return prev[len(b)]
 }

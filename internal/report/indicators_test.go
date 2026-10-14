@@ -32,7 +32,14 @@ func TestIndicators(t *testing.T) {
 			want: "brand-name-off-domain:paypal brand-look-off-domain:paypal"},
 		{name: "the real PayPal", final: "https://www.paypal.com/signin", title: "PayPal: Log in", phash: "ffff0000ffff0000",
 			dom: dom, passwords: 1, want: ""},
-		{name: "names PayPal but no password (a blog post)", final: "https://news.example/", title: "PayPal earnings", dom: noDOM, want: ""},
+		// A headline that leads with a brand reads as presenting it: low, the price of catching
+		// lures that ask for nothing on their first page.
+		{name: "names PayPal but no password (a blog post)", final: "https://news.example/", title: "PayPal earnings", dom: noDOM,
+			want: "brand-presented-off-domain:paypal"},
+		{name: "a page titled with its own host isn't presenting a brand", final: "https://free-5-paypal.pages.dev/", title: "free-5-paypal.pages.dev | 522: Connection timed out",
+			dom: noDOM, want: ""},
+		{name: "typo-squat behind a captcha", final: "https://american-expiess.vip/", title: "Verify you are human", dom: noDOM,
+			want: "brand-lookalike-domain:amex"},
 		{name: "device-code phishing: names DocuSign, sign-in wording, no password", final: "https://loginservice.cloud/",
 			title: "DocuSign Login - Choose a login method to sign in", dom: noDOM, want: "brand-name-off-domain:docusign"},
 		{name: "AWS sign-in on an AWS domain names Amazon too", final: "https://signin.amazonaws-us-gov.com/", title: "Amazon Web Services Sign-In",
@@ -41,6 +48,15 @@ func TestIndicators(t *testing.T) {
 			dom: noDOM, passwords: 1, want: ""},
 		{name: "blob: page with a Google sign-in title", final: "blob:https://notaria11medellin.com/3f42-89#", title: "Sign in - Google Accounts",
 			dom: noDOM, want: "blob-document: brand-name-off-domain:google"},
+		{name: "details harvest: DHL billing form, no password", final: "https://www.chemclean.example/x", title: "DHL", dom: noDOM,
+			forms: []*reportv0.Form{{Fields: []*reportv0.Field{{Type: "text"}, {Type: "text"}, {Type: "tel"}}}},
+			want:  "brand-name-off-domain:dhl"},
+		{name: "a blog that mentions a brand, with a contact form", final: "https://rossmanpartners.com/", title: "Rossman Partners - Blog on Amazon, Leadership", dom: noDOM,
+			forms: []*reportv0.Form{{Fields: []*reportv0.Field{{Type: "text"}, {Type: "email"}, {Type: "textarea"}}}}, want: ""},
+		{name: "a search box isn't asking for details", final: "https://blog.example/", title: "DHL strike news", dom: noDOM,
+			forms: []*reportv0.Form{{Fields: []*reportv0.Field{{Type: "text", Name: "q"}}}}, want: "brand-presented-off-domain:dhl"},
+		{name: "Spanish sign-in wording", final: "https://accountsecurity.dothome.co.kr/", title: "Verificacion Microsoft", dom: noDOM,
+			want: "brand-name-off-domain:microsoft"},
 		{name: "password posted elsewhere", final: "https://shop.example/", dom: noDOM, passwords: 1,
 			forms: []*reportv0.Form{{HasPassword: true, CrossOriginAction: true, Action: "https://collect.evil.test/p"}},
 			want:  "password-form-cross-origin:"},
@@ -65,8 +81,8 @@ func TestIndicators(t *testing.T) {
 func TestHeadings(t *testing.T) {
 	dom := filepath.Join(t.TempDir(), "dom.html")
 	os.WriteFile(dom, []byte(`<title>x</title><h1>Sign in</h1><p>not this</p><h2>to <span>Netflix</span></h2><h3>nor this</h3>`), 0o600)
-	got := strings.Join(strings.Fields(headings(dom)), " ")
-	if got != "Sign in to Netflix" {
+	got := strings.Join(headings(dom), "|")
+	if got != "Sign in|to Netflix" {
 		t.Errorf("headings = %q", got)
 	}
 }
