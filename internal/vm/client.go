@@ -27,7 +27,20 @@ func NewClient(sock string) *Client {
 			return d.DialContext(ctx, "unix", sock)
 		},
 	}
-	return &Client{http: &http.Client{Transport: tr, Timeout: 10 * time.Second}}
+	return &Client{http: &http.Client{Transport: tr}} // deadlines per call: callTimeout
+}
+
+// callTimeout bounds one API call. Creating a snapshot writes the guest's whole memory to disk
+// (2 GiB), which takes more than the usual 10 s when the disk is busy: found in P7 when the
+// sixth snapshot rebuilt after five others and the daemon exited, then looped.
+func callTimeout(path string) time.Duration {
+	switch path {
+	case "/snapshot/create":
+		return 2 * time.Minute
+	case "/snapshot/load":
+		return 30 * time.Second
+	}
+	return 10 * time.Second
 }
 
 // APIError is a non-2xx response from Firecracker.
@@ -50,6 +63,8 @@ func (c *Client) do(ctx context.Context, method, path string, body any) error {
 	if err != nil {
 		return err
 	}
+	ctx, cancel := context.WithTimeout(ctx, callTimeout(path))
+	defer cancel()
 	req, err := http.NewRequestWithContext(ctx, method, "http://localhost"+path, bytes.NewReader(b))
 	if err != nil {
 		return err
@@ -126,6 +141,8 @@ type VMConfig struct {
 // GetVMConfig is GET /vm/config: the configuration the VMM is actually running with.
 func (c *Client) GetVMConfig(ctx context.Context) (VMConfig, error) {
 	var cfg VMConfig
+	ctx, cancel := context.WithTimeout(ctx, callTimeout("/vm/config"))
+	defer cancel()
 	req, err := http.NewRequestWithContext(ctx, http.MethodGet, "http://localhost/vm/config", nil)
 	if err != nil {
 		return cfg, err
