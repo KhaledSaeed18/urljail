@@ -73,10 +73,10 @@ export default async function Home({ searchParams }: { searchParams: Promise<Rec
               <tbody>
                 {runs.map((r) => (
                   <tr key={r.id}>
-                    <td><Link className="row" href={`/runs/${r.id}`}>{when(r.createdAt)}</Link></td>
+                    <td><Link className="row" href={`/runs/${r.id}${view === 'unlabelled' ? '?blind=1' : ''}`}>{when(r.createdAt)}</Link></td>
                     <td>
                       <StatePill state={r.state} consistent={r.summary?.consistent} />
-                      {(r.summary?.indicators ?? []).some((x) => x.severity !== 'info') && <> <span className={`pill ${r.summary!.indicators!.some((x) => x.severity === 'high') ? 'bad' : 'warn'}`} title={r.summary!.indicators!.filter((x) => x.severity !== 'info').map((x) => x.id).join(', ')}>{r.summary!.indicators!.find((x) => x.severity !== 'info')!.brand || 'flag'}</span></>}
+                      {view !== 'unlabelled' && (r.summary?.indicators ?? []).some((x) => x.severity !== 'info') && <> <span className={`pill ${r.summary!.indicators!.some((x) => x.severity === 'high') ? 'bad' : 'warn'}`} title={r.summary!.indicators!.filter((x) => x.severity !== 'info').map((x) => x.id).join(', ')}>{r.summary!.indicators!.find((x) => x.severity !== 'info')!.brand || 'flag'}</span></>}
                     </td>
                     <td>{r.label ? <span className={`pill ${r.label.verdict === 'phish' ? 'bad' : r.label.verdict === 'unsure' ? '' : 'ok'}`}>{r.label.verdict}</span> : ''}</td>
                     <td className="urlcell"><span className="url">{r.url}</span></td>

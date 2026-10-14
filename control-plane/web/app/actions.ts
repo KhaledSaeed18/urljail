@@ -30,7 +30,7 @@ export async function saveLabel(form: FormData) {
   if (form.get('next')) {
     const { runs } = await api.list({ view: 'unlabelled' });
     const next = runs.filter((r) => r.id !== id).at(-1);
-    if (next) redirect(`/runs/${next.id}`);
+    if (next) redirect(`/runs/${next.id}${form.get('blind') ? '?blind=1' : ''}`);
     redirect('/?view=unlabelled');
   }
   redirect(`/runs/${id}`);

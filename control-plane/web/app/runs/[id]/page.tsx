@@ -10,11 +10,15 @@ export const dynamic = 'force-dynamic';
 
 // Everything from `report` is attacker-influenced: rendered as text only, URLs never linked.
 // Field names are the proto names (report.json is written with UseProtoNames).
-export default async function Run({ params }: { params: Promise<{ id: string }> }) {
+export default async function Run({ params, searchParams }: { params: Promise<{ id: string }>; searchParams: Promise<Record<string, string | undefined>> }) {
   const { id } = await params;
+  const q = await searchParams;
   if (!/^[0-9a-f-]{36}$/.test(id)) notFound();
   const run = await api.get(id).catch(() => null);
   if (!run) notFound();
+  // Blind labelling (the review queue): no indicators or look-alikes until the run is labelled,
+  // so a label can't lean on what the rules said.
+  const blind = q.blind === '1' && !run.label;
   const rep = run.report ?? {};
   const nav = rep.navigation ?? {};
   const net = rep.network ?? {};
@@ -27,7 +31,7 @@ export default async function Run({ params }: { params: Promise<{ id: string }> 
   const counted = countRequests(domains, net.requests ?? []);
   const indicators: any[] = rep.indicators ?? [];
   const forms: any[] = rep.page?.forms ?? [];
-  const similar = run.summary?.phash ? await api.similar(id).catch(() => null) : null;
+  const similar = run.summary?.phash && !(q.blind === '1' && !run.label) ? await api.similar(id).catch(() => null) : null;
   return (
     <>
       <header className="top">
@@ -49,7 +53,7 @@ export default async function Run({ params }: { params: Promise<{ id: string }> 
         {run.error && <div className="error">{run.error}</div>}
       </section>
 
-      {indicators.length > 0 && (
+      {indicators.length > 0 && !blind && (
         <section className="card">
           <h2>Indicators</h2>
           <ul className="gaps">{indicators.map((x, i) => (
@@ -64,6 +68,7 @@ export default async function Run({ params }: { params: Promise<{ id: string }> 
           <h2>Label</h2>
           <form className="label" action={saveLabel}>
             <input type="hidden" name="id" value={id} />
+            {blind && <input type="hidden" name="blind" value="1" />}
             <div className="verdicts">
               {[['phish', 'Phishing'], ['benign', 'Benign'], ['unsure', 'Unsure'], ['real-site', "The brand's real site"]].map(([v, text]) => (
                 <label key={v}><input type="radio" name="verdict" value={v} required defaultChecked={run.label?.verdict === v} /> {text}</label>
@@ -134,6 +139,9 @@ export default async function Run({ params }: { params: Promise<{ id: string }> 
         </section>
       )}
 
+      {blind ? (
+        <section className="card"><p className="muted" style={{ margin: 0 }}>Blind labelling: indicators and look-alike runs stay hidden until this run is labelled.</p></section>
+      ) : (
       <section className="card">
         <h2>Looks like</h2>
         {!run.summary?.phash ? <p className="muted" style={{ margin: 0 }}>{rep.page?.screenshot_blank ? 'The screenshot is blank.' : 'No screenshot hash.'}</p>
@@ -151,6 +159,7 @@ export default async function Run({ params }: { params: Promise<{ id: string }> 
           </table></div>
         )}
       </section>
+      )}
 
       <section className="card">
         <h2>Host vs guest</h2>
