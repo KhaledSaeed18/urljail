@@ -51,7 +51,10 @@ func TestRefsParse(t *testing.T) {
 		if _, ok := ByID(r.Brand); !ok {
 			t.Errorf("ref for unknown brand %q", r.Brand)
 		}
-		if _, err := visual.Parse(r.Phash); err != nil {
+		if r.Phash == "" && len(r.Favicons) == 0 {
+			t.Errorf("ref %s has neither a screenshot hash nor favicons", r.Brand)
+		}
+		if _, err := visual.Parse(r.Phash); r.Phash != "" && err != nil {
 			t.Errorf("ref %s: %v", r.Brand, err)
 		}
 	}

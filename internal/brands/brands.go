@@ -25,7 +25,8 @@ type Brand struct {
 	Words []string
 	// Domains are registrable domains that are the brand (a page there is the brand itself).
 	Domains []string
-	// Login is the brand's real sign-in page, detonated for the reference screenshots.
+	// Login is the brand's real sign-in page, detonated for the reference screenshots; for a
+	// brand without one, its home page, a reference for its favicon only.
 	Login string
 }
 
@@ -52,11 +53,11 @@ var All = []Brand{
 	{"chase", "Chase", []string{"chase bank", "chase online"}, []string{"chase.com"}, "https://secure.chase.com/web/auth/"},
 	{"wellsfargo", "Wells Fargo", []string{"wells fargo"}, []string{"wellsfargo.com"}, "https://connect.secure.wellsfargo.com/auth/login/present"},
 	{"bankofamerica", "Bank of America", []string{"bank of america"}, []string{"bankofamerica.com"}, "https://secure.bankofamerica.com/login/sign-in/signOnV2Screen.go"},
-	{"bbva", "BBVA", []string{"bbva"}, []string{"bbva.com", "bbva.es", "bbva.mx", "bbva.com.ar", "bbva.pe", "bbva.com.co"}, ""},
+	{"bbva", "BBVA", []string{"bbva"}, []string{"bbva.com", "bbva.es", "bbva.mx", "bbva.com.ar", "bbva.pe", "bbva.com.co"}, "https://www.bbva.com/"},
 	{"revolut", "Revolut", []string{"revolut"}, []string{"revolut.com"}, "https://app.revolut.com/start"},
 	{"usps", "USPS", []string{"usps"}, []string{"usps.com"}, "https://reg.usps.com/entreg/LoginAction_input"},
 	{"fedex", "FedEx", []string{"fedex"}, []string{"fedex.com"}, "https://www.fedex.com/secure-login/"},
-	{"dhl", "DHL", []string{"dhl"}, []string{"dhl.com", "dhl.de"}, ""},
+	{"dhl", "DHL", []string{"dhl"}, []string{"dhl.com", "dhl.de"}, "https://www.dhl.com/"},
 	{"ebay", "eBay", []string{"ebay"}, []string{"ebay.com", "ebay.co.uk", "ebay.de"}, "https://signin.ebay.com/"},
 	{"roblox", "Roblox", []string{"roblox"}, []string{"roblox.com"}, "https://www.roblox.com/login"},
 	{"spotify", "Spotify", []string{"spotify"}, []string{"spotify.com"}, "https://accounts.spotify.com/login"},
@@ -64,27 +65,27 @@ var All = []Brand{
 	{"stripe", "Stripe", []string{"stripe"}, []string{"stripe.com", "stripe-terminal-local-reader.net", "stripe.network"}, "https://dashboard.stripe.com/login"},
 	{"amex", "American Express", []string{"american express", "amex"}, []string{"americanexpress.com"}, "https://www.americanexpress.com/en-us/account/login"},
 	{"capitalone", "Capital One", []string{"capital one"}, []string{"capitalone.com"}, "https://verified.capitalone.com/auth/signin"},
-	{"whatsapp", "WhatsApp", []string{"whatsapp"}, []string{"whatsapp.com", "whatsapp.net", "wa.me"}, ""},
-	{"tiktok", "TikTok", []string{"tiktok"}, []string{"tiktok.com", "tiktokv.com"}, ""},
-	{"telegram", "Telegram", []string{"telegram"}, []string{"telegram.org", "t.me"}, ""},
-	{"trezor", "Trezor", []string{"trezor"}, []string{"trezor.io"}, ""},
-	{"metamask", "MetaMask", []string{"metamask"}, []string{"metamask.io"}, ""},
-	{"trustwallet", "Trust Wallet", []string{"trust wallet"}, []string{"trustwallet.com"}, ""},
-	{"santander", "Santander", []string{"santander"}, []string{"santander.com", "santander.co.uk", "santander.es", "santander.com.mx", "santander.com.br", "santander.cl", "santander.com.ar"}, ""},
-	{"seur", "SEUR", []string{"seur"}, []string{"seur.com"}, ""},
-	{"correos", "Correos", []string{"correos"}, []string{"correos.es", "correos.com"}, ""},
-	{"posteitaliane", "Poste Italiane", []string{"poste italiane"}, []string{"poste.it", "posteitaliane.it"}, ""},
-	{"laposte", "La Poste", []string{"la poste"}, []string{"laposte.fr", "laposte.net"}, ""},
-	{"royalmail", "Royal Mail", []string{"royal mail"}, []string{"royalmail.com"}, ""},
-	{"evri", "Evri", []string{"evri"}, []string{"evri.com"}, ""},
-	{"canadapost", "Canada Post", []string{"canada post", "postes canada"}, []string{"canadapost.ca", "canadapost-postescanada.ca"}, ""},
-	{"auspost", "Australia Post", []string{"australia post", "auspost"}, []string{"auspost.com.au"}, ""},
-	{"meta", "Meta", []string{"meta"}, []string{"meta.com", "facebook.com", "fb.com", "instagram.com", "whatsapp.com", "metastatus.com"}, ""},
-	{"shopee", "Shopee", []string{"shopee"}, []string{"shopee.com", "shopee.co.id", "shopee.com.my", "shopee.ph", "shopee.sg", "shopee.vn", "shopee.co.th", "shopee.tw", "shopee.com.br"}, ""},
-	{"naver", "Naver", []string{"naver"}, []string{"naver.com"}, ""},
-	{"ledger", "Ledger", []string{"ledger live", "ledger wallet"}, []string{"ledger.com"}, ""},
-	{"sunrise", "Sunrise", []string{"sunrise mail"}, []string{"sunrise.ch"}, ""},
-	{"att", "AT&T", []string{"bellsouth", "at t mail", "att mail", "at t sign in"}, []string{"att.com", "att.net", "bellsouth.net", "yahoo.com"}, ""},
+	{"whatsapp", "WhatsApp", []string{"whatsapp"}, []string{"whatsapp.com", "whatsapp.net", "wa.me"}, "https://www.whatsapp.com/"},
+	{"tiktok", "TikTok", []string{"tiktok"}, []string{"tiktok.com", "tiktokv.com"}, "https://www.tiktok.com/"},
+	{"telegram", "Telegram", []string{"telegram"}, []string{"telegram.org", "t.me"}, "https://telegram.org/"},
+	{"trezor", "Trezor", []string{"trezor"}, []string{"trezor.io"}, "https://trezor.io/"},
+	{"metamask", "MetaMask", []string{"metamask"}, []string{"metamask.io"}, "https://metamask.io/"},
+	{"trustwallet", "Trust Wallet", []string{"trust wallet"}, []string{"trustwallet.com"}, "https://trustwallet.com/"},
+	{"santander", "Santander", []string{"santander"}, []string{"santander.com", "santander.co.uk", "santander.es", "santander.com.mx", "santander.com.br", "santander.cl", "santander.com.ar"}, "https://www.santander.com/"},
+	{"seur", "SEUR", []string{"seur"}, []string{"seur.com"}, "https://www.seur.com/"},
+	{"correos", "Correos", []string{"correos"}, []string{"correos.es", "correos.com"}, "https://www.correos.es/"},
+	{"posteitaliane", "Poste Italiane", []string{"poste italiane"}, []string{"poste.it", "posteitaliane.it"}, "https://www.poste.it/"},
+	{"laposte", "La Poste", []string{"la poste"}, []string{"laposte.fr", "laposte.net"}, "https://www.laposte.fr/"},
+	{"royalmail", "Royal Mail", []string{"royal mail"}, []string{"royalmail.com"}, "https://www.royalmail.com/"},
+	{"evri", "Evri", []string{"evri"}, []string{"evri.com"}, "https://www.evri.com/"},
+	{"canadapost", "Canada Post", []string{"canada post", "postes canada"}, []string{"canadapost.ca", "canadapost-postescanada.ca"}, "https://www.canadapost-postescanada.ca/"},
+	{"auspost", "Australia Post", []string{"australia post", "auspost"}, []string{"auspost.com.au"}, "https://auspost.com.au/"},
+	{"meta", "Meta", []string{"meta"}, []string{"meta.com", "facebook.com", "fb.com", "instagram.com", "whatsapp.com", "metastatus.com"}, "https://www.meta.com/"},
+	{"shopee", "Shopee", []string{"shopee"}, []string{"shopee.com", "shopee.co.id", "shopee.com.my", "shopee.ph", "shopee.sg", "shopee.vn", "shopee.co.th", "shopee.tw", "shopee.com.br"}, "https://shopee.co.id/"},
+	{"naver", "Naver", []string{"naver"}, []string{"naver.com"}, "https://www.naver.com/"},
+	{"ledger", "Ledger", []string{"ledger live", "ledger wallet"}, []string{"ledger.com"}, "https://www.ledger.com/"},
+	{"sunrise", "Sunrise", []string{"sunrise mail"}, []string{"sunrise.ch"}, "https://www.sunrise.ch/"},
+	{"att", "AT&T", []string{"bellsouth", "at t mail", "att mail", "at t sign in"}, []string{"att.com", "att.net", "bellsouth.net", "yahoo.com"}, "https://www.att.com/"},
 	{"steam", "Steam", []string{"steam community", "steampowered"}, []string{"steampowered.com", "steamcommunity.com"}, "https://store.steampowered.com/login/"},
 }
 
@@ -194,12 +195,12 @@ func normalize(s string) string {
 // Ref is a reference screenshot hash of a brand's real sign-in page.
 type Ref struct {
 	Brand   string `json:"brand"`
-	URL     string `json:"url"`     // the page detonated
-	Final   string `json:"final"`   // where it ended up
-	Profile string `json:"profile"` // browser profile used
-	Phash   string `json:"phash"`   // visual.Hash
-	Taken   string `json:"taken"`   // date, YYYY-MM-DD
-	Run     string `json:"run"`     // run ID, for the screenshot
+	URL     string `json:"url"`             // the page detonated
+	Final   string `json:"final"`           // where it ended up
+	Profile string `json:"profile"`         // browser profile used
+	Phash   string `json:"phash,omitempty"` // visual.Hash, empty for a favicon-only reference
+	Taken   string `json:"taken"`           // date, YYYY-MM-DD
+	Run     string `json:"run"`             // run ID, for the screenshot
 	// SHA-256 of the favicons Chrome loaded on the sign-in page (hex).
 	Favicons []string `json:"favicons,omitempty"`
 }

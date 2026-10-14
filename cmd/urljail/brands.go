@@ -17,7 +17,6 @@ import (
 	reportv0 "github.com/KhaledSaeed18/urljail/gen/urljail/report/v0"
 	"github.com/KhaledSaeed18/urljail/internal/brands"
 	"github.com/KhaledSaeed18/urljail/internal/report"
-	"github.com/KhaledSaeed18/urljail/internal/visual"
 )
 
 // cmdBrands manages the brand reference screenshots (internal/brands/refs.json).
@@ -94,26 +93,28 @@ func takeRef(ctx context.Context, c daemonv1.DaemonServiceClient, b brands.Brand
 	if reg := brands.DomainOf(final); !b.Owns(reg) {
 		return brands.Ref{}, fmt.Errorf("ended on %s, not %s's", reg, b.Name)
 	}
-	// A sign-in page has somewhere to type. Without this, bot walls (Cloudflare, DataDome),
-	// error pages and pages caught mid-render became references (found in P7: 14 of 53).
-	if !hasSignInInput(rep) {
-		return brands.Ref{}, fmt.Errorf("no sign-in field on the page (title %q)", clip(rep.GetNavigation().GetTitle(), 60))
+	var favs []string
+	for _, f := range rep.GetPage().GetFavicons() {
+		favs = append(favs, f.GetSha256())
 	}
-	if rep.GetPage().GetScreenshotPhash() == "" {
-		return brands.Ref{}, errors.New("no screenshot hash (missing or blank screenshot)")
-	}
-	h, _ := visual.Parse(rep.GetPage().GetScreenshotPhash())
 	// Only scheme, host and path: sign-in redirects carry nonces and session state.
 	if u, err := url.Parse(final); err == nil {
 		u.RawQuery, u.Fragment = "", ""
 		final = u.String()
 	}
-	var favs []string
-	for _, f := range rep.GetPage().GetFavicons() {
-		favs = append(favs, f.GetSha256())
+	ref := brands.Ref{Brand: b.ID, URL: b.Login, Final: final, Profile: profile,
+		Taken: time.Now().UTC().Format("2006-01-02"), Run: filepath.Base(runDir), Favicons: favs}
+	// The screenshot is a reference only for a sign-in page: one with somewhere to type.
+	// Without that, bot walls (Cloudflare, DataDome), error pages and pages caught mid-render
+	// became references (found in P7: 14 of 53). The favicon is the brand's either way, so
+	// such a page is kept for its favicons alone.
+	if hasSignInInput(rep) && rep.GetPage().GetScreenshotPhash() != "" {
+		ref.Phash = rep.GetPage().GetScreenshotPhash()
 	}
-	return brands.Ref{Brand: b.ID, URL: b.Login, Final: final, Profile: profile, Phash: h.String(),
-		Taken: time.Now().UTC().Format("2006-01-02"), Run: filepath.Base(runDir), Favicons: favs}, nil
+	if ref.Phash == "" && len(favs) == 0 {
+		return brands.Ref{}, fmt.Errorf("neither a sign-in page nor a favicon (title %q)", clip(rep.GetNavigation().GetTitle(), 60))
+	}
+	return ref, nil
 }
 
 // hasSignInInput: a password field anywhere, or a form with a text, email or tel field.
