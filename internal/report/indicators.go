@@ -81,6 +81,26 @@ func indicators(r *reportv0.Report, domPath string) []*reportv0.Indicator {
 		}
 	}
 
+	// A password field or a details form on free hosting (found in P7: brandless webmail kits,
+	// loan forms for a bank not on the brand list, all on replit.app, vercel.app, 4everland.app,
+	// duckdns.org and the like).
+	if u, err := brands.ParseOrigin(r.GetNavigation().GetFinalUrl()); err == nil {
+		if svc := freeHost(u.Hostname()); svc != "" {
+			switch {
+			case page.GetPasswordFields() > 0:
+				out = append(out, &reportv0.Indicator{
+					Id: "form-on-free-hosting", Severity: "medium", Source: guestDOM,
+					Detail: fmt.Sprintf("A password field on %s, a free hosting service anyone can publish to (%s)", u.Hostname(), svc),
+				})
+			case asksForDetails(page.GetForms()):
+				out = append(out, &reportv0.Indicator{
+					Id: "form-on-free-hosting", Severity: "medium", Source: guestDOM,
+					Detail: fmt.Sprintf("A form asking for details on %s, a free hosting service anyone can publish to (%s)", u.Hostname(), svc),
+				})
+			}
+		}
+	}
+
 	// The domain imitates a brand's own: what a "verify you are human" gate in front of a kit
 	// still gives away (found in P7: american-expiess.vip, ameriean-expiess.vip).
 	if b, d, ok := brands.LookalikeDomain(domain); ok {

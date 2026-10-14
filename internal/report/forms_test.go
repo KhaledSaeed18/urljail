@@ -78,3 +78,14 @@ func fmtList(s []string) string {
 	}
 	return out
 }
+
+func TestFreeHost(t *testing.T) {
+	for host, want := range map[string]string{
+		"crediplus--credi0.replit.app": "replit.app", "X.GitHub.io.": "github.io", "bagidimofu.duckdns.org": "duckdns.org",
+		"replit.app.example.com": "", "notgithub.io": "", "www.facebook.com": "",
+	} {
+		if got := freeHost(host); got != want {
+			t.Errorf("freeHost(%q) = %q, want %q", host, got, want)
+		}
+	}
+}
