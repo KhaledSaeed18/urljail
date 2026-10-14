@@ -34,6 +34,15 @@ func indicators(r *reportv0.Report, domPath string) []*reportv0.Indicator {
 			break
 		}
 	}
+	// A top-level page from a blob: URL was built in script by the page itself: the URL a
+	// scanner or a mail filter checked never served it (found in P7: a Google sign-in clone at
+	// blob:https://notaria11medellin.com/...).
+	if strings.HasPrefix(strings.ToLower(r.GetNavigation().GetFinalUrl()), "blob:") {
+		out = append(out, &reportv0.Indicator{
+			Id: "blob-document", Severity: "medium", Source: guestCDP,
+			Detail: fmt.Sprintf("The final page is a blob: URL of %s: built in script, not served from a URL", domain),
+		})
+	}
 	if domain == "" {
 		return out
 	}

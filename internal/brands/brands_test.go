@@ -56,3 +56,17 @@ func TestRefsParse(t *testing.T) {
 		}
 	}
 }
+
+func TestDomainOf(t *testing.T) {
+	for in, want := range map[string]string{
+		"https://login.example.co.uk/x":               "example.co.uk",
+		"blob:https://notaria11medellin.com/3f42-89#": "notaria11medellin.com",
+		"BLOB:https://a.b.example.org/x":              "example.org",
+		"about:blank":                                 "",
+		"data:text/html,hi":                           "",
+	} {
+		if got := DomainOf(in); got != want {
+			t.Errorf("DomainOf(%q) = %q, want %q", in, got, want)
+		}
+	}
+}

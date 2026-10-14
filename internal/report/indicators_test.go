@@ -39,6 +39,8 @@ func TestIndicators(t *testing.T) {
 			dom: noDOM, passwords: 1, want: ""},
 		{name: "screenshot far from every reference", final: "https://other.example/", title: "Login", phash: "0000ffff0000ffff",
 			dom: noDOM, passwords: 1, want: ""},
+		{name: "blob: page with a Google sign-in title", final: "blob:https://notaria11medellin.com/3f42-89#", title: "Sign in - Google Accounts",
+			dom: noDOM, want: "blob-document: brand-name-off-domain:google"},
 		{name: "password posted elsewhere", final: "https://shop.example/", dom: noDOM, passwords: 1,
 			forms: []*reportv0.Form{{HasPassword: true, CrossOriginAction: true, Action: "https://collect.evil.test/p"}},
 			want:  "password-form-cross-origin:"},

@@ -176,9 +176,20 @@ func LooksLikeIn(refs []Ref, h visual.Hash, maxDist int) (Brand, int, bool) {
 	return b, bestD, ok
 }
 
-// DomainOf is the registrable domain of a URL ("" when it has no host).
-func DomainOf(rawURL string) string {
+// ParseOrigin parses a URL; for a blob: URL ("blob:https://host/uuid") it parses the URL
+// inside, whose origin the blob belongs to.
+func ParseOrigin(rawURL string) (*url.URL, error) {
 	u, err := url.Parse(rawURL)
+	if err == nil && strings.EqualFold(u.Scheme, "blob") && u.Opaque != "" {
+		return url.Parse(u.Opaque)
+	}
+	return u, err
+}
+
+// DomainOf is the registrable domain of a URL, or of the origin of a blob: URL ("" when it
+// has no host).
+func DomainOf(rawURL string) string {
+	u, err := ParseOrigin(rawURL)
 	if err != nil || u.Hostname() == "" {
 		return ""
 	}

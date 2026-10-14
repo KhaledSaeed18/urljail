@@ -19,6 +19,7 @@ import (
 	"google.golang.org/protobuf/types/known/timestamppb"
 
 	reportv0 "github.com/KhaledSaeed18/urljail/gen/urljail/report/v0"
+	"github.com/KhaledSaeed18/urljail/internal/brands"
 	"github.com/KhaledSaeed18/urljail/internal/visual"
 )
 
@@ -117,7 +118,7 @@ func Build(runDir string) (*reportv0.Report, error) {
 		b.add(e)
 	}
 	b.finish(r)
-	if final, err := url.Parse(r.Navigation.GetFinalUrl()); err == nil && final.Host != "" {
+	if final, err := brands.ParseOrigin(r.Navigation.GetFinalUrl()); err == nil && final.Host != "" {
 		r.Page.Forms, r.Page.PasswordFields = forms(filepath.Join(runDir, "guest", "dom.html"), final)
 	} else {
 		r.Page.Forms, r.Page.PasswordFields = forms(filepath.Join(runDir, "guest", "dom.html"), nil)
