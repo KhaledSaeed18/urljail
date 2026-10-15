@@ -1,21 +1,51 @@
 [
   {
+    "brand": "microsoft",
+    "url": "https://login.microsoftonline.com/",
+    "final": "https://login.microsoftonline.com/common/oauth2/v2.0/authorize",
+    "profile": "stealth",
+    "taken": "2026-10-15",
+    "run": "01a13d13-0fbc-7812-895c-69ab6b4f7ac1",
+    "favicons": [
+      "90cdaf487716184e4034000935c605d1633926d348116d198f355a98b8c6cd21"
+    ]
+  },
+  {
+    "brand": "microsoft",
+    "url": "https://login.microsoftonline.com/",
+    "final": "https://login.microsoftonline.com/common/oauth2/v2.0/authorize",
+    "profile": "baseline",
+    "taken": "2026-10-15",
+    "run": "01a13d13-4372-78ab-ab1b-3603f1a9b9b0",
+    "favicons": [
+      "90cdaf487716184e4034000935c605d1633926d348116d198f355a98b8c6cd21"
+    ]
+  },
+  {
     "brand": "apple",
     "url": "https://account.apple.com/sign-in",
     "final": "https://account.apple.com/sign-in",
     "profile": "stealth",
-    "phash": "d5e638cc38cc30e7",
-    "taken": "2026-10-13",
-    "run": "01a137a9-91a8-7d05-85f8-2a905843d903"
+    "phash": "f5e638cc18cc32e3",
+    "taken": "2026-10-15",
+    "run": "01a13d13-6d1b-7c30-9cc9-afeb9dfebedd",
+    "favicons": [
+      "dde0756765de8218ec7fb2998f6420a632bbf5531794f66e6a9bc061119e3a97",
+      "52e84bdd7551093f36460d60ee765cc945782caf7470809a7f69bf0514702b8b"
+    ]
   },
   {
     "brand": "apple",
     "url": "https://account.apple.com/sign-in",
     "final": "https://account.apple.com/sign-in",
     "profile": "baseline",
-    "phash": "d5e638cc38cc38e6",
-    "taken": "2026-10-13",
-    "run": "01a137a9-c088-7285-aa7c-b0f8bbea8a08"
+    "phash": "f7cc0cb11ce632cc",
+    "taken": "2026-10-15",
+    "run": "01a13d13-b371-7431-a636-984a8fededbe",
+    "favicons": [
+      "dde0756765de8218ec7fb2998f6420a632bbf5531794f66e6a9bc061119e3a97",
+      "52e84bdd7551093f36460d60ee765cc945782caf7470809a7f69bf0514702b8b"
+    ]
   },
   {
     "brand": "google",
@@ -23,8 +53,8 @@
     "final": "https://accounts.google.com/v3/signin/identifier",
     "profile": "stealth",
     "phash": "ce963169c636c9c3",
-    "taken": "2026-10-13",
-    "run": "01a137a9-e9dc-7028-b155-46bd8747afb4"
+    "taken": "2026-10-15",
+    "run": "01a13d13-f245-7e6e-9e27-32373d820923"
   },
   {
     "brand": "google",
@@ -32,26 +62,32 @@
     "final": "https://accounts.google.com/v3/signin/identifier",
     "profile": "baseline",
     "phash": "e69b996499996613",
-    "taken": "2026-10-13",
-    "run": "01a137aa-0d94-7d63-b8da-ae3418c5a148"
+    "taken": "2026-10-15",
+    "run": "01a13d14-1675-7528-ad00-bf8616a5cc00"
   },
   {
     "brand": "amazon",
     "url": "https://www.amazon.com/gp/sign-in.html",
-    "final": "https://www.amazon.com/gp/sign-in.html",
+    "final": "https://www.amazon.com/ap/signin",
     "profile": "stealth",
-    "phash": "f34c4c674e4c4c67",
-    "taken": "2026-10-13",
-    "run": "01a137aa-221d-76d9-afbb-7d214f737bfa"
+    "phash": "b33333cc8c99cc66",
+    "taken": "2026-10-15",
+    "run": "01a13d14-2f04-7084-97db-83120ab29bfd",
+    "favicons": [
+      "5866636f18764cd66366ae6eb682e972b4eae1771512cd76b304b6dd3c0f1d2d"
+    ]
   },
   {
     "brand": "amazon",
     "url": "https://www.amazon.com/gp/sign-in.html",
-    "final": "https://www.amazon.com/gp/sign-in.html",
+    "final": "https://www.amazon.com/ap/signin",
     "profile": "baseline",
-    "phash": "f34c4c67494e664d",
-    "taken": "2026-10-13",
-    "run": "01a137aa-3758-7c7c-a547-6a2c9577e2cf"
+    "phash": "b33333cccc8ccc66",
+    "taken": "2026-10-15",
+    "run": "01a13d14-6828-7b61-aa73-73bd9ecb6469",
+    "favicons": [
+      "5866636f18764cd66366ae6eb682e972b4eae1771512cd76b304b6dd3c0f1d2d"
+    ]
   },
   {
     "brand": "aws",
@@ -59,8 +95,8 @@
     "final": "https://aws.amazon.com/",
     "profile": "stealth",
     "phash": "da4a4a5a5a3a3735",
-    "taken": "2026-10-13",
-    "run": "01a137aa-4b0e-70cc-a934-8bfa0f6168c1"
+    "taken": "2026-10-15",
+    "run": "01a13d14-90ee-7870-a817-c7487ae710f7"
   },
   {
     "brand": "aws",
@@ -68,8 +104,8 @@
     "final": "https://aws.amazon.com/",
     "profile": "baseline",
     "phash": "da4a4a5a5a3a3e35",
-    "taken": "2026-10-13",
-    "run": "01a137aa-70cc-77ed-a281-3ac8fe4a9fdd"
+    "taken": "2026-10-15",
+    "run": "01a13d14-bdf6-72e5-be7a-5364829a6837"
   },
   {
     "brand": "netflix",
@@ -77,8 +113,8 @@
     "final": "https://www.netflix.com/login",
     "profile": "stealth",
     "phash": "8adce233e333d132",
-    "taken": "2026-10-13",
-    "run": "01a137aa-8f81-719c-aaff-3305abc0a6ed"
+    "taken": "2026-10-15",
+    "run": "01a13d14-ebdf-7d9c-acb1-79ef96a4fabb"
   },
   {
     "brand": "netflix",
@@ -86,17 +122,20 @@
     "final": "https://www.netflix.com/login",
     "profile": "baseline",
     "phash": "8accc273b37399a1",
-    "taken": "2026-10-13",
-    "run": "01a137aa-b8f9-7c51-a72a-ff9069c75db0"
+    "taken": "2026-10-15",
+    "run": "01a13d15-1d9e-78a5-add8-2d99949054d0"
   },
   {
     "brand": "facebook",
     "url": "https://www.facebook.com/login",
     "final": "https://www.facebook.com/login",
     "profile": "stealth",
-    "phash": "b3768c81ceccb887",
-    "taken": "2026-10-13",
-    "run": "01a137aa-df6a-7268-94ad-29b2935fd94f"
+    "phash": "b3728f814ccc9cb5",
+    "taken": "2026-10-15",
+    "run": "01a13d15-5169-7962-9e78-663d7a5778f7",
+    "favicons": [
+      "8924f44d76426a340b105cbdc5b93678c6b772e847b393f2568d94847c0d8d80"
+    ]
   },
   {
     "brand": "facebook",
@@ -104,17 +143,24 @@
     "final": "https://www.facebook.com/login",
     "profile": "baseline",
     "phash": "b3728c81ceccb9a5",
-    "taken": "2026-10-13",
-    "run": "01a137aa-ffad-7077-a133-404bbc94faa4"
+    "taken": "2026-10-15",
+    "run": "01a13d15-7e99-72fc-85cd-3866491dfd18",
+    "favicons": [
+      "8924f44d76426a340b105cbdc5b93678c6b772e847b393f2568d94847c0d8d80"
+    ]
   },
   {
     "brand": "instagram",
     "url": "https://www.instagram.com/accounts/login/",
     "final": "https://www.instagram.com/accounts/login/",
     "profile": "stealth",
-    "phash": "b8c7c738cec0c39c",
-    "taken": "2026-10-13",
-    "run": "01a137ab-1f0f-72ac-8a15-88f8efc55a86"
+    "phash": "b8c7c738c7c18687",
+    "taken": "2026-10-15",
+    "run": "01a13d15-a9f8-7319-a8dd-b7086d82d965",
+    "favicons": [
+      "d31ce478c9729130303a3537a43906bc8164debf5546f7ad4d1beed9d9b2c630",
+      "354bcbabac856115cd1bb8ce51cf41a6b8704addb655b45d80957f52aef1aaa8"
+    ]
   },
   {
     "brand": "instagram",
@@ -122,44 +168,42 @@
     "final": "https://www.instagram.com/accounts/login/",
     "profile": "baseline",
     "phash": "b8c7c7384318c7c7",
-    "taken": "2026-10-13",
-    "run": "01a137ab-403b-7f10-a67e-02b643876701"
-  },
-  {
-    "brand": "dropbox",
-    "url": "https://www.dropbox.com/login",
-    "final": "https://www.dropbox.com/login",
-    "profile": "stealth",
-    "phash": "b7c19c63988d728d",
-    "taken": "2026-10-13",
-    "run": "01a137ab-6be9-7123-a7bb-49df15816689"
+    "taken": "2026-10-15",
+    "run": "01a13d15-d9cf-7790-84aa-09e0f418fad3",
+    "favicons": [
+      "354bcbabac856115cd1bb8ce51cf41a6b8704addb655b45d80957f52aef1aaa8",
+      "d31ce478c9729130303a3537a43906bc8164debf5546f7ad4d1beed9d9b2c630"
+    ]
   },
   {
     "brand": "docusign",
     "url": "https://account.docusign.com/",
     "final": "https://account.docusign.com/",
     "profile": "stealth",
-    "phash": "b3898c263399b367",
-    "taken": "2026-10-13",
-    "run": "01a137ab-b063-73e5-90c1-3559d90c2478"
+    "phash": "b389cc663399b326",
+    "taken": "2026-10-15",
+    "run": "01a13d16-3e9d-70e2-b326-8457658e54ac"
   },
   {
     "brand": "docusign",
     "url": "https://account.docusign.com/",
     "final": "https://account.docusign.com/",
     "profile": "baseline",
-    "phash": "b38d8c263399b366",
-    "taken": "2026-10-13",
-    "run": "01a137ab-cef1-7d9d-b67e-f7c82c901f8d"
+    "phash": "b389cc663399b326",
+    "taken": "2026-10-15",
+    "run": "01a13d16-56d0-75d6-bce7-8d17cd4e8130"
   },
   {
     "brand": "adobe",
     "url": "https://account.adobe.com/",
     "final": "https://auth.services.adobe.com/en_US/deeplink.html",
     "profile": "stealth",
-    "phash": "931f6c646d61ec2c",
-    "taken": "2026-10-13",
-    "run": "01a137ab-eacd-7d12-b983-703232011649"
+    "phash": "925d6d50ed49ec2c",
+    "taken": "2026-10-15",
+    "run": "01a13d16-70df-7234-8365-50bcf717e8a2",
+    "favicons": [
+      "cb886efa0686508d909ee28f634d629da5b979e75d3b026c939d2a080a7d883e"
+    ]
   },
   {
     "brand": "linkedin",
@@ -167,8 +211,11 @@
     "final": "https://www.linkedin.com/login/",
     "profile": "stealth",
     "phash": "b3998c338ccc27cd",
-    "taken": "2026-10-13",
-    "run": "01a137ac-406c-78c1-b0fa-adb0fcbf3727"
+    "taken": "2026-10-15",
+    "run": "01a13d16-d503-7130-b5f6-b34ebc513c37",
+    "favicons": [
+      "b1f9ca49adf83cc0c5953d1067f56dc0ba8d46b3262b7078792f19b96cb11bcd"
+    ]
   },
   {
     "brand": "linkedin",
@@ -176,35 +223,34 @@
     "final": "https://www.linkedin.com/login/",
     "profile": "baseline",
     "phash": "b3998c330dcc6637",
-    "taken": "2026-10-13",
-    "run": "01a137ac-641c-718d-b102-7ef24f16749b"
+    "taken": "2026-10-15",
+    "run": "01a13d16-ff3e-7b72-bff2-2249cff56d55",
+    "favicons": [
+      "b1f9ca49adf83cc0c5953d1067f56dc0ba8d46b3262b7078792f19b96cb11bcd"
+    ]
   },
   {
     "brand": "coinbase",
     "url": "https://login.coinbase.com/signin",
     "final": "https://login.coinbase.com/signin",
     "profile": "stealth",
-    "phash": "e3b249984d8e66b6",
-    "taken": "2026-10-13",
-    "run": "01a137ac-8658-7ceb-9d3e-69a7d2cb69ab"
+    "phash": "a3b24d984d8e66b6",
+    "taken": "2026-10-15",
+    "run": "01a13d17-2ca6-7625-943d-16c32c47a444",
+    "favicons": [
+      "b90cdcbe9e842bf371d9c5e7dd13359fde26879a4642ad6f752e86a65fab4fb5"
+    ]
   },
   {
-    "brand": "binance",
-    "url": "https://accounts.binance.com/en/login",
-    "final": "https://accounts.binance.com/en/login",
+    "brand": "chase",
+    "url": "https://secure.chase.com/web/auth/",
+    "final": "https://secure.chase.com/web/auth/",
     "profile": "stealth",
-    "phash": "cccc333399999933",
-    "taken": "2026-10-13",
-    "run": "01a137ac-bc74-7702-84e2-6e5a8f2a0f13"
-  },
-  {
-    "brand": "binance",
-    "url": "https://accounts.binance.com/en/login",
-    "final": "https://accounts.binance.com/en/login",
-    "profile": "baseline",
-    "phash": "cccc663333999933",
-    "taken": "2026-10-13",
-    "run": "01a137ac-e26d-74c0-9e23-d676631e6f53"
+    "taken": "2026-10-15",
+    "run": "01a13d17-d229-75bd-bb66-b608ebf77b56",
+    "favicons": [
+      "625816f80596303e9de8e68695973369faa462b416202825b03899c781464fb9"
+    ]
   },
   {
     "brand": "chase",
@@ -212,8 +258,11 @@
     "final": "https://www.chase.com/digital/resources/privacy-security/security/system-requirements",
     "profile": "baseline",
     "phash": "aa42fdf5d7c80829",
-    "taken": "2026-10-13",
-    "run": "01a137ad-37f2-74fc-ae18-5c566c073d88"
+    "taken": "2026-10-15",
+    "run": "01a13d18-111d-7d94-8581-490e46251b1b",
+    "favicons": [
+      "a63194678ca018fb3963ca5b7d0381d7bf308de7170ff0304179f4aba8b346fd"
+    ]
   },
   {
     "brand": "wellsfargo",
@@ -221,8 +270,8 @@
     "final": "https://connect.secure.wellsfargo.com/auth/login/present",
     "profile": "stealth",
     "phash": "8bb534347074d774",
-    "taken": "2026-10-13",
-    "run": "01a137ad-6776-75ce-a80a-d5de1a6422ba"
+    "taken": "2026-10-15",
+    "run": "01a13d18-52df-7717-9e6a-0b9b8805adf0"
   },
   {
     "brand": "wellsfargo",
@@ -230,17 +279,20 @@
     "final": "https://connect.secure.wellsfargo.com/auth/login/present",
     "profile": "baseline",
     "phash": "8b753474b470a5f2",
-    "taken": "2026-10-13",
-    "run": "01a137ad-96fe-7303-9704-fd2c125c46ec"
+    "taken": "2026-10-15",
+    "run": "01a13d18-8110-7a9c-b0c0-53c5771e99d0",
+    "favicons": [
+      "8670da3c95c03b59b091eac882b67e0b59b765c455b8d871abd2e55d4618573b"
+    ]
   },
   {
     "brand": "bankofamerica",
     "url": "https://secure.bankofamerica.com/login/sign-in/signOnV2Screen.go",
     "final": "https://secure.bankofamerica.com/auth/signon/",
     "profile": "stealth",
-    "phash": "f71d8c3733898872",
-    "taken": "2026-10-13",
-    "run": "01a137ad-e08e-77fe-ba70-0364f1ad2eee"
+    "phash": "f79c8c3333c86872",
+    "taken": "2026-10-15",
+    "run": "01a13d18-beb2-7ec9-9520-15ee8eb550e4"
   },
   {
     "brand": "bankofamerica",
@@ -248,8 +300,41 @@
     "final": "https://secure.bankofamerica.com/auth/signon/",
     "profile": "baseline",
     "phash": "b73f8c263399c862",
-    "taken": "2026-10-13",
-    "run": "01a137ae-1518-7e3d-9a24-0f8fcbb93171"
+    "taken": "2026-10-15",
+    "run": "01a13d19-0763-7eec-84b6-5af238022d7a"
+  },
+  {
+    "brand": "bbva",
+    "url": "https://www.bbva.com/",
+    "final": "https://www.bbva.com/en/",
+    "profile": "stealth",
+    "phash": "bcc396c39a2c393c",
+    "taken": "2026-10-15",
+    "run": "01a13d19-3da9-7d10-97f7-5d022cd4be9e"
+  },
+  {
+    "brand": "bbva",
+    "url": "https://www.bbva.com/",
+    "final": "https://www.bbva.com/en/",
+    "profile": "baseline",
+    "phash": "ea06d229d63966a7",
+    "taken": "2026-10-15",
+    "run": "01a13d19-5db5-7055-8c88-fca0ebaaaaff",
+    "favicons": [
+      "741929487448ad8c3d7ea982a147a6b662c8119d8163cb8e4b25ad16578c46da"
+    ]
+  },
+  {
+    "brand": "usps",
+    "url": "https://reg.usps.com/entreg/LoginAction_input",
+    "final": "https://verified.usps.com/login/",
+    "profile": "stealth",
+    "phash": "bc47931c67673813",
+    "taken": "2026-10-15",
+    "run": "01a13d19-c7fb-7ac9-8ae8-7a8acaf3ec39",
+    "favicons": [
+      "f2b4381fa439766643754ad5d0efe35da8fa4fd2e95e66067f483e2223831df2"
+    ]
   },
   {
     "brand": "usps",
@@ -257,17 +342,45 @@
     "final": "https://verified.usps.com/login/",
     "profile": "baseline",
     "phash": "bc67931867671c38",
-    "taken": "2026-10-13",
-    "run": "01a137ae-a6b6-7917-b4bd-da15930fe8e9"
+    "taken": "2026-10-15",
+    "run": "01a13d1a-0d7f-77c0-b1f3-5dd56c242366",
+    "favicons": [
+      "f2b4381fa439766643754ad5d0efe35da8fa4fd2e95e66067f483e2223831df2"
+    ]
   },
   {
-    "brand": "fedex",
-    "url": "https://www.fedex.com/secure-login/",
-    "final": "https://www.fedex.com/secure-login/",
+    "brand": "dhl",
+    "url": "https://www.dhl.com/",
+    "final": "https://www.dhl.com/us-en/home.html",
     "profile": "stealth",
-    "phash": "e747494347474d47",
-    "taken": "2026-10-13",
-    "run": "01a137ae-ec89-77f0-b95f-c8f3761359f7"
+    "phash": "bc44d2d369e4cc3c",
+    "taken": "2026-10-15",
+    "run": "01a13d1a-ba41-714a-b6e3-039d862cc6dc",
+    "favicons": [
+      "9ada5709e264c31b04a05bd85448a9bd5e91925e8d83df5cef0762ec97cc283e"
+    ]
+  },
+  {
+    "brand": "ebay",
+    "url": "https://signin.ebay.com/",
+    "final": "https://signin.ebay.com/",
+    "profile": "stealth",
+    "taken": "2026-10-15",
+    "run": "01a13d1b-068a-70ac-afd8-551202820b5f",
+    "favicons": [
+      "9e0e5f9d7cf84a7d53c16a802722c9bf90048fa142b272cb39d79313c2fbf4a8"
+    ]
+  },
+  {
+    "brand": "ebay",
+    "url": "https://signin.ebay.com/",
+    "final": "https://signin.ebay.com/",
+    "profile": "baseline",
+    "taken": "2026-10-15",
+    "run": "01a13d1b-2dac-7e4a-ae8e-6800a18e5562",
+    "favicons": [
+      "9e0e5f9d7cf84a7d53c16a802722c9bf90048fa142b272cb39d79313c2fbf4a8"
+    ]
   },
   {
     "brand": "spotify",
@@ -275,8 +388,8 @@
     "final": "https://accounts.spotify.com/en/login",
     "profile": "stealth",
     "phash": "cccc336633333366",
-    "taken": "2026-10-13",
-    "run": "01a137af-c376-710e-94bb-c4eed143e0f1"
+    "taken": "2026-10-15",
+    "run": "01a13d1b-851b-7b0a-a612-b0e6b295864c"
   },
   {
     "brand": "spotify",
@@ -284,26 +397,38 @@
     "final": "https://accounts.spotify.com/en/login",
     "profile": "baseline",
     "phash": "cccc336633339966",
-    "taken": "2026-10-13",
-    "run": "01a137af-ef46-7169-a6d4-ac0b7ef65c79"
+    "taken": "2026-10-15",
+    "run": "01a13d1b-afc6-7b42-ae5c-1494aa6b0ea8"
   },
   {
     "brand": "stripe",
     "url": "https://dashboard.stripe.com/login",
     "final": "https://dashboard.stripe.com/login",
     "profile": "stealth",
-    "phash": "e9253665366c9c33",
-    "taken": "2026-10-13",
-    "run": "01a137b0-42fc-734c-8432-f4870012d221"
+    "phash": "d59f261f0e078e26",
+    "taken": "2026-10-15",
+    "run": "01a13d1c-0536-77d6-8339-1384e9e70924"
   },
   {
     "brand": "stripe",
     "url": "https://dashboard.stripe.com/login",
     "final": "https://dashboard.stripe.com/login",
     "profile": "baseline",
-    "phash": "f7999c66360c8c27",
-    "taken": "2026-10-13",
-    "run": "01a137b0-89ed-7c43-bfdd-e5739e2c1bf2"
+    "phash": "e925366536669c33",
+    "taken": "2026-10-15",
+    "run": "01a13d1c-40c3-7823-a287-61c1f4413b2b"
+  },
+  {
+    "brand": "amex",
+    "url": "https://www.americanexpress.com/en-us/account/login",
+    "final": "https://www.americanexpress.com/en-us/account/login",
+    "profile": "stealth",
+    "phash": "dd4e8a39b1ce2a31",
+    "taken": "2026-10-15",
+    "run": "01a13d1c-8929-7627-9d98-bfe77bbe7117",
+    "favicons": [
+      "265d3f591d92fadfe95f4660c382ee64a23538a7353b9880434205a102833de0"
+    ]
   },
   {
     "brand": "amex",
@@ -311,8 +436,11 @@
     "final": "https://www.americanexpress.com/en-us/account/login",
     "profile": "baseline",
     "phash": "d94ece3939ce0a31",
-    "taken": "2026-10-13",
-    "run": "01a137b1-001f-7164-8a30-667d4d1a24de"
+    "taken": "2026-10-15",
+    "run": "01a13d1c-d66c-7337-a8d7-6236edcff74b",
+    "favicons": [
+      "265d3f591d92fadfe95f4660c382ee64a23538a7353b9880434205a102833de0"
+    ]
   },
   {
     "brand": "capitalone",
@@ -320,8 +448,8 @@
     "final": "https://verified.capitalone.com/auth/signin",
     "profile": "stealth",
     "phash": "b38cdc267c995d22",
-    "taken": "2026-10-13",
-    "run": "01a137b1-46de-79af-9a6e-e6094c214d4f"
+    "taken": "2026-10-15",
+    "run": "01a13d1d-2428-7643-b129-24225e44e3aa"
   },
   {
     "brand": "capitalone",
@@ -329,25 +457,347 @@
     "final": "https://verified.capitalone.com/auth/signin",
     "profile": "baseline",
     "phash": "b32cdc2676999d22",
-    "taken": "2026-10-13",
-    "run": "01a137b1-6d2a-79bf-b473-a0fc34a26dc3"
+    "taken": "2026-10-15",
+    "run": "01a13d1d-4f9c-7574-aafd-4ded39530029"
+  },
+  {
+    "brand": "whatsapp",
+    "url": "https://www.whatsapp.com/",
+    "final": "https://www.whatsapp.com/",
+    "profile": "stealth",
+    "phash": "9afcb1c3c433e512",
+    "taken": "2026-10-15",
+    "run": "01a13d1d-7748-73a1-b32c-0816d8956004",
+    "favicons": [
+      "1ab6db0cc2eb55d911f151b0aa339c55b6b225efcceddb8ff2050cab1410e347"
+    ]
+  },
+  {
+    "brand": "whatsapp",
+    "url": "https://www.whatsapp.com/",
+    "final": "https://www.whatsapp.com/",
+    "profile": "baseline",
+    "phash": "9a7cf143c492e5d2",
+    "taken": "2026-10-15",
+    "run": "01a13d1d-a593-734e-8972-dfcacf6cf4a5",
+    "favicons": [
+      "1ab6db0cc2eb55d911f151b0aa339c55b6b225efcceddb8ff2050cab1410e347"
+    ]
+  },
+  {
+    "brand": "tiktok",
+    "url": "https://www.tiktok.com/",
+    "final": "https://www.tiktok.com/",
+    "profile": "baseline",
+    "taken": "2026-10-15",
+    "run": "01a13d1e-1a4b-7855-86b5-3c3f96a25014",
+    "favicons": [
+      "d0d48654b83875f95e62ef0744e31de50aa9913c031eeee4a20f407485be3595",
+      "0af010e150770df5f86bf7289dffca583cef251c12a9bff68d3e0e042446371e"
+    ]
+  },
+  {
+    "brand": "telegram",
+    "url": "https://telegram.org/",
+    "final": "https://telegram.org/",
+    "profile": "stealth",
+    "taken": "2026-10-15",
+    "run": "01a13d1e-61f7-74e8-a295-70cf6f8a3e64",
+    "favicons": [
+      "4ff54bc38c267dc3a8c95f6ed4590336baaec70433ef15d027ddca608c391e78"
+    ]
+  },
+  {
+    "brand": "telegram",
+    "url": "https://telegram.org/",
+    "final": "https://telegram.org/",
+    "profile": "baseline",
+    "taken": "2026-10-15",
+    "run": "01a13d1e-86de-7758-99e8-1b2e5cdf534d",
+    "favicons": [
+      "4ff54bc38c267dc3a8c95f6ed4590336baaec70433ef15d027ddca608c391e78"
+    ]
+  },
+  {
+    "brand": "trezor",
+    "url": "https://trezor.io/",
+    "final": "https://trezor.io/",
+    "profile": "stealth",
+    "phash": "c8b3a764d91bb642",
+    "taken": "2026-10-15",
+    "run": "01a13d1e-ad63-73c7-8fbd-343dd3575e43",
+    "favicons": [
+      "84ab4fc487f8e5ea4f3a928449de230e8741bd3cb7e9e3f8ab9d3d1da26984a4"
+    ]
+  },
+  {
+    "brand": "trezor",
+    "url": "https://trezor.io/",
+    "final": "https://trezor.io/",
+    "profile": "baseline",
+    "phash": "e2e1ade1e11f9560",
+    "taken": "2026-10-15",
+    "run": "01a13d1e-df42-7880-9c0e-64ba87cb53d9",
+    "favicons": [
+      "84ab4fc487f8e5ea4f3a928449de230e8741bd3cb7e9e3f8ab9d3d1da26984a4"
+    ]
+  },
+  {
+    "brand": "trustwallet",
+    "url": "https://trustwallet.com/",
+    "final": "https://trustwallet.com/",
+    "profile": "stealth",
+    "taken": "2026-10-15",
+    "run": "01a13d1f-73e5-7872-b5c8-3c2aa14047a0",
+    "favicons": [
+      "c3729a732e44aec8b096f4b888d211efe395566452e3eccc7c6743467158b148"
+    ]
+  },
+  {
+    "brand": "trustwallet",
+    "url": "https://trustwallet.com/",
+    "final": "https://trustwallet.com/",
+    "profile": "baseline",
+    "taken": "2026-10-15",
+    "run": "01a13d1f-a2ee-73ac-8dd1-94897f0f7fe1",
+    "favicons": [
+      "c3729a732e44aec8b096f4b888d211efe395566452e3eccc7c6743467158b148"
+    ]
+  },
+  {
+    "brand": "seur",
+    "url": "https://www.seur.com/",
+    "final": "https://www.seur.com/es/index.html",
+    "profile": "stealth",
+    "phash": "aad689a1e9dae291",
+    "taken": "2026-10-15",
+    "run": "01a13d20-5cb9-742f-8ee2-7d7417bfe894"
+  },
+  {
+    "brand": "seur",
+    "url": "https://www.seur.com/",
+    "final": "https://www.seur.com/es/index.html",
+    "profile": "baseline",
+    "phash": "abe5cdce88d82992",
+    "taken": "2026-10-15",
+    "run": "01a13d20-916c-7dc8-9197-cd3236242e0f"
+  },
+  {
+    "brand": "correos",
+    "url": "https://www.correos.es/",
+    "final": "https://www.correos.es/es/es/particulares",
+    "profile": "stealth",
+    "phash": "bec96b56c523d850",
+    "taken": "2026-10-15",
+    "run": "01a13d20-c805-7889-8f52-1c546f35b823",
+    "favicons": [
+      "68554c17c00a589c2b29e1f74ac5efbcd8d30252792626f5fff81955e4d89ae7"
+    ]
+  },
+  {
+    "brand": "correos",
+    "url": "https://www.correos.es/",
+    "final": "https://www.correos.es/es/es/particulares",
+    "profile": "baseline",
+    "phash": "bfc82a73c423e15c",
+    "taken": "2026-10-15",
+    "run": "01a13d21-03eb-7c3b-b8e0-0d76515ed87a",
+    "favicons": [
+      "68554c17c00a589c2b29e1f74ac5efbcd8d30252792626f5fff81955e4d89ae7"
+    ]
+  },
+  {
+    "brand": "posteitaliane",
+    "url": "https://www.poste.it/",
+    "final": "https://www.poste.it/",
+    "profile": "stealth",
+    "taken": "2026-10-15",
+    "run": "01a13d21-3621-791e-8ef6-6eacee592389",
+    "favicons": [
+      "46c15c800cb968e0ba1341dea31573fb17047b837bc5a67764471b28105fd2f8",
+      "ce200c94d222818c342ed05a62cd18f76db116eb815303780a840740288e59a5"
+    ]
+  },
+  {
+    "brand": "posteitaliane",
+    "url": "https://www.poste.it/",
+    "final": "https://www.poste.it/",
+    "profile": "baseline",
+    "taken": "2026-10-15",
+    "run": "01a13d21-7bf1-7361-a5b3-fac6883e6b99",
+    "favicons": [
+      "46c15c800cb968e0ba1341dea31573fb17047b837bc5a67764471b28105fd2f8",
+      "ce200c94d222818c342ed05a62cd18f76db116eb815303780a840740288e59a5"
+    ]
+  },
+  {
+    "brand": "laposte",
+    "url": "https://www.laposte.fr/",
+    "final": "https://www.laposte.fr/",
+    "profile": "stealth",
+    "taken": "2026-10-15",
+    "run": "01a13d21-c1d7-7bf6-956a-e6e50286deb9",
+    "favicons": [
+      "e944c6bb783da0b2a8283e6f16638fbdfba149881fab0c7df8ccaa6f53ef9772"
+    ]
+  },
+  {
+    "brand": "royalmail",
+    "url": "https://www.royalmail.com/",
+    "final": "https://www.royalmail.com/",
+    "profile": "stealth",
+    "phash": "9213edcd4cacecc4",
+    "taken": "2026-10-15",
+    "run": "01a13d22-03c4-7235-b99e-a1729325e0f1"
+  },
+  {
+    "brand": "auspost",
+    "url": "https://auspost.com.au/",
+    "final": "https://auspost.com.au/",
+    "profile": "stealth",
+    "phash": "ca11bbee919491ce",
+    "taken": "2026-10-15",
+    "run": "01a13d22-d0d5-709b-934d-8c3db8835ed6",
+    "favicons": [
+      "452b7af7cc6daef8d6cf3feb0760f5023715a3e60488fe339005e6c26f997273",
+      "fb4349449e4712ce4723cfdeb76b1bac5950a6473b3c0393c21d9e2692f8c2b3",
+      "15d696ac6a46087e3229fe8ceb3cd07e7749293c0c33a8bb4c73f04feb5ad692",
+      "69d20a151a62aa8ed6b20bcf01ea88ee76f41da01ddfcb02b5dd623b9563c42a"
+    ]
+  },
+  {
+    "brand": "auspost",
+    "url": "https://auspost.com.au/",
+    "final": "https://auspost.com.au/",
+    "profile": "baseline",
+    "phash": "ca11bbeec19491ea",
+    "taken": "2026-10-15",
+    "run": "01a13d23-171e-71c5-8031-9d8cc7086ea5",
+    "favicons": [
+      "452b7af7cc6daef8d6cf3feb0760f5023715a3e60488fe339005e6c26f997273",
+      "fb4349449e4712ce4723cfdeb76b1bac5950a6473b3c0393c21d9e2692f8c2b3",
+      "15d696ac6a46087e3229fe8ceb3cd07e7749293c0c33a8bb4c73f04feb5ad692",
+      "f0d7e2d5d2125c1b2a4719f557e20fbc67f3c6550d8f83b0566f774f98077702"
+    ]
+  },
+  {
+    "brand": "meta",
+    "url": "https://www.meta.com/",
+    "final": "https://www.meta.com/",
+    "profile": "stealth",
+    "phash": "9006ce33f7119b7a",
+    "taken": "2026-10-15",
+    "run": "01a13d23-5f1d-7a71-9761-cd4944da7be3"
+  },
+  {
+    "brand": "meta",
+    "url": "https://www.meta.com/",
+    "final": "https://www.meta.com/",
+    "profile": "baseline",
+    "phash": "9006ce13f711bf3a",
+    "taken": "2026-10-15",
+    "run": "01a13d23-9b4e-7b4e-9323-b6e33dec7fd7"
+  },
+  {
+    "brand": "shopee",
+    "url": "https://shopee.co.id/",
+    "final": "https://shopee.co.id/",
+    "profile": "stealth",
+    "taken": "2026-10-15",
+    "run": "01a13d23-cd7c-7c6b-b8f9-a2cd14c6f8e5",
+    "favicons": [
+      "ae9ed5a156ff06f71fb0e9525a82d7d6c7cbc27ede07b6d189f1e651317f44e5"
+    ]
+  },
+  {
+    "brand": "shopee",
+    "url": "https://shopee.co.id/",
+    "final": "https://shopee.co.id/",
+    "profile": "baseline",
+    "taken": "2026-10-15",
+    "run": "01a13d24-1a18-7e85-8676-22d6781033fd",
+    "favicons": [
+      "ae9ed5a156ff06f71fb0e9525a82d7d6c7cbc27ede07b6d189f1e651317f44e5"
+    ]
+  },
+  {
+    "brand": "ledger",
+    "url": "https://www.ledger.com/",
+    "final": "https://www.ledger.com/",
+    "profile": "stealth",
+    "phash": "931dea0ce14d94f3",
+    "taken": "2026-10-15",
+    "run": "01a13d24-b1fb-79be-8f7a-6d401e697046"
+  },
+  {
+    "brand": "ledger",
+    "url": "https://www.ledger.com/",
+    "final": "https://www.ledger.com/",
+    "profile": "baseline",
+    "phash": "931dea0ce06d0df3",
+    "taken": "2026-10-15",
+    "run": "01a13d24-f56b-7c6f-b996-9b996b6c8637",
+    "favicons": [
+      "7545b9667995fb98664f07b94793628ca6920fc953bb4eb924259480cae4bbe8"
+    ]
+  },
+  {
+    "brand": "sunrise",
+    "url": "https://www.sunrise.ch/",
+    "final": "https://www.sunrise.ch/en/home",
+    "profile": "baseline",
+    "taken": "2026-10-15",
+    "run": "01a13d25-78e9-76da-aaf9-c18dbe480cb2",
+    "favicons": [
+      "418892e11b90f8271b59b0814d0c5de4dc9319af3e59fe5a50acb86bb91e9fb9"
+    ]
+  },
+  {
+    "brand": "att",
+    "url": "https://www.att.com/",
+    "final": "https://www.att.com/",
+    "profile": "stealth",
+    "phash": "a4d912ed12cf10fd",
+    "taken": "2026-10-15",
+    "run": "01a13d25-c0b6-7ab9-9932-f9b6e1363d75",
+    "favicons": [
+      "c0c2c3d5d4acd6e9ad9a14984bc1f63e51b4e5069b1b6be17b1bb59965f0860e"
+    ]
+  },
+  {
+    "brand": "att",
+    "url": "https://www.att.com/",
+    "final": "https://www.att.com/",
+    "profile": "baseline",
+    "phash": "edc112ed12936ce5",
+    "taken": "2026-10-15",
+    "run": "01a13d26-0dc2-7e53-a3ce-46354dc74018",
+    "favicons": [
+      "c0c2c3d5d4acd6e9ad9a14984bc1f63e51b4e5069b1b6be17b1bb59965f0860e"
+    ]
   },
   {
     "brand": "steam",
     "url": "https://store.steampowered.com/login/",
     "final": "https://store.steampowered.com/login/",
     "profile": "stealth",
-    "phash": "9bf36496936464ca",
-    "taken": "2026-10-13",
-    "run": "01a137b1-8b73-790e-b5d8-d73013b49752"
+    "phash": "9bb36496936464ce",
+    "taken": "2026-10-15",
+    "run": "01a13d26-5740-7668-8969-5eced5c506bc",
+    "favicons": [
+      "9f890a9debcdfccc339149a7943be9aff9e4c9203c2fa37d5671a5b2c88503ad"
+    ]
   },
   {
     "brand": "steam",
     "url": "https://store.steampowered.com/login/",
     "final": "https://store.steampowered.com/login/",
     "profile": "baseline",
-    "phash": "9bb364e493b36464",
-    "taken": "2026-10-13",
-    "run": "01a137b1-cbb8-7b7c-93ce-0b44006b98fb"
+    "phash": "9ab364e493b36466",
+    "taken": "2026-10-15",
+    "run": "01a13d26-9332-7d2a-912e-4585acde447c",
+    "favicons": [
+      "9f890a9debcdfccc339149a7943be9aff9e4c9203c2fa37d5671a5b2c88503ad"
+    ]
   }
 ]

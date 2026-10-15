@@ -16,6 +16,12 @@ import (
 
 const guestScreenshot = "guest.screenshot"
 
+// brandLookMax is the largest screenshot distance to a brand's reference that counts. Tighter
+// than visual.DefaultMaxDistance (6): a reference is compared with every page, and plain
+// "enter your email" cards sit about 6 bits apart whatever the brand (found in P7: Cloudflare
+// Access and a Facebook clone both 6 bits from DocuSign's; the real clone hits were 0 and 2).
+const brandLookMax = 4
+
 // brandRefs are the brand reference screenshots (replaced in tests).
 var brandRefs = brands.Refs
 
@@ -169,7 +175,7 @@ func indicators(r *reportv0.Report, domPath string) []*reportv0.Indicator {
 	}
 
 	if h, err := visual.Parse(page.GetScreenshotPhash()); err == nil {
-		if b, d, ok := brands.LooksLikeIn(brandRefs(), h, visual.DefaultMaxDistance); ok && !b.Owns(domain) {
+		if b, d, ok := brands.LooksLikeIn(brandRefs(), h, brandLookMax); ok && !b.Owns(domain) {
 			out = append(out, &reportv0.Indicator{
 				Id: "brand-look-off-domain", Severity: "high", Brand: b.ID, Source: guestScreenshot,
 				Detail: fmt.Sprintf("The screenshot looks like %s's sign-in page (%d of 64 bits apart), on %s", b.Name, d, domain),
