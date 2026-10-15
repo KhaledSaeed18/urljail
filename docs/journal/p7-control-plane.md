@@ -260,3 +260,15 @@ Over all 5,385 stored runs, rebuilt with the old and new references: 69 runs gai
 ### S14: favicon rule removed (2026-10-15 evening)
 
 `brand-favicon-off-domain` fired on none of the 5,385 stored runs, and on none of set 3, where it was tested held-out. 51 of the 214 labelled phishing pages loaded a favicon; none is byte for byte a brand's, and none is served from a brand's domain: kits use their host's or platform's icon. Favicons do repeat within a kit (one icon on all nine dynamic-DNS hosts of the DocuSign kit, another on the four Zoom hosts), but kit-match already finds both. The indicator and its matcher are removed; the guest still captures favicons, reports keep their hashes, and brand references still record theirs, in case a kit-favicon rule is worth trying later. Rebuilt before and after: no report changes.
+
+### Known false alarms, left as they are (2026-10-15)
+
+Looked at before freezing; no fix kept every catch, so the rules stay:
+
+- **`brand-lookalike-domain` on short brand names.** It fires on 25 hosts in the corpus. Names under 8 letters at edit distance 2 give the false alarms: `pmicloud.biz` (an S3 error page; "icloud" with two letters before it), `amazonex.app` (an ad tool), `taroblox.store` (a Vietnamese Roblox item shop); `img.dicloud.vip`, an image host, is one letter off. Requiring distance 1 for short names would drop the first three, and also `ledger--io.pages.dev` (which Cloudflare already shows as "Suspected Phishing") and three typo-squats that never loaded. Not done.
+- **`form-on-free-hosting` on private apps.** "Card Ledger" and "Clear Ledger", private apps with a login on pages.dev, look like `ledger-staging-9yb.pages.dev`, labelled phishing: an ordinary title, an email and a password on pages.dev. Nothing on the page tells them apart.
+- Also still flagged: the empty Turkish blog on `faceebook.blogspot.com` (look-alike) and one tuning-set page.
+
+### Freeze for the fifth held-out set
+
+Frozen with this commit: the lure rules (S12), kit references from every labelled set (S13), no favicon rule (S14). Two gate cases have still only been seen in-sample: the fake Cloudflare "verify you are human" box drawn in HTML and the Outlook "confirming it's you" Turnstile kit.
