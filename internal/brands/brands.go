@@ -334,21 +334,6 @@ func editDistance(a, b string, max int) int {
 	return prev[len(b)]
 }
 
-// FaviconOf returns the brand whose real sign-in page loaded a favicon with this SHA-256.
-func FaviconOf(refs []Ref, sha string) (Brand, bool) {
-	if sha == "" {
-		return Brand{}, false
-	}
-	for _, r := range refs {
-		for _, f := range r.Favicons {
-			if f == sha {
-				return ByID(r.Brand)
-			}
-		}
-	}
-	return Brand{}, false
-}
-
 // Owner returns the brand a registrable domain belongs to, if any.
 func Owner(registrable string) (Brand, bool) {
 	for _, b := range All {

@@ -158,18 +158,6 @@ func indicators(r *reportv0.Report, domPath string) []*reportv0.Indicator {
 		}
 	}
 
-	// The page's favicon is byte for byte a brand's (copied, or loaded from the brand's own
-	// servers), off that brand's domains.
-	for _, f := range page.GetFavicons() {
-		if b, ok := brands.FaviconOf(brandRefs(), f.GetSha256()); ok && !b.Owns(domain) {
-			out = append(out, &reportv0.Indicator{
-				Id: "brand-favicon-off-domain", Severity: "high", Brand: b.ID, Source: guestCDP,
-				Detail: fmt.Sprintf("The page's icon is %s's own (%s), on %s", b.Name, clipString(f.GetUrl(), 120), domain),
-			})
-			break
-		}
-	}
-
 	// The page has the structure of a phishing page a person labelled, seen at another site or
 	// platform: the same kit moved hosts (found in P7: one loan-form kit on six hosts). Never on
 	// a brand's own domain: kits copy the real page's structure, so accounts.google.com matched a

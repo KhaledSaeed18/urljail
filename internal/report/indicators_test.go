@@ -13,7 +13,7 @@ import (
 
 func TestIndicators(t *testing.T) {
 	brandRefs = func() []brands.Ref {
-		return []brands.Ref{{Brand: "paypal", Phash: "ffff0000ffff0000", Favicons: []string{"aa11"}}}
+		return []brands.Ref{{Brand: "paypal", Phash: "ffff0000ffff0000"}}
 	}
 	defer func() { brandRefs = brands.Refs }()
 
@@ -25,7 +25,6 @@ func TestIndicators(t *testing.T) {
 		name, final, title, phash, dom string
 		passwords                      uint32
 		forms                          []*reportv0.Form
-		favicons                       []*reportv0.Favicon
 		want                           string
 	}
 	for _, c := range []tc{
@@ -74,18 +73,13 @@ func TestIndicators(t *testing.T) {
 		{name: "reCAPTCHA's hidden textarea isn't a field a person fills", final: "https://someone.github.io/", title: "My portfolio", dom: noDOM,
 			forms: []*reportv0.Form{{Fields: []*reportv0.Field{{Type: "email", Name: "email"}, {Type: "textarea", Name: "g-recaptcha-response"}}}}, want: ""},
 		{name: "a static page on free hosting asks for nothing", final: "https://someone.github.io/", title: "My portfolio", dom: noDOM, want: ""},
-		{name: "PayPal's favicon off PayPal", final: "https://secure-acct.example/", title: "Account", dom: noDOM,
-			favicons: []*reportv0.Favicon{{Sha256: "bb22"}, {Sha256: "aa11", Url: "https://www.paypalobjects.com/favicon.ico"}},
-			want:     "brand-favicon-off-domain:paypal"},
-		{name: "PayPal's favicon on PayPal", final: "https://www.paypal.com/", title: "Account", dom: noDOM,
-			favicons: []*reportv0.Favicon{{Sha256: "aa11"}}, want: ""},
 		{name: "password posted elsewhere", final: "https://shop.example/", dom: noDOM, passwords: 1,
 			forms: []*reportv0.Form{{HasPassword: true, CrossOriginAction: true, Action: "https://collect.evil.test/p"}},
 			want:  "password-form-cross-origin:"},
 	} {
 		r := &reportv0.Report{
 			Navigation: &reportv0.Navigation{FinalUrl: c.final, Title: c.title},
-			Page:       &reportv0.Page{ScreenshotPhash: c.phash, PasswordFields: c.passwords, Forms: c.forms, Favicons: c.favicons},
+			Page:       &reportv0.Page{ScreenshotPhash: c.phash, PasswordFields: c.passwords, Forms: c.forms},
 		}
 		var got []string
 		for _, i := range indicators(r, c.dom) {
