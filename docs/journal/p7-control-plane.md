@@ -177,6 +177,8 @@ References retaken at 04:00, when the VPN exit was fast: 73 (57 sign-in screensh
 - **What carries detection is still the brand named off its domain** (18 of its 27 hits had nothing else). By kind, at medium and up: credential pages 27 of 31, payment and details 4 of 6, lures 3 of 34, gates 0 of 16, device-code 0 of 1 (a OneDrive "enter this code at microsoft.com/devicelogin" page).
 - No false positives at medium or up, on 22 non-phishing pages (tutorial clones, two companies' phishing-awareness training pages, an education site, a slot-review site).
 
+- **CT discovery, 04:34 to 12:30 (not labelled one by one):** 109 pages loaded (21 more never did). At `21d0924` one was flagged at medium or up: `brand-lookalike-domain` on an S3 "Access Denied" error at `cdn.client-invoice.appwrd-dev.aws.pmicloud.biz` ("pmicloud" two letters from "icloud"): a page that shows and asks for nothing, most likely a false alarm. At the gate rules' `1623cdd`, the Russian `captcha-wave.sion10.to` page is added (see S9).
+
 ### S9: gates (2026-10-15)
 
 28 of the labelled phishing pages (all sets) were gates: a page that asks for nothing and stands in front of the kit. None was flagged at medium or up. Four kinds:
