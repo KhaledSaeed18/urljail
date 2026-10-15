@@ -153,3 +153,26 @@ Calibration on S4–S5's labelled pages, leave-one-out, across places (131 of 17
 | 0.8 | 15 of 66 | 0 of 61 |
 
 References (`internal/kits/refs.json`, `urljail kits refs -labels <tsv>`): the 66 labelled phishing pages with a fingerprint. Over every stored run (2,600+, rebuilt), `kit-match` fired only on those kits' hosts, their comparison-profile runs, and one unlabelled OpenPhish run on `h5.usakkkk.shop` titled "TikTok-Wholesale": the fake-merchant kit from round 2 on a new host. Most matched pages had no other indicator (the Pichincha forms, the webmail kits, the Steam lure). In-sample, so this says the rule finds today's families; whether kits come back the next day on new hosts is what the next held-out set measures. Frozen with the favicon rule.
+
+### S8: third held-out set (2026-10-15 morning): favicons and kit-match
+
+References retaken at 04:00, when the VPN exit was fast: 73 (57 sign-in screenshots, 49 with favicons, 40 brands; no favicon shared between brands, the closest two brands' screenshots 14 bits apart). On the full corpus the brand screenshot match at 6 bits put Cloudflare Access's real sign-in page and a Facebook clone on DocuSign's plain "enter email" card, while the real clone hits were 0 and 2 bits: the brand match now needs **4 bits or fewer**. Frozen at `21d0924` (04:34). OpenPhish refreshed at 04:34 (299 URLs); the loop ran each fresh batch, then 15 minutes of CT watch, until the queue was spent (07:40). Labelled blind: **117 pages: 88 phishing, 17 benign, 5 the brand's real site, 7 unsure**.
+
+| | Phishing flagged (of 88) | Others flagged (of 22) |
+| --- | --- | --- |
+| High | 24 (27 %) | 0 |
+| Medium and up | 34 (39 %) | 0 |
+
+| Indicator | Fired on phishing | Only indicator on | Others |
+| --- | --- | --- | --- |
+| brand-name-off-domain | 27 | 18 | 0 |
+| form-on-free-hosting | 15 | 1 | 0 |
+| kit-match | 6 | 0 | 0 |
+| brand-look-off-domain | 1 | 1 | 0 |
+| **brand-favicon-off-domain** | **0** | 0 | 0 |
+| brand-presented-off-domain (info) | 25 | – | 8 |
+
+- **Favicons: nothing.** 40 of the 88 phishing pages loaded a favicon; none was byte-identical to a brand's. The kits serve their host's own icon (or the platform's), and the most repeated kits this morning (a DocuSign password page on dynamic-DNS hosts, nine copies; a fake Google "account hacked" alert, seven) loaded none. Eight brands, Google, Microsoft's own sign-in and DocuSign among them, got no reference favicon either: Chrome often doesn't request one when the page names an SVG or an inline icon. As built, the favicon rule doesn't earn its place.
+- **kit-match: right every time, never alone.** Six hits, all phishing: yesterday's Banco Pichincha loan form on four new replit/vercel hosts (the case it was built for), and two Framer pages (a Gmail and an Eastlink clone) matching yesterday's Framer Microsoft clone, which may be Framer's template as much as a kit (framer.app and framer.website are the same builder). Every one was also caught by `form-on-free-hosting`. It missed the eight "Access Restricted" gates (too little HTML to fingerprint) and kits first seen today.
+- **What carries detection is still the brand named off its domain** (18 of its 27 hits had nothing else). By kind, at medium and up: credential pages 27 of 31, payment and details 4 of 6, lures 3 of 34, gates 0 of 16, device-code 0 of 1 (a OneDrive "enter this code at microsoft.com/devicelogin" page).
+- No false positives at medium or up, on 22 non-phishing pages (tutorial clones, two companies' phishing-awareness training pages, an education site, a slot-review site).

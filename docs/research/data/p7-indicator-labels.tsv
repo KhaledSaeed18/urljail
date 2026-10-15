@@ -178,3 +178,120 @@ heldout2-feed	01a13ac3-7810-77e3-9eaa-178ad1fa7b3b	real-site	-	facebook	www.face
 heldout2-feed	01a13ac4-11b5-7ed5-91e4-dc2130524ea5	real-site	-	facebook	www.facebook.com itself	
 heldout2-feed	01a13ac6-6ea7-7292-877d-c4e448e3b236	real-site	-	facebook	www.facebook.com itself	
 heldout2-feed	01a13ac7-8c0d-7d2f-a275-4ec2907877d1	real-site	-	google	www.google.com itself	
+heldout3	01a13d32-cc0d-7d5d-82b3-2aeace69f05f	benign	-	amazon	"CLONE PROJECT" Amazon clone (tutorial) on github.io	
+heldout3	01a13d33-8112-74ca-9230-7788c14b5116	phish	credential	docusign	DocuSign "verify your email to view the document" on bluesoftsdocrks.com	brand-look-off-domain/high
+heldout3	01a13d33-b4cf-7b3b-b9e5-89fa71774d13	phish	lure	ledger	"Mastering Ledger Live Login" on pages.dev	brand-name-off-domain/medium
+heldout3	01a13d34-00ec-76e2-8473-8671045c6a5b	benign	-	netflix	"Netflix Clone (Ehsan.Techs)" tutorial on netlify.app	brand-presented-off-domain/info
+heldout3	01a13d34-5eb3-7b71-ba6c-42a3e6c18d0c	phish	credential	callofduty	"LOGIN - CALL OF DUTY" with a password field on cpsgift.com	
+heldout3	01a13d35-456d-7045-ab4e-dc5facee0f22	phish	gate	-	"Access Restricted" VPN/bot gate on netlify.app	
+heldout3	01a13d35-7ac2-7590-a6e5-08310dbb2c3f	benign	-	-	Cofense phishing-awareness training page (Skydance GICS)	
+heldout3	01a13d37-08ea-738c-80ab-875678cbc766	phish	credential	google	old Gmail sign-in clone on netlify.app	brand-name-off-domain/high,form-on-free-hosting/medium
+heldout3	01a13d37-2ce1-7109-bcf2-ad4ccafd5080	unsure	-	apple	Apple homepage replica (current design) on netlify.app, no form	
+heldout3	01a13d37-9511-7119-a3e2-4bf3260b4fe1	unsure	-	wellsfargo	Wells Fargo mortgage-consultants page on a vendor sandbox (sbx.pgsdemo.com)	brand-presented-off-domain/info
+heldout3	01a13d38-1e3f-7899-a101-a4e3a9d4340a	benign	-	apple	Apple homepage clone, old design (tutorial) on netlify.app	
+heldout3	01a13d38-6dc9-7b35-b675-043562eafcb4	phish	credential	google	Google sign-in clone on framer.app	brand-name-off-domain/medium,form-on-free-hosting/medium,kit-match/medium
+heldout3	01a13d38-a7a8-71d5-8497-e253f1bbad17	benign	-	netflix	"Netflix India" clone (tutorial) on github.io	brand-presented-off-domain/info
+heldout3	01a13d38-ecdb-7a23-b5ac-b5b9bc25191d	phish	lure	kucoin	"KuCoin Login" guide page on webflow.io	
+heldout3	01a13d39-0e9f-77d7-a59f-0820a8c98456	phish	lure	kucoin	"KuCoin Login" guide page on webflow.io	
+heldout3	01a13d39-41c5-7d43-b2e3-508b9dfb7096	phish	credential	eastlink	Eastlink webmail sign-in clone on framer.app	form-on-free-hosting/medium,kit-match/medium
+heldout3	01a13d39-b668-7201-be2f-3328a34ba2b4	phish	lure	ledger	"Official Site Ledger Live" on typedream.app	brand-presented-off-domain/info
+heldout3	01a13d3a-0a1a-7b7f-a59e-82346e857c52	phish	lure	ledger	"Ledger Live: Login | Getting started" on typedream.app	brand-name-off-domain/medium
+heldout3	01a13d3a-a441-70aa-8c59-d4a94a462448	phish	lure	ledger	"Ledger.com/Start" on typedream.app	
+heldout3	01a13d49-305b-7e44-8a00-be000c25fb84	benign	-	-	Cofense phishing-awareness training page (Skydance GICS)	
+heldout3	01a13d49-7533-7437-89a3-18365c4a071c	phish	lure	ledger	fake "Ledger Wallet" download site on ledgerdownloads.com	brand-presented-off-domain/info
+heldout3	01a13d4a-4992-701d-83bb-6393c634c8bf	phish	lure	trezor	"Trezor.io/Start" on meta-mask-wallet-912.pages.dev	brand-presented-off-domain/info
+heldout3	01a13d4a-693e-7de3-a46a-341487e9d694	benign	-	-	Nestlé "phishing awareness test has concluded" page	
+heldout3	01a13d4a-9754-735d-9bd5-64733151a95b	benign	-	netflix	Netflix landing clone (tutorial) on netlify.app	brand-presented-off-domain/info
+heldout3	01a13d4a-c5df-7002-90e1-c3ac1a73e57f	phish	gate	-	"Access Restricted" VPN/bot gate on netlify.app	
+heldout3	01a13d4a-f6ed-76c4-83d0-36c3ed52bfe9	benign	-	amazon	Amazon homepage clone (tutorial) on github.io	brand-presented-off-domain/info
+heldout3	01a13d4b-93c6-7508-83a1-5fef1116b5db	phish	lure	trezor	"Trézór Suite (Official)" on typedream.app	brand-presented-off-domain/info
+heldout3	01a13d4c-7a3b-7880-8aed-581b7407747f	phish	gate	-	"Access Restricted" VPN/bot gate on netlify.app	
+heldout3	01a13d4c-a4b8-78e4-8c68-7f8a3f904c61	phish	gate	-	"Access Restricted" VPN/bot gate on netlify.app	
+heldout3	01a13d5d-969d-71bb-b15e-8f528a1687c8	unsure	-	-	Vietnamese online casino (CT discovery)	
+heldout3	01a13d5f-2e54-7978-93bf-2031361eab52	phish	lure	ledger	"Ledger.com/Start" on typedream.app	
+heldout3	01a13d5f-75ab-70f3-9153-f37095c6ce7c	phish	gate	-	"Access Restricted" VPN/bot gate on netlify.app	
+heldout3	01a13d5f-a653-7ed4-b2d0-03dd3c0d766c	benign	-	apple	Apple homepage clone, old design (tutorial) on netlify.app	
+heldout3	01a13d5f-dbae-73ba-9a90-b7634f8ca5f7	real-site	-	facebook	www.facebook.com itself	
+heldout3	01a13d60-72d7-7a75-ab6b-0f8acb0b8009	phish	lure	imtoken	fake imToken wallet site	
+heldout3	01a13d60-a6ba-7462-9d4a-97bbb43c4612	phish	payment	trustwallet	"Send - Trust Wallet" page on netlify.app	brand-presented-off-domain/info
+heldout3	01a13d61-0adc-7f29-9eab-2b5dfc94e9b1	phish	lure	zoom	fake Zoom "Join Meeting" on us02-web-zoom.us	
+heldout3	01a13d61-3a04-732e-a597-0f3f79aa3aa0	phish	lure	zoom	fake Zoom "Join Meeting" on us03-web-zoom.us	
+heldout3	01a13d61-64ea-7ccd-a383-2ce3ad3109c2	phish	lure	zoom	fake Zoom "Join Meeting" on us06-web-zoom.us	
+heldout3	01a13d61-8ee1-7999-bd3c-a7e7cb64ba0d	phish	lure	zoom	fake Zoom "Join Meeting" on us07-web-zoom.us	
+heldout3	01a13d61-b54c-7d40-b520-e5d707bb9768	real-site	-	facebook	www.facebook.com itself	
+heldout3	01a13d62-38e9-78a7-b35a-4150d27c78d3	phish	lure	whatsapp	fake WhatsApp "Security Self-Service Center"	brand-presented-off-domain/info
+heldout3	01a13d62-7aee-7663-859e-2a3cf70a59c0	phish	gate	-	"Access Restricted" VPN/bot gate on netlify.app	
+heldout3	01a13d62-a677-72e2-b7f3-e27c72407ddc	real-site	-	facebook	www.facebook.com itself	
+heldout3	01a13d63-2c39-7eb8-b7e6-792303c37bc3	phish	gate	-	"Vérification CAPTCHA" gate on connexion-auth.toclw.xyz	
+heldout3	01a13d63-e489-7881-b39e-a92af7fc675c	phish	credential	bbva	BBVA-branded page with a password field on duckdns.org	brand-name-off-domain/high,form-on-free-hosting/medium
+heldout3	01a13d64-aa11-710a-bb88-58024b309f08	phish	lure	-	fake "wXRP Bridge" wallet-connect page on vercel.app	
+heldout3	01a13d65-36a1-7309-9310-3ce34179a696	benign	-	amazon	Amazon homepage clone (tutorial) on github.io	brand-presented-off-domain/info
+heldout3	01a13d74-4f6a-72c6-9b2f-f68a8200317c	phish	credential	bbva	BBVA-branded page with a password field on duckdns.org (same kit)	brand-name-off-domain/high,form-on-free-hosting/medium
+heldout3	01a13d75-159a-74d5-9a1b-297c3bd19ad3	phish	gate	-	"Vérification CAPTCHA" gate on app.mimisa.xyz	
+heldout3	01a13d75-afe2-778d-a2b9-02a9e60a139a	phish	credential	docusign	"DocuSign" with a password field on ddnss.de	brand-name-off-domain/high,form-on-free-hosting/medium
+heldout3	01a13d75-dc3e-7234-bb8d-d39891c6cab7	benign	-	apple	"Apple Clone" (tutorial) on github.io	
+heldout3	01a13d76-46b3-7056-a3f7-c10d25c0d9e8	phish	credential	docusign	"DocuSign" with a password field on abrdns.com	brand-name-off-domain/high
+heldout3	01a13d76-e89f-769a-a3f5-d481e2200369	phish	lure	meta	"Meta Verified - Rewards for you" on vercel.app	brand-presented-off-domain/info
+heldout3	01a13d77-1300-768e-af7d-4a25e78f3548	phish	gate	microsoft	Outlook "confirming it's you" check on checkandbalancefirm.top	brand-presented-off-domain/info
+heldout3	01a13d77-7f9a-78fc-928c-12f3aacd817f	unsure	-	-	Chinese "register" page, no screenshot (likely gambling)	
+heldout3	01a13d77-dbc4-78bb-902d-c67ca7e1e2ca	unsure	-	-	Chinese "register" page (likely gambling)	
+heldout3	01a13d78-5188-7904-9cde-da85786f449c	phish	gate	-	"Vérification CAPTCHA" gate on connexion-auth.toclw.xyz	
+heldout3	01a13d78-7560-7bd1-a398-18836f9d889e	phish	lure	banplus	Banplus (Venezuelan bank) clone, half-rendered, on onrender.com	
+heldout3	01a13d78-c252-73e7-bd38-0f88f18a24b2	phish	payment	pichincha	Banco Pichincha loan form (same kit)	form-on-free-hosting/medium,kit-match/medium
+heldout3	01a13d79-0e36-7ebf-8e6c-72ac9b8d52b2	phish	payment	pichincha	Banco Pichincha loan form (same kit)	form-on-free-hosting/medium,kit-match/medium
+heldout3	01a13d79-809a-7c74-a476-e89a419d864f	phish	credential	meta	"Meta Verified for business" with a password field on workers.dev	brand-name-off-domain/high,form-on-free-hosting/medium
+heldout3	01a13d79-cef8-730a-91ab-8498e1f9bcee	benign	-	netflix	Netflix landing clone (tutorial) on github.io	brand-presented-off-domain/info
+heldout3	01a13d7a-1f7f-7705-9492-1bd2c344a4a4	real-site	-	facebook	www.facebook.com itself	
+heldout3	01a13d7a-7f4f-7ac9-9ea1-19e191a24b5d	phish	credential	oca	OCA Blue (Uruguay) bank login clone on netlify.app	form-on-free-hosting/medium
+heldout3	01a13d7a-b738-743f-854d-7333aac77c2f	phish	lure	google	fake Google "your Android has been hacked" alert	brand-presented-off-domain/info
+heldout3	01a13d7b-1277-7753-a553-fcd8ab66f10e	phish	lure	google	"Gmail" fake Google alert (same kit)	brand-presented-off-domain/info
+heldout3	01a13d7b-3d6e-785b-b3fa-99d5fc1b3db2	phish	credential	docusign	"DocuSign" with a password field on cloud-ip.cc	brand-name-off-domain/high
+heldout3	01a13d7b-6480-7c23-991a-d25e3e2901a8	phish	payment	pichincha	Banco Pichincha loan form (same kit)	form-on-free-hosting/medium,kit-match/medium
+heldout3	01a13d82-f9c9-7613-9183-0481f9d79757	benign	-	-	The Orangerie Institute, an education site (CT discovery)	
+heldout3	01a13d8a-490d-727d-b255-7ae5179ef991	phish	gate	microsoft	Outlook "confirming it's you" check on sunriselawgroups.com (same kit)	brand-presented-off-domain/info
+heldout3	01a13d8a-e5b2-771f-a6ff-6f0f1580a06f	phish	credential	docusign	"DocuSign" with a password field on ipv64.net (same kit)	brand-name-off-domain/high
+heldout3	01a13d8b-0fcf-7c4d-9b18-fb0f7b0a99fb	unsure	-	apple	Apple homepage replica (current design) on netlify.app, no form	
+heldout3	01a13d8b-f5c4-7662-a3dc-fcbfa66bc4e7	phish	credential	-	"Webmail" with a password field on Ionos object storage	
+heldout3	01a13d8c-24e3-7f0c-8873-94df1b5e5e99	phish	device-code	microsoft	OneDrive "a file is waiting" with a code for microsoft.com/devicelogin, on Linode object storage	brand-presented-off-domain/info
+heldout3	01a13d8c-8c2f-7adb-825a-c241312a8364	phish	lure	google	"Gmail" fake Google alert on hnjiangyi.com	brand-presented-off-domain/info
+heldout3	01a13d8c-b880-7913-8afb-cd63fe1cbbef	unsure	-	wellsfargo	Wells Fargo mortgage page on a vendor sandbox (sbx.pgsdemo.com)	brand-presented-off-domain/info
+heldout3	01a13d8d-7095-7201-a3f3-666325a0e25d	phish	gate	-	"Access Restricted" VPN/bot gate on netlify.app	
+heldout3	01a13d8d-977a-725f-833b-e475e84f5ee3	phish	lure	google	fake Google "your account has been hacked" alert on inova-lab.com	
+heldout3	01a13d8e-205a-7c82-b930-a2128be6e670	phish	lure	kucoin	"KuCoin Login" page on godaddysites.com	
+heldout3	01a13d8e-6ebb-795c-8b19-799f6b871ae7	phish	credential	docusign	"DocuSign" with a password field on home64.de (same kit)	brand-name-off-domain/high
+heldout3	01a13d8e-e8b4-74f8-a1c7-7bae25f85d1d	phish	credential	docusign	"DocuSign" with a password field on ipv64.de (same kit)	brand-name-off-domain/high
+heldout3	01a13d8f-9d8e-76d2-9eb2-1713af38556b	phish	credential	docusign	"DocuSign" with a password field on cloud-ip.cc (same kit)	brand-name-off-domain/high
+heldout3	01a13d8f-ccd8-71ec-9956-f5e31cd19007	phish	credential	docusign	"DocuSign" with a password field on abrdns.com (same kit)	brand-name-off-domain/high
+heldout3	01a13d8f-ecbd-7b1f-b553-4fb8dc65442e	phish	gate	microsoft	Outlook "confirming it's you" check on bhbor.top (same kit)	brand-presented-off-domain/info
+heldout3	01a13d90-107e-758f-bce2-67d627edb87e	phish	credential	docusign	"DocuSign" with a password field on dyn-ip24.de (same kit)	brand-name-off-domain/high
+heldout3	01a13da0-00f0-7591-ac94-8022c566f79c	phish	gate	microsoft	Outlook "confirming it's you" check on sunriselawgroups.com (same kit)	brand-presented-off-domain/info
+heldout3	01a13da0-3c09-7c08-83be-494fb16206c5	phish	credential	docusign	"DocuSign" with a password field on ipv64.net (same kit)	brand-name-off-domain/high
+heldout3	01a13da0-8c8e-7b28-9155-54f1c7ab6dc1	phish	lure	google	"Gmail" fake Google alert on inova-lab.com	brand-presented-off-domain/info
+heldout3	01a13da2-0195-7e1f-8dc4-80056cec6356	phish	lure	google	"Gmail" fake Google alert on qkbzp.com	brand-presented-off-domain/info
+heldout3	01a13da2-76d3-7ea8-aace-6f01370fba56	phish	credential	mygov	"Sign in to myGov" with a password field on quosqzrvex.cfd	
+heldout3	01a13da2-f90e-7478-b9a9-175ff9358022	phish	lure	microsoft	Outlook-styled "Proforma loading" document lure on cultueco.co.uk	
+heldout3	01a13da3-2a1c-72d6-bb46-b6ca63f6f575	benign	-	amazon	Amazon homepage clone (tutorial) on github.io	brand-presented-off-domain/info
+heldout3	01a13da3-740c-72ee-a86c-57860ae99350	phish	credential	-	webmail login with an unfilled "[[-Domain-]]" title on edgeone.dev	
+heldout3	01a13da4-50c2-72b2-a332-39b0032d3d27	phish	lure	meta	"Meta | Community Standards Violation" on vercel.app	brand-name-off-domain/medium,form-on-free-hosting/medium
+heldout3	01a13da4-9ff5-7c91-9797-a18b933870b2	phish	credential	docusign	"DocuSign" with a password field on cloud-ip.cc (same kit)	brand-name-off-domain/high
+heldout3	01a13da5-33f5-7084-8d3b-356847ad531a	phish	credential	docusign	"DocuSign" with a password field on home-webserver.de (same kit)	brand-name-off-domain/high
+heldout3	01a13db3-20b2-714a-bf66-54a443919d6f	benign	-	-	"Big Bass Amazon Xtreme" slot-game review site (CT discovery)	brand-presented-off-domain/info
+heldout3	01a13db4-4410-7465-be00-b9c3d6a5bf6b	phish	lure	google	"Gmail" fake Google alert on inova-lab.com	brand-presented-off-domain/info
+heldout3	01a13db5-443a-7e64-a096-4cd87c95bbd3	phish	credential	docusign	"DocuSign" with a password field on ipv64.net (same kit)	brand-name-off-domain/high
+heldout3	01a13db5-8338-7509-9d99-29c40d3976f6	phish	lure	google	"Gmail" fake Google alert on qkbzp.com	brand-presented-off-domain/info
+heldout3	01a13db5-c8e8-7050-9a95-125cc83c44cf	phish	credential	docusign	"DocuSign" with a password field on ipv64.de (same kit)	brand-name-off-domain/high
+heldout3	01a13db5-eae3-774a-aeca-9f7db6f32140	phish	gate	-	"Access Restricted" VPN/bot gate on netlify.app	
+heldout3	01a13db6-12b1-73b4-a362-f1a095e54e06	phish	payment	pichincha	Banco Pichincha loan form (same kit) on vercel.app	form-on-free-hosting/medium,kit-match/medium
+heldout3	01a13db6-4997-7996-9835-7a218d0af687	phish	payment	usps	"USPS Digital Debit" on sonycash.com	brand-presented-off-domain/info
+heldout3	01a13db6-8d32-7ce1-bb23-049cf61a237d	phish	credential	google	Gmail sign-in clone with a password field on github.io	brand-name-off-domain/high,form-on-free-hosting/medium
+heldout3	01a13dc8-1cfa-79f5-a22d-8e5a156de9b4	phish	lure	google	"Gmail" fake Google alert on qkbzp.com	brand-presented-off-domain/info
+heldout3	01a13dc9-b9fd-7bf4-813e-3712ff9a8520	real-site	-	roblox	a game page on www.roblox.com itself	
+heldout3	01a13dca-66b5-7cf4-8657-4ba6ca7c2881	phish	lure	google	"Gmail" fake Google alert on szlxskj.com (same kit)	brand-presented-off-domain/info
+heldout3	01a13dca-a9ba-74e1-b2ea-0db087b75d40	phish	lure	google	"Gmail" fake Google alert on tchhnxn.com (same kit)	brand-presented-off-domain/info
+heldout3	01a13dca-eae4-798f-afb7-457d93152d11	phish	lure	google	"Gmail" fake Google alert on thinkingol.com (same kit)	brand-presented-off-domain/info
+heldout3	01a13dcb-3459-7b01-bc33-2052f5a41cb6	benign	-	-	tinyurl.com homepage (the short link was taken down)	
+heldout3	01a13dcb-89a5-7200-9102-e1466503cd6d	phish	credential	docusign	"DocuSign" with a password field on ddnss.org (same kit)	brand-name-off-domain/high
+heldout3	01a13dcc-483c-7bc7-8de6-36d068e3f147	phish	credential	docusign	"DocuSign" with a password field on cloud-ip.cc (same kit)	brand-name-off-domain/high
+heldout3	01a13dcc-a2ed-79f8-82ee-776b4020e577	phish	credential	docusign	"DocuSign" with a password field on ddnss.de (same kit)	brand-name-off-domain/high,form-on-free-hosting/medium
+heldout3	01a13dcc-eef6-71a9-a68e-306226f0481d	phish	credential	docusign	"DocuSign" with a password field on dyn-ip24.de (same kit)	brand-name-off-domain/high
+heldout3	01a13dcd-4e18-7abc-ab12-f6e221dcc2a4	phish	gate	microsoft	Outlook "confirming it's you" check on checkandbalancefirm.top (same kit)	brand-presented-off-domain/info
