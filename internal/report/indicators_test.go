@@ -128,3 +128,59 @@ func TestKitMatch(t *testing.T) {
 		}
 	}
 }
+
+func TestGates(t *testing.T) {
+	dir := t.TempDir()
+	write := func(name, body string) string {
+		p := filepath.Join(dir, name)
+		os.WriteFile(p, []byte(body), 0o600)
+		return p
+	}
+	turnstile := []*reportv0.Flow{{Sni: "challenges.cloudflare.com"}}
+	fakeCF := write("fakecf.html", `<div class="box"><input type="checkbox"><span>Verify you are human</span><div>CLOUDFLARE</div><a>Privacy</a> · <a>Help</a></div>`)
+	orange := write("orange.html", `<img alt=""><h2>Vérification de sécurité</h2><p>Veuillez saisir le code de sécurité affiché ci-dessous.</p><canvas></canvas><input type="text"><button>Valider</button>`)
+	outlook := write("outlook.html", `<script src="https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit"></script><h1>Outlook</h1><p>One moment — confirming it's you</p><p>Complete the check below to continue</p><div id="ts"></div><p>Microsoft</p>`)
+	blocked := write("blocked.html", `<div class="card"><h1>Access Restricted</h1><p>We could not verify your connection. This site only allows traffic from legitimate internet service providers and blocks anonymous proxies, VPNs, and automated clients.</p><a href="/">Go back</a></div>`)
+	netflix := write("netflix.html", `<h1>Enter your info to sign in</h1><p>Or get started with a new account.</p><input type="email"><input type="password"><button>Continue</button><p>Get Help</p><p>This page is protected by Google reCAPTCHA to ensure you're not a bot.</p>`)
+	ruCaptcha := write("ru.html", `<p>Введите капчу</p><input type="text"><button>Войти</button>`)
+	long := write("long.html", `<h1>Security check</h1><p>`+strings.Repeat("our community guidelines explain how moderation works here. ", 12)+`</p>`)
+
+	type tc struct {
+		name, final, title, dom string
+		flows                   []*reportv0.Flow
+		passwords               uint32
+		want                    string
+	}
+	for _, c := range []tc{
+		{name: "Cloudflare box drawn in HTML, no Cloudflare", final: "https://professionellerkurier-paketservicex.ink/", title: "Verify you are human", dom: fakeCF,
+			want: "fake-human-check:"},
+		{name: "the same box with the real Turnstile loaded", final: "https://shop.example/", title: "Just a moment...", dom: fakeCF, flows: turnstile, want: ""},
+		{name: "Orange digit CAPTCHA drawn by the page", final: "https://connexion-auth.toclw.xyz/", title: "Vérification CAPTCHA", dom: orange,
+			want: "fake-human-check:"},
+		{name: "Outlook behind a real Turnstile, off Microsoft", final: "https://check.checkandbalancefirm.top/", title: "Outlook", dom: outlook, flows: turnstile,
+			want: "brand-name-off-domain:microsoft"},
+		{name: "Revolut's own Cloudflare check", final: "https://app.revolut.com/", title: "Revolut", dom: fakeCF, want: ""},
+		{name: "VPN block page on netlify", final: "https://statuesque-dragon-151da0.netlify.app/", title: "Access Restricted", dom: blocked,
+			want: "block-page-on-free-hosting:"},
+		{name: "VPN block page on a company's own domain", final: "https://portal.example.com/", title: "Access Forbidden", dom: blocked, want: ""},
+		{name: "sign-in page that mentions reCAPTCHA", final: "https://login.example.com/", title: "Sign in", dom: netflix, passwords: 1, want: ""},
+		{name: "Russian captcha wording", final: "https://captcha-shrew.sion10.to/", title: "Captcha", dom: ruCaptcha, want: "fake-human-check:"},
+		{name: "a long page that mentions a security check", final: "https://forum.example/", title: "Rules", dom: long, want: ""},
+	} {
+		r := &reportv0.Report{
+			Navigation: &reportv0.Navigation{FinalUrl: c.final, Title: c.title},
+			Page:       &reportv0.Page{PasswordFields: c.passwords},
+			Network:    &reportv0.Network{Flows: c.flows},
+		}
+		var got []string
+		for _, i := range indicators(r, c.dom) {
+			if i.GetId() == "brand-presented-off-domain" {
+				continue
+			}
+			got = append(got, i.GetId()+":"+i.GetBrand())
+		}
+		if s := strings.Join(got, " "); s != c.want {
+			t.Errorf("%s: got %q, want %q", c.name, s, c.want)
+		}
+	}
+}

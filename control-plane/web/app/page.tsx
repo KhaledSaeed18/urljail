@@ -56,7 +56,7 @@ export default async function Home({ searchParams }: { searchParams: Promise<Rec
             {view !== 'all' && <input type="hidden" name="view" value={view} />}
             <select name="indicator" defaultValue={indicator} aria-label="Only runs with this indicator">
               <option value="">any indicator</option>
-              {['brand-name-off-domain', 'brand-favicon-off-domain', 'kit-match', 'brand-look-off-domain', 'brand-lookalike-domain', 'form-on-free-hosting',
+              {['brand-name-off-domain', 'brand-favicon-off-domain', 'kit-match', 'brand-look-off-domain', 'brand-lookalike-domain', 'form-on-free-hosting', 'fake-human-check', 'block-page-on-free-hosting',
                 'password-form-cross-origin', 'blob-document', 'brand-presented-off-domain'].map((i) => <option key={i} value={i}>{i}</option>)}
             </select>{' '}
             <button type="submit">Filter</button>

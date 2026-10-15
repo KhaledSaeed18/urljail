@@ -63,6 +63,9 @@ func indicators(r *reportv0.Report, domPath string) []*reportv0.Indicator {
 	// which catches device-code phishing ("use the code below to sign in": no password asked,
 	// found in P7 on a DocuSign look-alike).
 	heads, classHeads := headings(domPath)
+	pt, havePage := readPageText(domPath)
+	gatePhrase, gate := isGate(pt, r.GetNavigation().GetTitle())
+	gate = gate && havePage
 	title := titleWithoutHost(r.GetNavigation().GetTitle(), r.GetNavigation().GetFinalUrl())
 	text := title + " \n " + strings.Join(heads, " \n ") + " \n " + strings.Join(classHeads, " \n ")
 	if named := brands.Named(text); len(named) > 0 {
@@ -88,6 +91,13 @@ func indicators(r *reportv0.Report, domPath string) []*reportv0.Indicator {
 				Id: "brand-name-off-domain", Severity: "medium", Brand: b.ID, Source: guestDOM,
 				Detail: fmt.Sprintf("The page names %s in its title or headings with sign-in wording, on %s (no password field)", b.Name, domain),
 			})
+		case gate:
+			// A brand's page behind a human check: what the kit shows first (found in P7: an
+			// Outlook "confirming it's you" Turnstile page on law-firm and .top domains).
+			out = append(out, &reportv0.Indicator{
+				Id: "brand-name-off-domain", Severity: "medium", Brand: b.ID, Source: guestDOM,
+				Detail: fmt.Sprintf("The page names %s in its title or headings and is a human check (%q), on %s", b.Name, gatePhrase, domain),
+			})
 		}
 	}
 
@@ -106,6 +116,14 @@ func indicators(r *reportv0.Report, domPath string) []*reportv0.Indicator {
 				out = append(out, &reportv0.Indicator{
 					Id: "form-on-free-hosting", Severity: "medium", Source: guestDOM,
 					Detail: fmt.Sprintf("A form asking for details on %s, a free hosting service anyone can publish to (%s)", u.Hostname(), svc),
+				})
+			case havePage && blocksProxies(pt):
+				// What a cloaking kit shows a visitor from a VPN or a data centre: a block page, on
+				// free hosting where a real service wouldn't sit (found in P7: one "Access
+				// Restricted" kit on ten netlify.app sites).
+				out = append(out, &reportv0.Indicator{
+					Id: "block-page-on-free-hosting", Severity: "medium", Source: guestDOM,
+					Detail: fmt.Sprintf("A short page turning away VPN and proxy visitors on %s, a free hosting service anyone can publish to (%s)", u.Hostname(), svc),
 				})
 			}
 		}
@@ -172,6 +190,17 @@ func indicators(r *reportv0.Report, domPath string) []*reportv0.Indicator {
 				}
 			}
 		}
+	}
+
+	// A human check drawn by the page itself: real ones come from a CAPTCHA service, and a short
+	// page that asks the visitor to prove they're human without one is imitating it (found in P7:
+	// a Cloudflare "Verify you are human" box drawn in HTML on typo-squats, an Orange-branded
+	// digit CAPTCHA). Not on brands' own domains.
+	if gate && !ownedByBrand && challengeLoaded(r, pt.srcs) == "" {
+		out = append(out, &reportv0.Indicator{
+			Id: "fake-human-check", Severity: "medium", Source: guestDOM,
+			Detail: fmt.Sprintf("A short page asks the visitor to prove they're human (%q) but loads no CAPTCHA service, on %s", gatePhrase, domain),
+		})
 	}
 
 	if h, err := visual.Parse(page.GetScreenshotPhash()); err == nil {

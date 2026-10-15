@@ -176,3 +176,24 @@ References retaken at 04:00, when the VPN exit was fast: 73 (57 sign-in screensh
 - **kit-match: right every time, never alone.** Six hits, all phishing: yesterday's Banco Pichincha loan form on four new replit/vercel hosts (the case it was built for), and two Framer pages (a Gmail and an Eastlink clone) matching yesterday's Framer Microsoft clone, which may be Framer's template as much as a kit (framer.app and framer.website are the same builder). Every one was also caught by `form-on-free-hosting`. It missed the eight "Access Restricted" gates (too little HTML to fingerprint) and kits first seen today.
 - **What carries detection is still the brand named off its domain** (18 of its 27 hits had nothing else). By kind, at medium and up: credential pages 27 of 31, payment and details 4 of 6, lures 3 of 34, gates 0 of 16, device-code 0 of 1 (a OneDrive "enter this code at microsoft.com/devicelogin" page).
 - No false positives at medium or up, on 22 non-phishing pages (tutorial clones, two companies' phishing-awareness training pages, an education site, a slot-review site).
+
+### S9: gates (2026-10-15)
+
+28 of the labelled phishing pages (all sets) were gates: a page that asks for nothing and stands in front of the kit. None was flagged at medium or up. Four kinds:
+
+| Gate | Pages | What it is |
+| --- | --- | --- |
+| "Access Restricted" | 10 | One kit on netlify.app: "this site blocks anonymous proxies, VPNs, and automated clients". Our exit is a VPN: this is the kit's cloak, served instead of the phishing page |
+| "Verify you are human" | 6 | A Cloudflare Turnstile box drawn in the page's own HTML (logo, "Privacy · Help"), no Cloudflare loaded; typo-squats and parcel/rewards domains |
+| Outlook "confirming it's you" | 5 | Outlook-branded, a real Turnstile widget, on a law firm's and .top domains |
+| "Vérification CAPTCHA" etc. | 7 | An Orange-branded digit CAPTCHA drawn on a canvas, a Spotify reCAPTCHA "redirecting" page, a "Security Check" in front of a password page, a bare "Verification Required" |
+
+All 28 are short: 3 to 43 visible words. 21 load no CAPTCHA service at all. Three rules, each on pages of 60 words or fewer:
+
+- `fake-human-check` (medium): human-check wording ("verify you are human", "captcha" as a word, so not "protected by reCAPTCHA", "security check", "confirming it's you", in French, Spanish, Portuguese, German, Italian and Russian), and no CAPTCHA service contacted or embedded (Cloudflare challenges, hCaptcha, reCAPTCHA, Arkose, GeeTest, Friendly Captcha, MTCaptcha). Never on a brand's own domain.
+- `brand-name-off-domain` gains a medium case: the brand named in the title or headings of a human-check page, off the brand's domain (the Outlook Turnstile kit, the Spotify reCAPTCHA page).
+- `block-page-on-free-hosting` (medium): a short page turning away VPN or proxy visitors ("vpn", "proxy" with "restricted", "blocked", "denied", "forbidden") on free hosting. Off free hosting it stays silent: Amazon's internal sign-in portal says the same thing to our exit.
+
+On the 296 labelled pages: gates caught **27 of 28** (was 0); the three rules fired on 21 phishing pages and **none of the 81 others**. The one left is a brandless "Verification Required" page with a real Turnstile: the same as a legitimate site behind one. Across all 4,450 captured pages (rebuilt): the rules fired only on OpenPhish URLs and on ten CT-discovered `captcha-<word>.sion10.to` / `sion6.at` pages ("Введите капчу", a Russian "enter the captcha / log in" page on random subdomains, one of which Cloudflare already shows as "Suspected Phishing"); never on a control run (Tranco top sites, sign-in pages of 40 brands, the real Netflix and Spotify sign-ins that mention reCAPTCHA, Revolut behind a real Cloudflare challenge).
+
+**These are tuned on every labelled gate.** The 27 of 28 is in-sample; they need a fourth held-out set before they count.
