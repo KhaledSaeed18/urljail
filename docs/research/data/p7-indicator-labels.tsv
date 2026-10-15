@@ -295,3 +295,59 @@ heldout3	01a13dcc-483c-7bc7-8de6-36d068e3f147	phish	credential	docusign	"DocuSig
 heldout3	01a13dcc-a2ed-79f8-82ee-776b4020e577	phish	credential	docusign	"DocuSign" with a password field on ddnss.de (same kit)	brand-name-off-domain/high,form-on-free-hosting/medium
 heldout3	01a13dcc-eef6-71a9-a68e-306226f0481d	phish	credential	docusign	"DocuSign" with a password field on dyn-ip24.de (same kit)	brand-name-off-domain/high
 heldout3	01a13dcd-4e18-7abc-ab12-f6e221dcc2a4	phish	gate	microsoft	Outlook "confirming it's you" check on checkandbalancefirm.top (same kit)	brand-presented-off-domain/info
+heldout4	01a13eaa-843b-7923-9632-18b7fb61e5a4	benign	-	-	credit-repair consultancy site (CT discovery)	
+heldout4	01a13eb6-1da4-74ba-a682-f927b04d1a8c	benign	-	-	German site behind its host's own "please wait while your request is being verified" bot check (CT)	
+heldout4	01a13eba-b136-7a43-818d-59cccdda71a5	real-site	-	cloudflare	Cloudflare Access sign-in for a team (CT)	
+heldout4	01a13ec9-3d3d-720b-8c95-f7cbb6d4cd2c	benign	-	-	N4 Business Services site (CT)	
+heldout4	01a13efa-cb16-7524-a468-e1a533543596	unsure	-	amazon	Greek "GlobalShop" tool store on amazontt0.shop: likely a scam shop, not credential phishing (CT)	
+heldout4	01a13f0b-4659-75db-bbef-8504a0acae2c	unsure	-	whatsapp	"LuckSoft — WhatsApp" admin panel login on pages.dev: a WhatsApp CRM's own panel or a clone (CT)	brand-name-off-domain/high,form-on-free-hosting/medium
+heldout4	01a13f0f-da52-73d2-9447-f453d4ec0595	real-site	-	linkedin	a LinkedIn profile on linkedin.com (CT)	
+heldout4	01a13f4d-d300-796c-9277-f92a1ed1179e	benign	-	-	microsoft-security.com parked at Safenames, Microsoft's brand-protection registrar (CT)	
+heldout4	01a13f71-4da9-70b1-a3aa-4ec91c5c1138	benign	-	-	Japanese True Data Inc. service login (CT)	
+heldout4	01a13f87-d8b3-7d28-b0fb-a5f588709859	benign	-	-	Chinese serial novel site "Binance: The Final Twelve" (CT discovery)	brand-presented-off-domain/info
+heldout4	01a13f9b-b3a4-7ebd-b865-e94071f7e7c5	real-site	-	meta	pages.dev link redirected to the real facebook.com login (cloaked)	
+heldout4	01a13f9c-19b8-71fb-9dc2-8c9ac130f37d	phish	lure	ledger	"Ledger.com/Start" setup-guide lure on typedream.app	brand-presented-off-domain/info
+heldout4	01a13f9c-8f02-7d71-b921-2e5ebf9ecd8b	phish	lure	ledger	"Ledgér.com/Start" setup-guide lure on typedream.app (same kit)	
+heldout4	01a13fa0-ab2e-7737-a7cb-3376a111cf6b	real-site	-	meta	pages.dev link redirected to the real facebook.com login (cloaked)	
+heldout4	01a13fac-d8ab-7589-9f2d-4cde8a4bcdac	benign	-	-	Brazilian wine blog on wordpress.com (CT discovery)	form-on-free-hosting/medium
+heldout4	01a13faf-a547-7758-82e9-34ece1b18963	phish	credential	meta	Facebook-style Vietnamese login (phone/email + password) behind a "free course" title, on mfacebooks.com.vn	brand-lookalike-domain/medium
+heldout4	01a13fb2-4a42-7bf2-a907-cd0f361aec02	benign	-	netflix	Netflix homepage clone (tutorial) on github.io	brand-presented-off-domain/info
+heldout4	01a13fb2-9e56-72cb-9fb7-eda7eec1fae5	phish	lure	steam	Steam Community friend-invite lure on netlify.app	brand-presented-off-domain/info,kit-match/medium
+heldout4	01a13fb3-9f1a-7bfe-a243-3dec70518049	phish	lure	meta	"Meta Verified" blue-badge lure with "Submit Request", on vercel.app	brand-name-off-domain/medium
+heldout4	01a13fb4-08b7-7d3b-8304-4db568387534	phish	credential	govbr	gov.br sign-in clone asking for the CPF, with a drawn "Não sou um robô" box, on programagovregulariza.org	fake-human-check/medium
+heldout4	01a13fb5-b6ef-7a76-bc6d-feb1696d6b27	phish	credential	roblox	"Log in to Roblox" with a password field on cu.ma	brand-name-off-domain/high
+heldout4	01a13fb6-6e35-780c-9e95-9ba6b08d0e61	phish	lure	shopee	Shopee prize-draw scam on blogspot.com	brand-presented-off-domain/info
+heldout4	01a13fb6-d014-7243-a0a7-6abc1ae8f79d	phish	lure	shopee	Shopee prize-draw scam on blogspot.com (same kit)	brand-presented-off-domain/info
+heldout4	01a13fca-72e3-75e6-b6af-caf208d74f7e	benign	-	-	Brazilian wine blog on wordpress.com (CT, seen again)	form-on-free-hosting/medium
+heldout4	01a13fce-3a10-78b2-9c66-3d9158be96d0	real-site	-	meta	link redirected to the real facebook.com login (cloaked)	
+heldout4	01a13fd3-e0a8-778f-9fc4-e46b33cb28c3	phish	credential	spectrum	Spectrum (Charter) sign-in clone with username and password on framer.app	form-on-free-hosting/medium,kit-match/medium
+heldout4	01a13fd4-9ead-790c-9ebe-4407f460c37c	phish	gate	-	"Access Restricted" VPN/bot gate on netlify.app (same kit)	block-page-on-free-hosting/medium
+heldout4	01a13fe0-3432-78f5-ad31-b19f9c836ddb	benign	-	-	local sports blog on wordpress.com (CT discovery)	form-on-free-hosting/medium
+heldout4	01a13fe6-2395-7969-a410-6df868e83b81	phish	credential	meta	"Become Meta Verified" email and password form on vercel.app	brand-name-off-domain/high,form-on-free-hosting/medium
+heldout4	01a13fe8-83f8-7088-85db-066659f42f6c	phish	lure	whatsapp	WhatsApp "Open app / Continue to WhatsApp Web" page copy on carollinaromer.com	brand-presented-off-domain/info
+heldout4	01a13fe9-f774-74fa-a514-64f02a412da6	phish	lure	whatsapp	WhatsApp-styled "send a message / video call" contact lure on blogspot.com	brand-presented-off-domain/info
+heldout4	01a13fec-ad0e-7b6a-9799-0cf4f15bae52	phish	lure	shopee	Shopee prize-draw scam on blogspot.com (same kit)	brand-presented-off-domain/info
+heldout4	01a13fed-69dd-7123-96fb-6459b9c6c9f3	real-site	-	meta	link redirected to the real facebook.com login (cloaked)	
+heldout4	01a13fee-995e-73bc-bed2-c2ee7d517f5b	phish	credential	discord	unstyled Discord "Welcome back!" phone (+62) and password form on github.io	brand-name-off-domain/high,form-on-free-hosting/medium
+heldout4	01a13ff4-1cbf-757c-bde2-8a7a9ca65214	phish	lure	dana	DANA PayLater "activate" menu on netlify.app	
+heldout4	01a13ff6-3191-7cd7-bc49-9250d7069c46	benign	-	-	local sports blog on wordpress.com (CT, seen again)	form-on-free-hosting/medium
+heldout4	01a14008-c0a5-7c5a-8315-d58ab60afd96	phish	gate	-	"Access Restricted" VPN/bot gate on netlify.app (same kit)	block-page-on-free-hosting/medium
+heldout4	01a14009-045a-7c96-9436-04941b0452d9	phish	credential	meta	Arabic Facebook login clone with a password field on github.io	form-on-free-hosting/medium
+heldout4	01a1400b-ba5f-7c5e-a7f2-25720d56bdf9	benign	-	netflix	"Netflix Clone" tutorial page on github.io	brand-presented-off-domain/info
+heldout4	01a1400c-3838-70d0-8c01-18690ae4c367	phish	gate	flybuys	"Flybuys – Sign In" title serving the "Access Restricted" VPN/bot gate on netlify.app	block-page-on-free-hosting/medium
+heldout4	01a1400c-aae9-7f0a-866c-6290c8abef4d	phish	credential	zimbra	"Zimbra Web Client Sign In" with a password field on pages.dev	password-form-cross-origin/medium,form-on-free-hosting/medium
+heldout4	01a1400d-11dd-74b2-9e48-a5a5a19661fb	phish	credential	-	brandless webmail login with a password field on 4everland.app	form-on-free-hosting/medium,kit-match/medium
+heldout4	01a14010-fea4-73ff-8093-4aa59971e5c9	phish	gate	-	"Access Restricted" VPN/bot gate on netlify.app (same kit)	block-page-on-free-hosting/medium
+heldout4	01a14011-58d2-7408-8396-815bc602c762	phish	lure	ledger	"ledger.com/start" setup-guide lure on gitbook.io	
+heldout4	01a14012-262a-74fb-a611-adfbfd7f3f90	benign	-	-	Masaryk University's real homepage (www.muni.cz), reached from a feed URL	
+heldout4	01a14019-9df3-7ae1-981c-759739f368eb	benign	-	-	Japanese note-taking app site (CT discovery)	
+heldout4	01a14021-3928-79fd-bcbf-fd4f34e976fb	phish	credential	meta	Instagram login clone with a password field on netlify.app	brand-name-off-domain/high,form-on-free-hosting/medium
+heldout4	01a14021-aa70-7593-b607-cd72a7967800	benign	-	netflix	Netflix homepage clone (tutorial) on vercel.app	brand-presented-off-domain/info
+heldout4	01a14023-0768-73c3-89f1-1e29a7194b73	phish	lure	meta	"Meta Verified" blue-badge lure on vercel.app (same kit, seen again)	brand-name-off-domain/medium
+heldout4	01a14025-0703-795e-a547-21a2c14ef35d	benign	-	netflix	Netflix homepage clone (tutorial) on github.io	brand-presented-off-domain/info
+heldout4	01a14026-afb4-7e89-9f8e-26a202ac765f	real-site	-	meta	link redirected to the real facebook.com login (cloaked)	
+heldout4	01a14030-dd1f-7d75-9caa-17fe53ed8d8b	unsure	-	-	"BTC-Orizelle 960" AI crypto-trading investment scam site: a scam, not credential phishing (CT)	
+heldout4	01a1404d-b0bc-7186-b690-2f5e86973a6c	benign	-	-	Iranian shop reselling premium accounts (Spotify, Telegram, ChatGPT) (CT)	
+heldout4	01a14052-932e-7a8c-b7e6-654ef56634f9	unsure	-	motorola	Motorola x Orange cashback-offers page loaded from a promo agency API, no form; likely authorised, unverified (CT)	
+heldout4	01a14052-e2d3-7a75-ac1a-2df9bb120444	benign	-	-	"SUMP" DNI sign-in on a Firebase Studio prototype, no brand imitated (CT)	
+heldout4	01a14087-8b99-7826-b7ae-1a8b61f90f3f	unsure	-	-	Vietnamese gambling (23WIN) on a re-used .co.in domain (CT)	

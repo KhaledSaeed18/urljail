@@ -199,3 +199,28 @@ All 28 are short: 3 to 43 visible words. 21 load no CAPTCHA service at all. Thre
 On the 296 labelled pages: gates caught **27 of 28** (was 0); the three rules fired on 21 phishing pages and **none of the 81 others**. The one left is a brandless "Verification Required" page with a real Turnstile: the same as a legitimate site behind one. Across all 4,450 captured pages (rebuilt): the rules fired only on OpenPhish URLs and on ten CT-discovered `captcha-<word>.sion10.to` / `sion6.at` pages ("Введите капчу", a Russian "enter the captcha / log in" page on random subdomains, one of which Cloudflare already shows as "Suspected Phishing"); never on a control run (Tranco top sites, sign-in pages of 40 brands, the real Netflix and Spotify sign-ins that mention reCAPTCHA, Revolut behind a real Cloudflare challenge).
 
 **These are tuned on every labelled gate.** The 27 of 28 is in-sample; they need a fourth held-out set before they count.
+
+### S10: fourth held-out set (2026-10-15 afternoon): the gate rules
+
+Frozen at `1623cdd` (11:23). OpenPhish refreshed at about 15:20 (300 URLs); the loop ran each fresh batch, then 15 minutes of CT watch, until 20:00. From 15:36 a fuzzer (not urljail) took six of the eight cores: most of that batch failed with guest-agent deadlines, so the loop was stopped until it ended (16:37) and restarted to pause whenever it runs. 85 fresh URLs passed the 3-hour age limit in that hour and were never run. Of 308 runs, 56 pages loaded (36 OpenPhish, 20 CT); 84 others were Cloudflare's own "Suspected Phishing" / "Suspected Malware" interstitial (mostly CT `pages.dev` hosts Cloudflare had already caught), the rest errors and timeouts. Labelled blind: **56 pages: 26 phishing, 18 benign, 7 the brand's real site, 5 unsure**.
+
+| | Phishing flagged (of 26) | Others flagged (of 25) |
+| --- | --- | --- |
+| High | 4 (15 %) | 0 |
+| Medium and up | 17 (65 %) | 4 |
+
+| Indicator | Fired on phishing | Only indicator on | Others |
+| --- | --- | --- | --- |
+| form-on-free-hosting | 7 | 1 | **4** |
+| brand-name-off-domain | 6 | 3 | 0 |
+| block-page-on-free-hosting | 4 | 4 | 0 |
+| kit-match | 3 | 1 | 0 |
+| fake-human-check | 1 | 1 | 0 |
+| brand-lookalike-domain | 1 | 1 | 0 |
+| password-form-cross-origin | 1 | 0 | 0 |
+| brand-presented-off-domain (info) | 7 | – | 5 |
+
+- **Gates: 4 of 4, no false alarm.** All four were the "Access Restricted" netlify kit, caught by `block-page-on-free-hosting` and by nothing else (one titled "Flybuys – Sign In": the kit's page behind its cloak). `fake-human-check` fired once, rightly, on a gov.br clone asking for the CPF with a drawn "Não sou um robô" box. The fake Cloudflare box and the Outlook "confirming it's you" kit didn't come back this afternoon, so those cases are still in-sample only. Neither rule fired on a host's own "please wait while your request is being verified" bot page (a German company site) or on any other non-phishing page.
+- **kit-match alone, for the first time:** the Steam friend-invite lure from yesterday on a new netlify host (79 % alike), with nothing else flagging it. Its other two hits: a Framer Spectrum clone matching yesterday's Framer page (the template again), and a brandless webmail login on 4everland.app identical to a vercel one.
+- **By kind, at medium and up:** credential pages 10 of 10, gates 4 of 4, lures 3 of 12 (two "Meta Verified" pages, the Steam lure). Missed: three copies of a Shopee prize-draw scam on blogspot, three Ledger "setup guide" pages (typedream, gitbook), two WhatsApp-styled contact pages and a DANA PayLater menu: pages that ask for nothing and name the brand only in the body.
+- **The four false alarms are one cause:** `form-on-free-hosting` on two wordpress.com blogs (a Brazilian wine blog and a sports blog, each captured twice). Their WordPress comment form (comment, name, email, website) counts as a form asking for details. The first false alarms at medium in any held-out set; fixed below (S11).
