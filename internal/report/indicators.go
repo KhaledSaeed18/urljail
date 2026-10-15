@@ -240,11 +240,16 @@ func hasBrandIndicator(in []*reportv0.Indicator) bool {
 // payment" page asked for names, addresses and account numbers, never a password.
 func asksForDetails(forms []*reportv0.Form) bool {
 	for _, f := range forms {
+		if commentForm(f) {
+			continue
+		}
 		n := 0
 		for _, x := range f.GetFields() {
 			switch x.GetType() {
 			case "text", "email", "tel", "number", "date", "textarea":
-				n++
+				if !machineFilled[strings.ToLower(x.GetName())] {
+					n++
+				}
 			}
 		}
 		if n >= 2 {
@@ -253,6 +258,41 @@ func asksForDetails(forms []*reportv0.Form) bool {
 	}
 	return false
 }
+
+// machineFilled are hidden textareas a CAPTCHA widget fills in, not fields a person types into.
+var machineFilled = map[string]bool{"g-recaptcha-response": true, "h-captcha-response": true, "cf-turnstile-response": true}
+
+// commentForm: a comment or contact form, a message box and nothing past what a comment needs
+// (name, email, website, subject). Found in P7, S10: WordPress's comment form (comment, author,
+// email, url) on wordpress.com blogs. A recovery-phrase textarea, or a phone number or second
+// email beside the message (a Meta "appeal" kit), still counts.
+func commentForm(f *reportv0.Form) bool {
+	message := false
+	for _, x := range f.GetFields() {
+		name := strings.ToLower(x.GetName())
+		switch x.GetType() {
+		case "textarea":
+			if !messageNames[name] {
+				return false
+			}
+			message = true
+		case "password":
+			return false
+		case "text", "email", "url", "tel", "number", "date":
+			if !commentNames[name] {
+				return false
+			}
+		}
+	}
+	return message
+}
+
+var (
+	messageNames = map[string]bool{"comment": true, "message": true, "msg": true, "body": true, "content": true,
+		"feedback": true, "enquiry": true, "inquiry": true, "your-message": true}
+	commentNames = map[string]bool{"author": true, "name": true, "email": true, "url": true, "website": true, "subject": true,
+		"your-name": true, "your-email": true, "your-subject": true}
+)
 
 // maxHeadingText caps the heading text read from the DOM.
 const maxHeadingText = 4 << 10
