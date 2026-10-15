@@ -195,7 +195,9 @@ type Ref struct {
 
 // Threshold is the similarity from which two pages count as one kit. On P7's labelled pages,
 // leave-one-out and across sites: 0.6 and 0.7 both matched 17 of 66 phishing pages to another
-// and none of 61 others; 0.7 leaves margin (journal P7, S7).
+// and none of 61 others; 0.7 leaves margin (journal P7, S7). Rechecked with the references of
+// all labelled sets (S13): 49 of 137 phishing pages, none of 102 others; the closest of those
+// others is 0.53.
 const Threshold = 0.7
 
 //go:embed refs.json
