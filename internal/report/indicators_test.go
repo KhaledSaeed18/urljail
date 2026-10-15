@@ -194,3 +194,45 @@ func TestGates(t *testing.T) {
 		}
 	}
 }
+
+func TestLureIndicators(t *testing.T) {
+	dir := t.TempDir()
+	page := func(name, body string) string {
+		p := filepath.Join(dir, name)
+		os.WriteFile(p, []byte(body), 0o600)
+		return p
+	}
+	alert := page("alert.html", `<p>⚠️ Security alert: your Android has been hacked</p><a>Remove Viruses Now</a>`)
+	prize := page("prize.html", `<p>SELAMAT KEPADA PARA PEMENANG HADIAH RESMI DARI SHOPEE</p>`)
+	tutorial := page("tutorial.html", `<a>Sign In</a><h2>Unlimited movies, TV shows and more</h2><a>Get Started</a>`)
+	blank := page("blank.html", ``)
+	for _, c := range []struct{ name, final, title, dom, want string }{
+		{"a setup-guide lure writes the brand's domain", "https://start-en-ledger.typedream.app/", "Ledger.com/Start | Getting started", blank,
+			"brand-domain-in-title:ledger"},
+		{"the domain written with an accent", "https://x.typedream.app/", "Ledgér.com/Start | Getting started", blank,
+			"brand-domain-in-title:ledger"},
+		{"an official claim off the brand's domain", "https://ledger-us-live-app.typedream.app/", "Ledger® Live App | Official Site®", blank,
+			"brand-official-claim:ledger brand-presented-off-domain:ledger"},
+		{"a brand's own site may call itself official", "https://www.ledger.com/", "Ledger® Live App | Official Site®", blank, ""},
+		{"a longer host isn't the brand's domain", "https://x.example/", "Ledger.community notes and xledger.com", blank, ""},
+		{"a disguised brand name", "https://pro-help-suite.typedream.app/", "Trézór Suite | Desktop & Web", blank,
+			"brand-name-disguised:trezor"},
+		{"disguised in the title, plain in a heading", "https://pro-help-suite.typedream.app/", "Trézór Suite", page("plain.html", `<h1>Trezor Suite: your gateway</h1>`),
+			"brand-name-disguised:trezor brand-presented-off-domain:trezor"},
+		{"a plainly spelled brand isn't disguised", "https://x.example/", "Trezor Suite review", blank, "brand-presented-off-domain:trezor"},
+		{"a fake Google alert", "https://qkbzp.com/", "Gmail", alert, "brand-alert-off-domain:google brand-presented-off-domain:google"},
+		{"a prize draw", "https://shopee8268.blogspot.com/", "shopee", prize, "brand-offer-off-domain:shopee brand-presented-off-domain:shopee"},
+		{"a tutorial clone says neither", "https://someone.github.io/", "Netflix Clone", tutorial, "brand-presented-off-domain:netflix"},
+		{"\"you won't\" isn't a prize", "https://roblox-script.pages.dev/", "Roblox Script", page("wont.html", `<p>You won't get banned</p>`), "brand-presented-off-domain:roblox"},
+		{"the brand's own alert", "https://accounts.google.com/", "Google", alert, ""},
+	} {
+		r := &reportv0.Report{Navigation: &reportv0.Navigation{FinalUrl: c.final, Title: c.title}, Page: &reportv0.Page{}}
+		var got []string
+		for _, i := range indicators(r, c.dom) {
+			got = append(got, i.GetId()+":"+i.GetBrand())
+		}
+		if s := strings.Join(got, " "); s != c.want {
+			t.Errorf("%s: got %q, want %q", c.name, s, c.want)
+		}
+	}
+}

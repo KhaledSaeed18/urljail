@@ -101,6 +101,8 @@ func indicators(r *reportv0.Report, domPath string) []*reportv0.Indicator {
 		}
 	}
 
+	out = append(out, lureIndicators(domain, append(append([]string{title}, heads...), classHeads...), pt, havePage)...)
+
 	// A password field or a details form on free hosting (found in P7: brandless webmail kits,
 	// loan forms for a bank not on the brand list, all on replit.app, vercel.app, 4everland.app,
 	// duckdns.org and the like).

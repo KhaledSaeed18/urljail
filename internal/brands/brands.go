@@ -11,6 +11,7 @@ import (
 	"unicode"
 
 	"golang.org/x/net/publicsuffix"
+	"golang.org/x/text/unicode/norm"
 
 	"github.com/KhaledSaeed18/urljail/internal/visual"
 )
@@ -86,6 +87,13 @@ var All = []Brand{
 	{"ledger", "Ledger", []string{"ledger live", "ledger wallet"}, []string{"ledger.com"}, "https://www.ledger.com/"},
 	{"sunrise", "Sunrise", []string{"sunrise mail"}, []string{"sunrise.ch"}, "https://www.sunrise.ch/"},
 	{"att", "AT&T", []string{"bellsouth", "at t mail", "att mail", "at t sign in"}, []string{"att.com", "att.net", "bellsouth.net", "yahoo.com"}, "https://www.att.com/"},
+	// Added after the fourth held-out set, from the labelled lures the list couldn't name.
+	{"kucoin", "KuCoin", []string{"kucoin"}, []string{"kucoin.com"}, "https://www.kucoin.com/"},
+	{"zoom", "Zoom", []string{"zoom"}, []string{"zoom.us", "zoom.com", "zoomgov.com"}, "https://zoom.us/signin"},
+	{"exodus", "Exodus", []string{"exodus wallet", "exodus web3"}, []string{"exodus.com"}, "https://www.exodus.com/"},
+	{"opensea", "OpenSea", []string{"opensea"}, []string{"opensea.io"}, "https://opensea.io/"},
+	{"imtoken", "imToken", []string{"imtoken"}, []string{"token.im", "imtoken.com"}, "https://token.im/"},
+	{"dana", "DANA", []string{"dana paylater", "dana cicil", "selalu ada dana"}, []string{"dana.id"}, "https://www.dana.id/"},
 	{"steam", "Steam", []string{"steam community", "steampowered"}, []string{"steampowered.com", "steamcommunity.com"}, "https://store.steampowered.com/login/"},
 }
 
@@ -349,4 +357,82 @@ func Owner(registrable string) (Brand, bool) {
 		}
 	}
 	return Brand{}, false
+}
+
+// confusables are letters from other scripts drawn like Latin ones, as kits use them to write a
+// brand so a filter matching its name misses it ("Lеdger" with a Cyrillic е).
+var confusables = map[rune]rune{
+	'а': 'a', 'е': 'e', 'о': 'o', 'р': 'p', 'с': 'c', 'у': 'y', 'х': 'x', 'і': 'i', 'ј': 'j', 'ѕ': 's', 'ԁ': 'd', 'ɡ': 'g',
+	'α': 'a', 'ο': 'o', 'ν': 'v', 'ρ': 'p', 'ι': 'i', 'κ': 'k', 'τ': 't',
+}
+
+// Fold lowercases s and writes its letters plainly: accents dropped (é → e), compatibility forms
+// unfolded (mathematical 𝐂 → c) and look-alike letters of other scripts replaced (Cyrillic е →
+// e). Found in P7: "Trézór Suite", "Ledgér.com/Start", "KÚCÔIN LÔGIN", "Ku𝐂oin Login".
+func Fold(s string) string {
+	var b strings.Builder
+	for _, r := range norm.NFKD.String(strings.ToLower(s)) {
+		if unicode.Is(unicode.Mn, r) {
+			continue
+		}
+		if c, ok := confusables[r]; ok {
+			r = c
+		}
+		b.WriteRune(unicode.ToLower(r))
+	}
+	return b.String()
+}
+
+// Disguised returns the brands text names only once its letters are folded: written with accents
+// or look-alike letters, which the brand's own pages never do.
+func Disguised(text string) []Brand {
+	plain := map[string]bool{}
+	for _, b := range Named(text) {
+		plain[b.ID] = true
+	}
+	var out []Brand
+	for _, b := range Named(Fold(text)) {
+		if !plain[b.ID] {
+			out = append(out, b)
+		}
+	}
+	return out
+}
+
+// DomainWritten returns the first brand whose own domain text writes out ("Ledger.com/Start",
+// "Trezor.io/Start"), and that domain. Matched on the folded text, as a whole host name or its
+// end ("www.ledger.com" writes ledger.com; "ledger.community" doesn't).
+func DomainWritten(text string) (Brand, string, bool) {
+	t := Fold(text)
+	for _, b := range All {
+		for _, d := range b.Domains {
+			for i := 0; ; {
+				j := strings.Index(t[i:], d)
+				if j < 0 {
+					break
+				}
+				start, end := i+j, i+j+len(d)
+				if !hostByte(t, start-1, true) && !hostByte(t, end, false) {
+					return b, d, true
+				}
+				i = start + 1
+			}
+		}
+	}
+	return Brand{}, "", false
+}
+
+// hostByte reports whether t[i] continues a host name: letters, digits and hyphens, and before
+// the domain also a dot only when it's part of a longer name ("xledger.com" isn't ledger.com,
+// "www.ledger.com" is).
+func hostByte(t string, i int, before bool) bool {
+	if i < 0 || i >= len(t) {
+		return false
+	}
+	c := t[i]
+	if c >= 'a' && c <= 'z' || c >= '0' && c <= '9' || c == '-' {
+		return true
+	}
+	// After the domain, a dot followed by a letter makes it a longer name (ledger.com.evil.io).
+	return !before && c == '.' && i+1 < len(t) && t[i+1] >= 'a' && t[i+1] <= 'z'
 }

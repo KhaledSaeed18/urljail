@@ -228,3 +228,25 @@ Frozen at `1623cdd` (11:23). OpenPhish refreshed at about 15:20 (300 URLs); the 
 ### S11: comment forms (2026-10-15)
 
 A form whose only typed-in fields are a message box (`comment`, `message`, `feedback`, `enquiry` and the like) and what a comment needs (name, email, website, subject), with no password, no longer counts as asking for details: WordPress's comment form, and contact forms like it. A textarea under any other name (a recovery phrase), or a phone number or second email beside the message (the Meta "appeal" kit in the labels), still counts. The hidden textareas CAPTCHA widgets fill (`g-recaptcha-response`, `h-captcha-response`, `cf-turnstile-response`) no longer count as fields at all; on the labelled pages they always sat beside a password field, so that changes nothing yet. Over all 5,385 stored runs, rebuilt before and after: exactly four reports change, the four wordpress.com false alarms of S10. On the 352 labelled pages, medium-and-up false alarms go from 9 to 5 (at the current rules) and no phishing page loses an indicator (126 flagged before and after). After the test, so not held-out.
+
+### S12: lures (2026-10-15 evening)
+
+Lures were the largest gap: 9 of the 77 labelled lures (all sets) flagged at medium or up. They ask for nothing and name the brand in the title or body, as do the 32 non-phishing pages with `brand-presented-off-domain` (22 tutorial clones of Netflix, Amazon, Spotify and Instagram home pages, empty "facebook" blogs, MetaMask's docs on a Vercel preview, an agency's DHL tool, a slot review, a novel titled "Binance"). Read side by side, none of those 32 says any of the following, and most lures say at least one. Six rules, all medium, never on a brand's own domain:
+
+- `brand-domain-in-title`: the title or headings write a brand's own domain ("Official Site® | Ledger.com/Start®" on typedream.app). Matched as a whole host name after folding accents.
+- `brand-name-disguised`: the title or a heading spells the brand with accents or look-alike letters ("Trézór Suite", "KÚCÔIN LÔGIN", "Ku𝐂oin"), checked per title and heading (one kit spells it plainly in a heading).
+- `brand-alert-off-domain`: a brand in the title or headings and alarm wording on the page ("has been hacked", "account suspended", "community standards", "security alert"; six languages). One Google "your Android has been hacked" kit is 12 of its 18 hits.
+- `brand-offer-off-domain`: a brand in the title or headings and prize or offer wording ("pemenang", "free robux", "credit limit offer", "oferta exclusiva").
+- `brand-official-claim`: the title names a brand and calls itself official or carries ® / ™.
+- Brands added: KuCoin, Zoom, Exodus, OpenSea, imToken, DANA.
+
+On the 352 labelled pages (in-sample: written after reading these lures):
+
+| Rules | Phishing flagged | Lures | False alarms (of 118) |
+| --- | --- | --- | --- |
+| Before | 126 of 214 | 9 of 77 | 5 |
+| Domain, disguised, alert, offer | 155 | 38 | 5 |
+| + the six brands | 160 | 43 | 5 |
+| + official claim | 165 | 47 | 5 |
+
+All 5,385 stored runs were rebuilt with each binary and diffed: every change is on a host already labelled phishing (the labelled run or its other-profile runs), except a CT "Roblox script" page where "you won" matched "you won't" (fixed before the last pass) and the Wells Fargo mortgage sandbox (labelled unsure), flagged for "preapproved": ordinary mortgage wording, the likeliest false alarm of the offer rule. The added brands give medium hits only for KuCoin and OpenSea; Zoom, Exodus and imToken get the info indicator, DANA nothing. Still missed: 30 lures, mostly straight copies of the real page (Zoom ×4, WhatsApp ×4, imToken, a Ledger download site), video-only "Meta Center" pages, document and tax lures for brands not on the list, and alerts that name the brand only in the body. The Google kit and the crypto "setup guide" pages (likely one SEO operation) carry much of the gain; the fifth held-out set measures it.
