@@ -24,7 +24,7 @@ const maxGateWords = 60
 // humanCheck is "prove you're human" wording. "captcha" counts as a word only, so "protected by
 // reCAPTCHA" on a sign-in page doesn't; Cyrillic has no \b in Go's regexp, so it's matched as text.
 var humanCheck = regexp.MustCompile(`(?i)verify(ing)? (that )?you are (a )?human|are you (a )?human|i'?m not a robot|i am not a robot|\bnot a robot\b|human verification|\bsecurity check\b|\bcaptcha\b|confirming it'?s you|complete the check|checking your browser|` +
-	`v[ée]rification de s[ée]curit[ée]|je ne suis pas un robot|no soy un robot|verificaci[óo]n de seguridad|n[ãa]o sou um rob[ôo]|verifica[çc][ãa]o de seguran[çc]a|ich bin kein roboter|sicherheits[üu]berpr[üu]fung|non sono un robot|verifica di sicurezza|` +
+	`v[ée]rification de s[ée]curit[ée]|v[ée]rification de votre navigateur|v[ée]rification anti-?bot|je ne suis pas un robot|no soy un robot|verificaci[óo]n de seguridad|n[ãa]o sou um rob[ôo]|verifica[çc][ãa]o de seguran[çc]a|ich bin kein roboter|sicherheits[üu]berpr[üu]fung|non sono un robot|verifica di sicurezza|` +
 	`капч|не робот`)
 
 // blocksProxies is a page turning visitors away for their VPN or proxy.

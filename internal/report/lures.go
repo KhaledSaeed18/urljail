@@ -24,15 +24,17 @@ var alarmWording = regexp.MustCompile(`(?i)\b(ha(s|ve) been hacked|been compromi
 	`konto (wurde |ist )?(gesperrt|deaktiviert)|akun (anda )?(telah |akan )?(diblokir|dinonaktifkan|ditangguhkan)|account ([èe] stato )?(sospeso|bloccato))\b`)
 
 // offerWording is a prize, a reward or an offer: what prize-draw and loan lures say.
-var offerWording = regexp.MustCompile(`(?i)\b(winners?|congratulations|you('ve| have)? won([ !.,:]|$)|prizes?|claim (now|your|it)|free robux|giveaway|rewards? for you|limit offer|pre-?approved|exclusive offer|` +
+var offerWording = regexp.MustCompile(`(?i)\b(winner|congratulations|you('ve| have)? won([ !.,:]|$)|prizes?|claim (now|your|it)|free robux|giveaway|rewards? for you|limit offer|pre-?approved|exclusive offer|` +
 	`hadiah|pemenang|klaim|premios?|ganador(es)?|oferta exclusiva|sorteio|ganhador(es)?|gagnant|gewinner|gewinnspiel)\b`)
 
 // officialClaim is a title calling itself official or carrying a trademark sign.
 var officialClaim = regexp.MustCompile(`(?i)\bofficial\b|®|™`)
 
-// lureIndicators adds the lure rules. segments are the title (without the host) and the headings;
-// pt the page's visible text. Never on a brand's own domain.
-func lureIndicators(domain string, segments []string, pt pageText, havePage bool) []*reportv0.Indicator {
+// lureIndicators adds the lure rules. heads are the title (without the host) and the h1/h2
+// headings, classHeads the elements whose class names them a title; pt the page's visible text.
+// Never on a brand's own domain.
+func lureIndicators(domain string, heads, classHeads []string, pt pageText, havePage bool) []*reportv0.Indicator {
+	segments := append(append([]string{}, heads...), classHeads...)
 	text := strings.Join(segments, " \n ")
 	if _, owned := brands.Owner(domain); owned {
 		return nil
@@ -42,8 +44,9 @@ func lureIndicators(domain string, segments []string, pt pageText, havePage bool
 	// A brand's own domain written in the title or headings, off it: "Official Site® |
 	// Ledger.com/Start®" on typedream.app. A page that is the brand is on its domain; one that
 	// writes it out is pointing at it (found in P7: Ledger and Trezor setup-guide pages on
-	// typedream, gitbook and pages.dev, 12 of the labelled lures).
-	if b, d, ok := brands.DomainWritten(text); ok && !b.Owns(domain) {
+	// typedream, gitbook and pages.dev, 12 of the labelled lures). Title and h1/h2 only, not
+	// "title"-classed elements, which are noisier (no page in the corpus changes with this).
+	if b, d, ok := brands.DomainWritten(strings.Join(heads, " \n ")); ok && !b.Owns(domain) {
 		out = append(out, &reportv0.Indicator{
 			Id: "brand-domain-in-title", Severity: "medium", Brand: b.ID, Source: guestDOM,
 			Detail: fmt.Sprintf("The title or headings write %s, %s's own domain, on %s", d, b.Name, domain),

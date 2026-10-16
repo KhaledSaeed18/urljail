@@ -218,6 +218,11 @@ func TestLureIndicators(t *testing.T) {
 		{"a prize draw", "https://shopee8268.blogspot.com/", "shopee", prize, "brand-offer-off-domain:shopee brand-presented-off-domain:shopee"},
 		{"a tutorial clone says neither", "https://someone.github.io/", "Netflix Clone", tutorial, "brand-presented-off-domain:netflix"},
 		{"\"you won't\" isn't a prize", "https://roblox-script.pages.dev/", "Roblox Script", page("wont.html", `<p>You won't get banned</p>`), "brand-presented-off-domain:roblox"},
+		{"a domain in a title-classed banner isn't the title", "https://someone.github.io/", "Amazon Clone",
+			page("banner.html", `<div class="banner-title">You are on amazon.com. Click here to go to amazon.in</div>`), "brand-presented-off-domain:amazon"},
+		{"\"winners\" isn't a prize", "https://adschase.example/", "AdsChase", page("winners.html", `<h2>Google ads</h2><p>Find the winners in your campaigns</p>`), "brand-presented-off-domain:google"},
+		{"a French browser check is a human check", "https://prim-factu-1.example/", "Vérification anti-bot",
+			page("navigateur.html", `<p>Vérification de votre navigateur en cours.. Veuillez patienter..</p>`), "fake-human-check:"},
 		{"the brand's own alert", "https://accounts.google.com/", "Google", alert, ""},
 	} {
 		r := &reportv0.Report{Navigation: &reportv0.Navigation{FinalUrl: c.final, Title: c.title}, Page: &reportv0.Page{}}
