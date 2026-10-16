@@ -497,3 +497,146 @@ heldout5	01a142bf-d82a-77cc-9c59-71eecccdb757	benign	-	-	"Stranger Things: The O
 heldout5	01a142c0-25c2-7be5-b9e8-858a7054e7e1	benign	-	-	"Stranger Things: The Official Store" pop-up store site (seen again)	
 heldout5	01a142c0-cec9-732b-9bad-0f5f359b9ef0	unsure	-	-	"Link is no longer available" on a tracking domain	
 heldout5	01a142c7-e953-77c2-965e-1bda67abe9cd	benign	-	-	Korean small-business ledger app on hosted.app (CT)	
+heldout6	01a144bf-5fe4-76a5-8f49-faefb6a68fab	phish	credential	ar24	AR24 registered-mail webmail login on github.io	brand-name-off-domain/high,form-on-free-hosting/medium
+heldout6	01a144bf-c03a-7bd7-95f4-80be361e853b	real-site	-	-	www.facebook.com itself	
+heldout6	01a144c0-d59f-7904-ad77-4416afe71ac4	benign	-	-	Amazon home clone (tutorial) on github.io	brand-presented-off-domain/info
+heldout6	01a144c1-0453-776e-866b-d2a29a8a3230	benign	-	-	security write-up "How a google.com ad phished Coinbase" on github.io	brand-name-off-domain/medium,brand-domain-in-title/medium,brand-alert-off-domain/medium
+heldout6	01a144c1-21d7-7d0d-bd80-a59cf1c0250f	phish	payment	dhl	DHL parcel-fee card payment form on adieforhair.com	
+heldout6	01a144c1-64d2-77f1-b020-909197c05893	phish	lure	imtoken	imToken wallet site clone on mtoken.help	brand-lookalike-domain/medium,kit-match/medium
+heldout6	01a144c1-99de-7c15-8a17-3fe38ce2900b	real-site	-	-	www.facebook.com itself	
+heldout6	01a144c1-dcb9-72e3-9ae9-6c9094bd1915	benign	-	-	Amazon India clone (tutorial) on github.io	brand-presented-off-domain/info
+heldout6	01a144c2-5d5d-7110-bd7b-299cb267fd18	phish	lure	netcoins	Netcoins exchange homepage clone on webflow.io	
+heldout6	01a144c2-9f61-7562-b33b-e3406be244f3	phish	lure	indiagov	fake Civil Registration System certificate-validation page (Government of India)	
+heldout6	01a144c2-ce4e-7d80-bddd-975728e7c064	phish	lure	ledger	Ledger homepage copy titled "Official Ledger.com/Start" on netlify.app	brand-domain-in-title/medium
+heldout6	01a144c2-e36c-75bd-8247-df726579fb3e	real-site	-	-	www.facebook.com itself	
+heldout6	01a144c3-264f-7a47-b79b-95577bf775cc	real-site	-	-	www.facebook.com itself	
+heldout6	01a144c3-6a01-71e6-8d83-b6f722c29ec8	real-site	-	-	www.facebook.com itself	
+heldout6	01a144c3-dad2-7dc0-96a8-c9ca51c26c15	benign	-	-	"Project Amazon Clone" (tutorial) on github.io	brand-presented-off-domain/info
+heldout6	01a144c4-114f-7c9e-84f2-acd48dfe2f09	phish	lure	roblox	"Get your Robux" username form on blogspot	brand-offer-off-domain/medium,brand-presented-off-domain/info
+heldout6	01a144c4-363d-7e20-9f0d-84eed597c2a6	unsure	-	-	old-design Facebook sign-up page copy (Portuguese) on github.io, likely a course clone	brand-name-off-domain/high,form-on-free-hosting/medium
+heldout6	01a144c4-50c4-7866-b734-785976bddd6b	benign	-	-	Spotify web player clone (tutorial) on github.io	brand-presented-off-domain/info
+heldout6	01a144c4-92f5-7d22-98d7-6b4858b03fc6	phish	credential	microsoft	Microsoft sign-in ("sensitive file") on replit.app	brand-name-off-domain/high,form-on-free-hosting/medium,kit-match/medium
+heldout6	01a144c4-bf68-7971-b900-6f0258974564	phish	credential	microsoft	Microsoft "enter password" page on replit.app	form-on-free-hosting/medium
+heldout6	01a144c5-1d5e-754f-9ddd-fa3427fb2572	real-site	-	-	www.facebook.com itself	
+heldout6	01a144c5-6024-7666-a1b8-c5f96d65f02a	real-site	-	-	www.facebook.com itself	
+heldout6	01a144d3-fbf9-7b8b-84bd-90a91d5ff6e9	phish	credential	microsoft	Microsoft "Verification Required / verify your email" over a blurred page	
+heldout6	01a144d4-36f7-74d1-9e6d-269828494f80	real-site	-	-	www.facebook.com itself	
+heldout6	01a144d4-79c3-738a-830c-2e318d271546	benign	-	-	Microsoft home page clone (tutorial) on github.io	brand-official-claim/medium,brand-presented-off-domain/info
+heldout6	01a144d4-9c90-799f-9ae3-1286a92e779c	benign	-	-	Netflix India clone (tutorial) on netlify.app	brand-presented-off-domain/info
+heldout6	01a144d4-c406-79c6-a8a7-f3975b45d9eb	phish	credential	-	brandless email/password login on vercel.app	form-on-free-hosting/medium,kit-match/medium
+heldout6	01a144d4-e782-73d7-ab86-ed424cffebd1	phish	credential	-	"Webmail Portal Access" with an unfilled [[-Email-]] placeholder	
+heldout6	01a144d5-16b3-7210-ae3f-0e197e98d669	phish	lure	bitmart	BitMart exchange homepage clone on webflow.io	
+heldout6	01a144d5-852e-7b69-b51b-72cfc54581e2	real-site	-	-	www.facebook.com itself	
+heldout6	01a144d5-c7e9-7005-842d-1a6c3c832e85	real-site	-	-	www.facebook.com itself	
+heldout6	01a144d6-24ea-7672-819b-0b6e19d6a016	real-site	-	-	www.facebook.com itself	
+heldout6	01a144d6-66d5-7f1f-afa5-01e198eb3880	real-site	-	-	www.facebook.com itself	
+heldout6	01a144d6-ac06-75c6-b41e-869cde0cba1e	real-site	-	-	www.facebook.com itself	
+heldout6	01a144d7-b842-72c6-b489-b23d548a2389	phish	lure	gemini	"Gemini login" guide page with a Gemini homepage copy on webflow.io	brand-name-off-domain/medium
+heldout6	01a144d7-cd8f-7ccb-beb0-f5dd0b57ae7b	real-site	-	-	www.facebook.com itself	
+heldout6	01a144d8-0f48-7d02-b5bf-30b0d631378e	phish	credential	microsoft	Microsoft "Verification Required / verify your email" over a blurred page (same kit)	
+heldout6	01a144d8-2e48-7cfc-a6d1-19a9f62bbff3	real-site	-	-	www.facebook.com itself	
+heldout6	01a144d8-711b-7619-98cb-ba37001d600d	phish	lure	meta	Meta "We've restricted access to your Page / Policy Support Center" on vercel.app	
+heldout6	01a144d8-88f8-7b5e-9243-6d50692da0b7	phish	lure	indiagov	fake Civil Registration System certificate-validation page (same kit)	
+heldout6	01a144d8-ae05-71c7-a7a9-4d40774ad2b9	phish	lure	shopee	Shopee prize-draw scam on blogspot	brand-offer-off-domain/medium,brand-presented-off-domain/info
+heldout6	01a144d9-097f-73e1-a0cb-fb3b38c129a6	benign	-	-	Amazon India clone (tutorial) on github.io	brand-presented-off-domain/info
+heldout6	01a144d9-811c-7e37-97a9-8839bc70d536	phish	lure	ledger	Ledger Live page on typedream.app (image only)	brand-presented-off-domain/info
+heldout6	01a144d9-c69e-7274-bd4e-5c0898b2c67d	phish	lure	ledger	"Official Site® | Ledger.com/Start®" Ledger homepage copy on typedream.app	brand-domain-in-title/medium,brand-presented-off-domain/info
+heldout6	01a144da-14b3-7804-b113-d72204f13102	phish	credential	facebook	Thai Facebook login over a video lure on blogspot	password-form-cross-origin/medium,form-on-free-hosting/medium
+heldout6	01a144da-46fb-79e5-a20e-520cc76aacf1	phish	credential	madeinchina	Made-in-China.com sign-in clone on netlify.app	password-form-cross-origin/medium,form-on-free-hosting/medium
+heldout6	01a144da-5ded-735f-9c54-ab5efb9c4614	real-site	-	-	www.facebook.com itself	
+heldout6	01a144da-ac67-7a8a-9e6c-d552d441592f	real-site	-	-	www.facebook.com itself	
+heldout6	01a144da-ef06-7b10-a3bc-8ab1254eb858	real-site	-	-	www.facebook.com itself	
+heldout6	01a144e5-1d5c-7a96-a0a7-2ebdad944e68	unsure	-	-	bare nginx 404 on interacte.xyz	
+heldout6	01a144e9-389d-72da-bbff-4d2260c71f6e	real-site	-	-	www.facebook.com itself	
+heldout6	01a144e9-7be6-715e-b99e-c6c4b88a3886	real-site	-	-	www.facebook.com itself	
+heldout6	01a144e9-c07a-7393-b260-6c634d5fd03d	real-site	-	-	www.facebook.com itself	
+heldout6	01a144ea-1aac-78f0-9fba-be835dac854c	real-site	-	-	www.facebook.com itself	
+heldout6	01a144ea-771f-7afa-8272-dcce6d39918d	real-site	-	-	www.facebook.com itself	
+heldout6	01a144ea-b99e-7ed0-b792-3777cc3c8d76	real-site	-	-	www.facebook.com itself	
+heldout6	01a144ea-ff58-7f1b-b363-80e99f46db06	real-site	-	-	www.facebook.com itself	
+heldout6	01a144eb-4129-7a59-930f-46a97b0c328a	real-site	-	-	www.facebook.com itself	
+heldout6	01a144eb-f60a-7ba0-b216-d6eb8222dcdc	real-site	-	-	www.facebook.com itself	
+heldout6	01a144ec-53a2-7a09-8070-e6a6f979d9ba	benign	-	-	Spotify web player clone (tutorial) on netlify.app	brand-presented-off-domain/info
+heldout6	01a144ec-b003-737d-bf83-9deca6cb3f24	phish	lure	imtoken	imToken wallet site clone on tokemcdn-hk41.lol (same kit)	brand-presented-off-domain/info,kit-match/medium
+heldout6	01a144ec-dcac-7434-a311-bed5a57befdf	phish	lure	imtoken	imToken wallet site clone on tokenimpro-cdn-cache-hk18.club (same kit)	brand-presented-off-domain/info,kit-match/medium
+heldout6	01a144ed-06fe-7983-b2e4-1f6bf2dbdbf8	phish	lure	fedex	FedEx "track & pay redelivery" page on netlify.app	brand-presented-off-domain/info
+heldout6	01a144ed-6200-75d4-91c8-8b3633f9909a	phish	gate	-	drawn Cloudflare "Verify you are human" box on usepoints05.ink	fake-human-check/medium
+heldout6	01a144ed-79d9-7208-a877-6a6873e731ed	benign	-	-	"Netflix Clone" (tutorial) on github.io	brand-presented-off-domain/info
+heldout6	01a144ed-a0b6-7695-af87-ece62c170667	benign	-	-	"Ledger — Cash & Debt Tracker" personal app with a login on github.io	form-on-free-hosting/medium
+heldout6	01a144ed-c299-7787-bc26-e9ee705cb107	real-site	-	-	www.facebook.com itself	
+heldout6	01a144ee-86ee-7358-8460-a99fc52f74f0	benign	-	-	jobs/visa spam blog titled "WhatsApp" on laptopsupdate.com	brand-presented-off-domain/info
+heldout6	01a144f6-33da-73fc-9158-661c587e2a2c	benign	-	-	Lao gambling site "WHATSCLUB" on facebookno.live (gambling, not imitating a sign-in)	brand-lookalike-domain/medium
+heldout6	01a144fd-8238-7231-a0fa-b454da058a10	real-site	-	-	www.facebook.com itself	
+heldout6	01a144fd-cae2-7a58-a072-14e2f9a01bd3	phish	credential	microsoft	Microsoft password page (Latvian) with a prefilled address on 135461223.site	brand-name-off-domain/medium
+heldout6	01a144fe-65db-79ce-b225-62a4c348a138	real-site	-	-	www.facebook.com itself	
+heldout6	01a144fe-cfac-74e9-a08a-8b845c5ad329	phish	gate	raiffeisen	"raiffeisen.ch Access Denied: your country or IP is not allowed" cloak on vercel.app	fake-human-check/medium
+heldout6	01a144ff-0790-7388-88b3-3d9eb1122b89	real-site	-	-	www.facebook.com itself	
+heldout6	01a144ff-610b-7aa9-8c13-a3f5af4bc833	real-site	-	-	www.facebook.com itself	
+heldout6	01a144ff-a3df-75ec-a976-5897187a6b3e	real-site	-	-	www.facebook.com itself	
+heldout6	01a144ff-e5a8-71dc-9821-aad217a57ee2	real-site	-	-	www.facebook.com itself	
+heldout6	01a14500-2827-7d4c-94d2-6622560f7381	real-site	-	-	www.facebook.com itself	
+heldout6	01a14500-6a7c-74d4-b2ef-6ece431076ce	real-site	-	-	www.facebook.com itself	
+heldout6	01a14500-c2d0-7655-8c49-adee87c8ab9d	real-site	-	-	www.facebook.com itself	
+heldout6	01a14501-1c25-7824-a19b-965d43149310	real-site	-	-	www.facebook.com itself	
+heldout6	01a14501-61eb-7adf-8faf-7c441bd2994a	real-site	-	-	www.facebook.com itself	
+heldout6	01a14501-bd01-7dc8-82a3-8091ad5bf116	real-site	-	-	www.facebook.com itself	
+heldout6	01a14502-246b-7ef2-9605-af2f3115b41a	real-site	-	-	www.facebook.com itself	
+heldout6	01a14502-78db-7482-8a75-0cb94f64405d	phish	credential	-	Korean "enter password" box over a blurred SWIFT document	
+heldout6	01a14502-9c61-7479-88fa-03d246e36c92	real-site	-	-	www.facebook.com itself	
+heldout6	01a14502-de28-7ac1-8556-e423b7c08388	phish	lure	-	blurred "business contract" PDF viewer lure	
+heldout6	01a14502-fccd-7ba3-88e2-d38a2dfd855a	real-site	-	-	www.facebook.com itself	
+heldout6	01a14503-8645-790a-8a82-1a9795ea6dc7	phish	lure	gemini	"Gemini Login" guide page on gitbook.io	brand-name-off-domain/medium,brand-name-disguised/medium
+heldout6	01a14504-5c34-763a-a6c6-8d6831db3f1e	phish	lure	roblox	"Get your Robux" username form on blogspot (same kit)	brand-offer-off-domain/medium,brand-presented-off-domain/info
+heldout6	01a14504-885b-7ca1-8483-3036ae4f119d	phish	lure	trezor	"Trezor.io/Start" setup-guide page on framer.website	brand-domain-in-title/medium,brand-official-claim/medium,brand-presented-off-domain/info
+heldout6	01a14514-b918-7361-bb4a-8dee5e977d5d	real-site	-	-	www.facebook.com itself	
+heldout6	01a14515-2578-7577-9258-1633a85a851d	real-site	-	-	www.facebook.com itself	
+heldout6	01a14515-71bd-76cf-aad1-e5a2e4b2fb5f	unsure	-	-	half-loaded Chinese shop shell on ywrfow.com	
+heldout6	01a14515-e564-7aac-89c9-fa6a3aae2a9e	real-site	-	-	www.facebook.com itself	
+heldout6	01a14524-24b9-737c-9490-012757fce9d2	phish	credential	microsoft	Microsoft password page (Latvian) with a prefilled address (same host)	brand-name-off-domain/medium
+heldout6	01a14535-9314-7c9a-876c-4fc541881bda	phish	credential	microsoft	Microsoft password page (Latvian) with a prefilled address (same host)	brand-name-off-domain/medium
+heldout6	01a1453c-b91b-78b5-afc5-94118e79f79a	benign	-	-	FlowWise app sign-in on its own domain (CT)	
+heldout6	01a14544-5d29-701c-b0f3-4ec32081ba35	phish	lure	sunrise	"Sunrise Mail / Login Sunrise Mail" landing page on flazio.online	
+heldout6	01a1454a-e526-7a57-997f-13664fb0f91e	benign	-	-	self-hosted Mastodon server on petite-maison-orange.fr (CT)	
+heldout6	01a1454d-a3e8-76ad-b5ae-c0e54b76ce38	benign	-	-	"naveriox" forex-education lead site (CT)	
+heldout6	01a14554-0d49-77b3-9e6e-3417e1ff90e1	benign	-	-	self-hosted library sign-in on petite-maison-orange.fr (CT)	
+heldout6	01a1455a-4edd-73dc-b0c7-e8031313cfc1	benign	-	-	"THE AI & Security Insights Show" Substack on microsoftsecurityinsights.com (CT)	
+heldout6	01a1455d-5c0f-72a2-a66f-4e55650f8c30	benign	-	-	self-hosted Authelia sign-in on coissac.eu (CT)	
+heldout6	01a14566-2011-72d8-ade6-e8a1f871bbe6	benign	-	-	hosting provider's "site blocked or not activated" page on kraken-zekala-site.store (CT)	
+heldout6	01a14566-9584-77a3-be43-19603290974d	benign	-	-	self-hosted Readeck sign-in on petite-maison-orange.fr (CT)	
+heldout6	01a14569-a2ca-7d34-88b8-6c2ab66ac7cf	unsure	-	-	"STEAMUNLOCKED" pirated-games site on pages.dev (CT)	
+heldout6	01a14569-dc3c-7212-b80f-9f2a3c1afcdc	benign	-	-	"Job Search Command Center" private app sign-in (CT)	
+heldout6	01a1456e-8835-764b-95e4-88b40d1746e2	benign	-	-	ContentWise app sign-in (Clerk) on its own domain (CT)	
+heldout6	01a1457d-352f-758e-a350-87cbc69ff670	benign	-	-	Roblox ID code SEO blog on pages.dev (CT)	
+heldout6	01a1458b-73f3-7565-b28a-c79a461c99f6	phish	gate	-	Cloudflare-style "Verify you are human" challenge on mygovato.icu (myGov look-alike)	fake-human-check/medium
+heldout6	01a1458b-b0ec-7b36-b9b2-854874b369ed	benign	-	-	Indonesian slot-gambling page (CT)	
+heldout6	01a14597-fe13-7357-bbec-52c06d25e62d	benign	-	-	ZimLedger app sign-in (Clerk) on its own domain (CT)	
+heldout6	01a14599-ac19-7e3a-88c7-00d24a9638d6	benign	-	-	UGMail business email hosting site (CT)	
+heldout6	01a145c1-44b7-77ad-ad9f-f2e14d5c502b	benign	-	-	empty WordPress site on adwhatsapp.info (CT)	brand-lookalike-domain/medium
+heldout6	01a145ca-6da7-7dfb-919d-41a138474fa6	benign	-	-	default Next.js starter page on hosted.app (CT)	
+heldout6	01a145d1-ea9c-7041-a9de-3a39fed054e8	unsure	-	-	"NekoStock" in-app-purchase test tool disclaimer (Chinese) on orange666.win (CT)	
+heldout6	01a145d2-b62e-734a-9be1-0460c070141c	benign	-	-	German logistics company site on outlooksupport.de (CT)	
+heldout6	01a145f6-54d4-7e43-aa3b-3ca111c62b56	benign	-	-	ticket resale marketplace (CT)	
+heldout6	01a145f8-9ece-7e95-a477-90c59f4d7229	benign	-	-	Turkish real-estate agency site (CT)	
+heldout6	01a145f9-3b0f-7e08-a693-dc272e94e61b	benign	-	-	LinkedIn headline generator tool (CT)	brand-name-off-domain/medium
+heldout6	01a145fc-2190-7334-866e-e06c84cdb96f	unsure	-	-	Russian "Введите капчу / Войти" captcha box on a sion17.cc subdomain (CT); what it guards is unknown	fake-human-check/medium
+heldout6	01a14601-e38f-7712-956e-610806f03629	benign	-	-	Kraken Customs gun shop site (CT)	
+heldout6	01a14602-7fe5-767f-88b7-b4f5830586e3	benign	-	-	LinkedIn headline generator tool (CT, seen again)	brand-name-off-domain/medium
+heldout6	01a1460b-1a52-71fa-b4a8-58f8ed3b8c5b	benign	-	-	Kraken Customs gun shop site (CT, seen again)	
+heldout6	01a14618-41f3-747c-98ac-854664c8b4d4	real-site	-	-	abc.com itself	
+heldout6	01a14626-61ec-7298-9b7a-1d637b2ceee2	benign	-	-	domain-for-sale page on fruits.co (CT)	
+heldout6	01a14626-baa6-789d-8cd0-77d292cbedf8	unsure	-	-	Russian "Введите капчу / Войти" captcha box on a sion17.cc subdomain (CT); what it guards is unknown	fake-human-check/medium
+heldout6	01a1462b-dbb9-7c2b-b9e0-34502d7f1740	unsure	-	-	Russian "Введите капчу / Войти" captcha box on a sion17.cc subdomain (CT); what it guards is unknown	fake-human-check/medium
+heldout6	01a14634-b5b8-7c2d-8f4b-12c10080caf5	benign	-	-	Romanian travel blog on wise-glen.online (CT)	
+heldout6	01a14639-d904-7362-b752-defc537e3418	benign	-	-	synth-pop band's official website (CT)	brand-presented-off-domain/info
+heldout6	01a14648-6898-7bb3-98ac-a413a3e4918c	real-site	-	-	accounts.google.com itself (Google Drive sign-in)	
+heldout6	01a1464b-c407-75ed-aab3-ee8e12f5a774	real-site	-	-	Cloudflare Access sign-in for a team's docs (CT)	
+heldout6	01a1464f-1f65-74e3-9d67-060eca221159	benign	-	-	domain-for-sale page on fruits.co (CT, seen again)	
+heldout6	01a14650-adc5-7bcb-bf0b-d32640de5404	unsure	-	-	Russian "Введите капчу / Войти" captcha box titled KRAKEN on kraken666.cc (CT)	
+heldout6	01a1465b-3b92-7298-9d02-1da80c40203d	unsure	-	-	Russian "Введите капчу / Войти" captcha box on a sion17.cc subdomain (CT); what it guards is unknown	fake-human-check/medium
+heldout6	01a1465e-af89-7142-ae9c-0a0f43ede4a5	unsure	-	-	Russian "Введите капчу / Войти" captcha box on a sion17.cc subdomain (CT); what it guards is unknown	fake-human-check/medium
+heldout6	01a14666-1041-75e3-b4c2-d63f1ed2e290	unsure	-	-	Russian "Введите капчу / Войти" captcha box on a sion17.cc subdomain (CT); what it guards is unknown	fake-human-check/medium
+heldout6	01a14668-f679-78bd-b842-07f25c77e7ca	unsure	-	-	Russian "Введите капчу / Войти" captcha box on a sion17.cc subdomain (CT); what it guards is unknown	fake-human-check/medium
+heldout6	01a14669-447c-7779-a5a6-fbe9c5574238	unsure	-	-	Russian "Введите капчу / Войти" captcha box on a sion17.cc subdomain (CT); what it guards is unknown	fake-human-check/medium
+heldout6	01a14672-0fb4-7a76-b9ef-7325d9339917	unsure	-	-	"SteamUnlock" pirated-games site (CT)	
+heldout6	01a14672-abe5-7570-8e8e-362f647ec51c	real-site	-	-	Royal Mail's ForgeRock/Ping identity sign-in on forgerock.io (CT)	
+heldout6	01a14678-5157-74cd-8743-0f66791517ac	benign	-	-	OrangeMatchAI card game (CT)	
