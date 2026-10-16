@@ -310,3 +310,20 @@ Three changes from S15's findings, made after the test, so not held-out:
 - `brand-offer-off-domain` no longer counts "winners" ("winner" still counts). Over all 6,400 stored runs, rebuilt with the frozen and the new binary: exactly 5 reports change, all losing this indicator: AdsChase (the S15 false alarm, and its baseline run) and the Amazon page copy on `prime.riverai7z.com` (three runs), which stays flagged by `brand-domain-in-title`. On set 5: false alarms 6 to 5, phishing flagged unchanged at 38 of 74.
 - `brand-domain-in-title` reads the title and h1/h2 only, no longer "title"-classed elements. No report changes. S15 first put the Amazon tutorial false alarm down to such an element; that was wrong: the domain is in its `<title>` ("… — Amazon.in"), the same form as the phishing page copy "Amazon.com: Books", so the title can't tell them apart and that false alarm stays.
 - Human-check wording gains French "vérification de votre navigateur" and "vérification anti-bot". No report changes: the set-5 page with that wording loads a real Cloudflare Turnstile, so `fake-human-check` rightly stays silent on it whatever it says; it is a real-CAPTCHA gate, like the brandless "Verification Required" page of S9.
+
+### S17: the brand list's long tail (2026-10-16)
+
+Most of S15's misses were sign-in pages of brands the list didn't know. Two ways tried, both measured on the 498 labelled pages and over all 6,400 stored runs, rebuilt with each binary:
+
+| Rules | Phishing flagged (of 288) | Others flagged (of 163) | Set 5: phishing / others | Stored runs changed |
+| --- | --- | --- | --- | --- |
+| `41f3fed` | 207 | 10 | 38 / 5 | – |
+| + 11 brands | 219 | 10 | 48 / 5 | 37 |
+| + 11 brands + list-free rule | 223 | 11 | 48 / 5 | 112 |
+
+- **Brands added** (from set 5's misses): Xfinity/Comcast, Crypto.com, Scotiabank, Swisscom/Bluewin, Spectrum, U.S. Bank, Gemini, SwissBorg, UnionPay, AR24, Metanet. Gemini and Spectrum only with a second word ("gemini exchange", "spectrum webmail"): alone they are Google's model and an ordinary word. All 37 changed runs are on phishing hosts: labelled pages, their other-profile runs, and one more copy of the Xfinity kit (`comcast-3-2.vercel.app`). Kept. As S4 found, brands added after seeing them carry over only partly; set 6 measures it.
+- **A rule without a list, tried and left out:** a page asking for a password or an identity (email, phone, user name; inputs counted in a form or not, search boxes left out) whose sign-in wording names someone its host doesn't carry ("Sign in to Xfinity" on `comcast-3.vercel.app`, "Sign in — Scotiabank" on `cdicsecure-prevention.com`). On top of the brands it caught 4 more labelled phishing pages, none of set 5, and fired on 30 CT runs of three self-hosted sign-ins (two Authelia instances and a Healthchecks server its owner named "Mychecks"; checked by screenshot) and the labelled Cloudflare Access page of an app named "テスト". Self-hosted software is never named after its host, and that's the CT stream's everyday sign-in page. On the way, two bugs: "Blog on Amazon" read as "log on" + "Amazon" (no word boundary), and role words ("Partner Login") read as names.
+
+### Freeze for the sixth held-out set
+
+Frozen with this commit: the S16 after-test changes and the 11 brands. Still in-sample only: the Outlook "confirming it's you" Turnstile kit, and whether the new brands' kits come back.

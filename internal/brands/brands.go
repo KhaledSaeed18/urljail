@@ -94,6 +94,18 @@ var All = []Brand{
 	{"opensea", "OpenSea", []string{"opensea"}, []string{"opensea.io"}, "https://opensea.io/"},
 	{"imtoken", "imToken", []string{"imtoken"}, []string{"token.im", "imtoken.com"}, "https://token.im/"},
 	{"dana", "DANA", []string{"dana paylater", "dana cicil", "selalu ada dana"}, []string{"dana.id"}, "https://www.dana.id/"},
+	// Added after the fifth held-out set, from its misses.
+	{"xfinity", "Xfinity", []string{"xfinity", "comcast"}, []string{"xfinity.com", "comcast.net", "comcast.com"}, "https://login.xfinity.com/login"},
+	{"cryptocom", "Crypto.com", []string{"crypto com"}, []string{"crypto.com"}, "https://crypto.com/"},
+	{"scotiabank", "Scotiabank", []string{"scotiabank"}, []string{"scotiabank.com"}, "https://www.scotiaonline.scotiabank.com/online/authentication/authentication.bns"},
+	{"swisscom", "Swisscom", []string{"swisscom", "bluewin"}, []string{"swisscom.ch", "swisscom.com", "bluewin.ch"}, "https://login.swisscom.ch/"},
+	{"spectrum", "Spectrum", []string{"spectrum webmail", "spectrum net", "charter spectrum"}, []string{"spectrum.net", "spectrum.com", "charter.com", "charter.net"}, "https://www.spectrum.net/login"},
+	{"usbank", "U.S. Bank", []string{"u s bank", "usbank"}, []string{"usbank.com"}, "https://onlinebanking.usbank.com/auth/login/"},
+	{"gemini", "Gemini", []string{"gemini exchange", "gemini login", "gemini crypto"}, []string{"gemini.com"}, "https://exchange.gemini.com/signin"},
+	{"swissborg", "SwissBorg", []string{"swissborg"}, []string{"swissborg.com"}, "https://swissborg.com/"},
+	{"unionpay", "UnionPay", []string{"unionpay", "union pay"}, []string{"unionpay.com", "unionpayintl.com"}, "https://www.unionpayintl.com/"},
+	{"ar24", "AR24", []string{"ar24"}, []string{"ar24.fr"}, "https://www.ar24.fr/"},
+	{"metanet", "Metanet", []string{"metanet"}, []string{"metanet.ch"}, "https://www.metanet.ch/"},
 	{"steam", "Steam", []string{"steam community", "steampowered"}, []string{"steampowered.com", "steamcommunity.com"}, "https://store.steampowered.com/login/"},
 }
 
