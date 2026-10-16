@@ -272,3 +272,33 @@ Looked at before freezing; no fix kept every catch, so the rules stay:
 ### Freeze for the fifth held-out set
 
 Frozen with this commit: the lure rules (S12), kit references from every labelled set (S13), no favicon rule (S14). Two gate cases have still only been seen in-sample: the fake Cloudflare "verify you are human" box drawn in HTML and the Outlook "confirming it's you" Turnstile kit.
+
+### S15: fifth held-out set (2026-10-16 night): the lure rules
+
+Frozen at `ef81165` (2026-10-15 19:20 UTC). OpenPhish didn't change its list until 00:32 UTC (261 new URLs); the loop ran each batch, then 15 minutes of CT watch, until the queue was spent at 03:59 (41 URLs passed the 3-hour limit first). No fuzzer run this time. 397 runs (276 OpenPhish, 121 CT), 154 pages loaded, 8 of them without a final URL or a screenshot. Labelled blind: **146 pages: 74 phishing (50 lures, 17 credential, 4 payment, 3 gates), 42 benign, 3 the brand's real site, 27 unsure**. All phishing but one (an App Store page copy on `apps--apple.com`, from CT) came from OpenPhish.
+
+| | Phishing flagged (of 74) | Others flagged (of 45) |
+| --- | --- | --- |
+| High | 5 | 1 |
+| Medium and up | 38 (51 %) | 6 |
+| The same without the S12 lure rules | 24 | 2 |
+
+| Indicator | Fired on phishing | Only indicator on | Others |
+| --- | --- | --- | --- |
+| brand-name-off-domain | 12 | 9 | 2 |
+| brand-offer-off-domain | 8 | 7 | 1 |
+| form-on-free-hosting | 8 | 2 | 0 |
+| kit-match | 8 | 5 | 0 |
+| brand-domain-in-title | 7 | 5 | 3 |
+| fake-human-check | 2 | 1 | 0 |
+| brand-name-disguised | 1 | 1 | 0 |
+| brand-official-claim | 1 | 0 | 0 |
+| brand-alert-off-domain | 0 | – | 0 |
+| brand-presented-off-domain (info) | 16 | – | 17 |
+
+- **Lures: 23 of 50** (3 of 34 in set 3, 3 of 12 in set 4). The lure rules alone caught 14: the Shopee prize draw (7 pages on blogspot, `brand-offer-off-domain`), the Ledger "Ledger.com/Start" pages (5 on typedream and netlify, `brand-domain-in-title`), a "Ⓚucoin Login" page and an Amazon page copy. So two kit families carry most of it, as expected from S12. `brand-alert-off-domain` caught nothing: the Google "hacked" kit didn't come back, and the two "Facebook has suspended your account" pages name the brand only in a dialog, not a title or heading.
+- **The lure rules' price: 4 false alarms.** `brand-domain-in-title` on three captures of one Amazon India tutorial clone on github.io: its banner says "You are on amazon.com ... click here to go to amazon.in" inside an element with a "title" class, which the rules read as a heading. `brand-offer-off-domain` on AdsChase, a Shopify ad tool (CT), whose headings name Google and whose text says "winners". The other two false alarms are older rules: `brand-name-off-domain` (high) on "Work Café Banco Santander", a sign-in on an agency's `interacso.dev` domain that I labelled benign as the DHL agency tool was (a judgment call), and (medium) on iCloud Support Ltd, a UK IT consultancy whose name contains "iCloud", with a form asking for details.
+- **Kit references:** 8 kit-match hits, all right. One came from the refreshed references (an imToken clone matching the third set's); the others matched pages labelled on 14 October (Banco Pichincha loan forms, a brandless "Account Verification" login, the Steam invite, the Turnstile "shared document" kit, a Framer Rogers page).
+- **Gates: 2 of 3.** The drawn Cloudflare "Verify you are human" box came back (`giftboxesss881.ink`) and `fake-human-check` caught it, its first catch on a fresh page; also a drawn "I am not a robot" box on replit. Missed: a French "Vérification de votre navigateur en cours" page (the wording isn't in the list). The Outlook "confirming it's you" Turnstile kit didn't come back.
+- **Unsure:** 18 of the 27 are the Russian "Введите капчу / Войти" captcha box on `sion10.to` subdomains (CT), never labelled before; `fake-human-check` flags 11 of them. Two more are Microsoft password pages with a prefilled address on Fortra phishing-simulation domains (`brand-name-off-domain`, high): sanctioned simulations, phishing in form.
+- **Misses (36):** mostly brands not on the list (Xfinity, AR24, Crypto.com, Scotiabank, Swisscom, Metanet, Spectrum, U.S. Bank, Gemini, SwissBorg, UnionPay, the Indian civil-registration portal, Orange, which is an ordinary word); page copies and document lures that name nothing; two Orange lures on `sites.google.com`, which belongs to Google, so the brand rules stay silent there.

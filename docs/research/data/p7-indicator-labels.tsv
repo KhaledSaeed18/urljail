@@ -351,3 +351,149 @@ heldout4	01a1404d-b0bc-7186-b690-2f5e86973a6c	benign	-	-	Iranian shop reselling 
 heldout4	01a14052-932e-7a8c-b7e6-654ef56634f9	unsure	-	motorola	Motorola x Orange cashback-offers page loaded from a promo agency API, no form; likely authorised, unverified (CT)	
 heldout4	01a14052-e2d3-7a75-ac1a-2df9bb120444	benign	-	-	"SUMP" DNI sign-in on a Firebase Studio prototype, no brand imitated (CT)	
 heldout4	01a14087-8b99-7826-b7ae-1a8b61f90f3f	unsure	-	-	Vietnamese gambling (23WIN) on a re-used .co.in domain (CT)	
+heldout5	01a14109-e328-7bad-b72c-d85fb3d2dafa	unsure	-	-	Russian "Введите капчу / Войти" captcha box on a sion10.to subdomain (CT); what it guards is unknown	fake-human-check/medium
+heldout5	01a1410d-8c40-7d50-be31-47d0e702922b	unsure	-	-	Russian "Введите капчу / Войти" captcha box on a sion10.to subdomain (CT); what it guards is unknown	fake-human-check/medium
+heldout5	01a14118-62c0-74a5-b91c-3693e699e589	unsure	-	-	Russian "Введите капчу / Войти" captcha box on a sion10.to subdomain (CT); what it guards is unknown	fake-human-check/medium
+heldout5	01a1412a-ad56-7679-9f81-854430ffb603	benign	-	-	LedgerKit small-business accounting platform (CT)	
+heldout5	01a14133-0bf4-76f7-8bed-21007c5e644d	unsure	-	-	Russian "Введите капчу / Войти" captcha box on a sion10.to subdomain (CT); what it guards is unknown	
+heldout5	01a14133-cf19-749f-83b9-83d9576e4a73	unsure	-	-	Russian "Введите капчу / Войти" captcha box on a sion10.to subdomain (CT); what it guards is unknown	
+heldout5	01a14137-2aee-791d-a591-0aecb456d07f	phish	lure	apple	App Store page copy (an "AI girlfriend" app) on look-alike www.apps--apple.com (CT)	
+heldout5	01a14138-637d-747c-8aa3-4fb28bd29ed8	unsure	-	-	Russian "Введите капчу / Войти" captcha box on a sion10.to subdomain (CT); what it guards is unknown	fake-human-check/medium
+heldout5	01a14144-2a3d-7049-9e1e-1bdb738aea68	benign	-	-	"Shadow Echoes" game landing page (CT)	
+heldout5	01a14145-b0d2-71f1-b504-74b522d615ac	unsure	-	-	Russian "Введите капчу / Войти" captcha box on a sion10.to subdomain (CT); what it guards is unknown	fake-human-check/medium
+heldout5	01a14146-25fc-7774-a4c6-ba4011de683a	unsure	-	-	Russian "Введите капчу / Войти" captcha box on a sion10.to subdomain (CT); what it guards is unknown	fake-human-check/medium
+heldout5	01a14149-8165-787c-91ed-59ffc6d29814	unsure	-	-	Russian "Введите капчу / Войти" captcha box on a sion10.to subdomain (CT); what it guards is unknown	fake-human-check/medium
+heldout5	01a14149-f67f-79cc-96a8-480aa63e129f	benign	-	-	domain-for-sale page on domainname.de (CT)	
+heldout5	01a1416d-3c69-7602-9716-c004628132ac	unsure	-	-	Russian "Введите капчу / Войти" captcha box on a sion10.to subdomain (CT); what it guards is unknown	
+heldout5	01a14174-f447-7aab-bb11-73b47d08b9e4	benign	-	-	gaming blog on the-crown-netflix.com (CT)	brand-presented-off-domain/info
+heldout5	01a14175-5d1b-7001-ad87-0aef219fe941	benign	-	-	Roblox script SEO page on pages.dev (CT)	
+heldout5	01a14175-aa1a-7796-a2cb-5a7c1a8b22f1	unsure	-	-	Russian "Введите капчу / Войти" captcha box on a sion10.to subdomain (CT); what it guards is unknown	fake-human-check/medium
+heldout5	01a14175-febd-7213-88a9-c2256056c3dc	unsure	-	-	Russian "Введите капчу / Войти" captcha box on a sion10.to subdomain (CT); what it guards is unknown	fake-human-check/medium
+heldout5	01a1417d-c005-7d50-96ef-1789f4a3090e	unsure	-	-	Russian "Введите капчу / Войти" captcha box on a sion10.to subdomain (CT); what it guards is unknown	
+heldout5	01a1417f-bbee-7e92-98af-8f16cdc285f1	benign	-	-	Roblox cheat-engine guide on pages.dev (CT)	brand-presented-off-domain/info
+heldout5	01a14180-f475-76d2-90c2-8bf4aa60c5b5	unsure	-	-	Russian "Введите капчу / Войти" captcha box on a sion10.to subdomain (CT); what it guards is unknown	fake-human-check/medium
+heldout5	01a14197-1601-7466-8500-00a60b86f3d3	benign	-	-	kebab shop QR menu language picker (CT, odd domain)	
+heldout5	01a141a0-1b45-7e43-ab4e-921751eb4b39	benign	-	-	AdsChase Shopify ad-tracking tool (CT)	brand-offer-off-domain/medium,brand-presented-off-domain/info
+heldout5	01a141a9-dea1-7ee6-ae7d-ba9b8bbf10b7	benign	-	-	TongueWise AI, Chinese tongue-diagnosis app (CT)	
+heldout5	01a141ae-2983-7923-b422-ed499827255b	unsure	-	-	Russian "Введите капчу / Войти" captcha box on a sion10.to subdomain (CT); what it guards is unknown	fake-human-check/medium
+heldout5	01a141af-6f56-7392-acd8-63dcbfccb10d	unsure	-	-	bare LiteSpeed 404 on apple-uyto.dev (CT)	
+heldout5	01a141b8-9ab7-7a59-bf68-4b18d317dd3d	benign	-	-	Indonesian slot-gambling SEO page on spotify-htmllogin.pages.dev (CT)	
+heldout5	01a141bb-80f5-7344-9172-d05a19f1bc52	unsure	-	-	Roblox script executor download site (CT)	
+heldout5	01a141bd-078e-705f-9c7b-7c476ba82a3f	benign	-	-	"Work Café Banco Santander" sign-in on an agency's dev domain (interacso.dev, CT)	brand-name-off-domain/high
+heldout5	01a141bd-5697-7553-8cd3-722aae43cb7f	benign	-	-	iCloud Support Ltd, a UK IT consultancy (CT)	brand-name-off-domain/medium
+heldout5	01a141c3-83ac-7ae4-89f0-c6acbdecb926	unsure	-	-	"official mirror" of the Kraken darknet market (Russian, CT)	
+heldout5	01a141c8-8cbc-711f-9e60-43c2e55d42c0	unsure	-	-	Russian "Введите капчу / Войти" captcha box on a sion10.to subdomain (CT); what it guards is unknown	
+heldout5	01a141ca-135a-74a4-8a17-442cef09152e	unsure	-	-	bare username/password "Login" on airdropblockchain.space (CT)	
+heldout5	01a141ca-d6a2-7dee-a53a-24dc8b81c3c8	benign	-	-	Claimtracker app sign-in (Clerk) (CT)	
+heldout5	01a141cb-0ca4-749c-b395-9e15e5e8a0cb	benign	-	-	carpet store site (CT)	
+heldout5	01a141df-cecd-74e7-b61b-85d07802eb8e	unsure	-	-	Russian "Введите капчу / Войти" captcha box on a sion10.to subdomain (CT); what it guards is unknown	
+heldout5	01a1420b-4bdc-7c75-b9cc-8c65274a3fa4	unsure	-	-	Russian "Введите капчу / Войти" captcha box on a sion10.to subdomain (CT); what it guards is unknown	
+heldout5	01a14220-91bd-79b7-ad05-d32c1d6591e7	phish	credential	spotify	Spotify login clone on nxcli.io	brand-name-off-domain/high
+heldout5	01a14225-0e3c-7231-9664-7d99b03d671d	phish	lure	whatsapp	WhatsApp-styled "Chat di WhatsApp / send message / video call" lure on blogspot	brand-presented-off-domain/info
+heldout5	01a14225-7224-72c8-9156-8c9760f45c8e	phish	credential	microsoft	Microsoft sign-in over a blurred invoice on alperfragancias.com	brand-name-off-domain/high
+heldout5	01a14226-55e9-73a3-a0dd-71eb8282df2f	phish	credential	ar24	AR24 registered-mail webmail login on myftp.org	
+heldout5	01a14227-9e59-79b3-bb47-10b278b144f6	phish	lure	orange	Orange "Cybersecure" activation lure on sites.google.com	
+heldout5	01a14228-7a90-75a3-8310-d9f56eb2030b	phish	credential	xfinity	Xfinity sign-in clone on vercel.app	
+heldout5	01a14228-cd38-7ee6-9ce2-5637f27f5503	phish	credential	xfinity	Xfinity sign-in clone on vercel.app (same kit)	
+heldout5	01a14229-2552-7e46-bb55-16152ca5b919	phish	lure	cryptocom	Crypto.com help-center clone on netlify.app	
+heldout5	01a14229-83a2-7abb-9cb4-272724cd951c	benign	-	-	empty Arabic Blogger profile "dailyrobux" (as seen)	
+heldout5	01a1422b-850a-723b-9987-4f943bef7219	phish	lure	indiagov	fake Civil Registration System certificate-validation page (Government of India)	
+heldout5	01a1422c-0739-7a10-90d8-c9b0d82f58c9	phish	gate	-	drawn Cloudflare "Verify you are human" box on giftboxesss881.ink	fake-human-check/medium
+heldout5	01a1422c-db1a-77dd-a342-e9e482a91bd5	phish	lure	shopee	Shopee prize-draw scam on blogspot	brand-offer-off-domain/medium,brand-presented-off-domain/info
+heldout5	01a1422e-e3aa-73e4-85e9-b8b184cfc63f	phish	lure	kucoin	KuCoin homepage clone on webflow.io	brand-name-off-domain/medium
+heldout5	01a1422f-2e00-7ba4-b2e1-38cd8db6a12c	phish	lure	kucoin	"KuCoin Login" guide page on webflow.io	brand-name-off-domain/medium
+heldout5	01a1422f-9627-7971-af52-514c437acbe4	phish	lure	kucoin	"Ⓚucoin Login" page on webflow.io	brand-name-disguised/medium
+heldout5	01a14230-afe3-7531-9e41-b61b27c2768f	phish	lure	ledger	"Ledger.com/Start" page on typedream.app (image only)	brand-domain-in-title/medium
+heldout5	01a1423d-96e0-7e8c-879f-70cc9ee8f7d7	benign	-	-	Vavada online casino mirror (CT)	
+heldout5	01a1423f-e1d8-717f-a333-ecde0f5f2763	phish	lure	indiagov	fake Civil Registration System certificate-validation page (same kit)	
+heldout5	01a14240-3f13-71a8-923d-18b1d1cea161	phish	credential	ar24	AR24 registered-mail webmail login on github.io	form-on-free-hosting/medium
+heldout5	01a14240-f764-7ee4-bb8c-ac4b3440629a	benign	-	-	Netflix landing clone (tutorial) on github.io	brand-presented-off-domain/info
+heldout5	01a14241-39f1-7798-8887-65acc57aa699	benign	-	-	MetaMask docs on a consensys Vercel preview URL (official)	brand-presented-off-domain/info
+heldout5	01a14241-920d-7d9a-8e1a-4de84cd0591c	phish	lure	steam	Steam Community friend-invite lure on netlify.app	brand-presented-off-domain/info,kit-match/medium
+heldout5	01a14242-3fc8-7376-9adf-eb1084cc8ac4	phish	lure	usbank	U.S. Bank SinglePoint "do you recognize this device" alert on netlify.app	
+heldout5	01a14242-913d-7057-a6fc-dc129ed85921	phish	lure	kucoin	"Kucoin Login" guide page on typedream.app	brand-name-off-domain/medium
+heldout5	01a14242-df22-7a65-b5b7-f43bbe3eda48	phish	lure	cryptocom	Crypto.com help-center clone on netlify.app (same kit)	
+heldout5	01a14243-4994-7dfd-8ced-54530e573a1c	phish	credential	rogers	Rogers/Shaw webmail sign-in on framer.app	form-on-free-hosting/medium,kit-match/medium
+heldout5	01a14243-c7ff-7ecb-a6a8-b8143acfdf85	benign	-	-	Netflix home clone (tutorial) on github.io	brand-presented-off-domain/info
+heldout5	01a14244-0816-7357-8556-45ce36966e10	benign	-	-	Amazon home clone (tutorial) on github.io	brand-presented-off-domain/info
+heldout5	01a14244-a035-72ba-845a-773089d08362	phish	lure	gemini	Gemini exchange homepage clone on webflow.io	
+heldout5	01a14245-0269-7ed0-9cdb-e50f69d06004	phish	lure	ledger	Ledger homepage clone on typedream.app	brand-name-off-domain/medium,brand-official-claim/medium
+heldout5	01a14245-6d8a-7ea0-96b8-394a7fdc456b	phish	lure	shopee	Shopee prize-draw scam on blogspot (same kit)	brand-offer-off-domain/medium,brand-presented-off-domain/info
+heldout5	01a14245-d100-7b9a-b2da-2985fd0f3f60	phish	lure	shopee	Shopee prize-draw scam on blogspot (same kit)	brand-offer-off-domain/medium,brand-presented-off-domain/info
+heldout5	01a14246-1c82-7eaa-ac48-e56f4edde1fe	real-site	-	-	www.facebook.com itself	
+heldout5	01a14251-8ef7-75f0-a706-13a30fd35d6f	benign	-	-	TDSE logistics company site (CT)	
+heldout5	01a1425c-ba03-703e-8ae2-ec006a1b0a47	phish	lure	ledger	"Ledger.com/Start" page on typedream.app (image only)	brand-domain-in-title/medium,brand-presented-off-domain/info
+heldout5	01a1425c-fe72-705f-87e0-3a1b00954048	phish	lure	ledger	"Ledger.com/Start" Ledger Live download page copy on typedream.app	brand-domain-in-title/medium
+heldout5	01a1425d-5cdf-74ce-befb-c478854e81a4	phish	lure	swissborg	SwissBorg homepage clone on webflow.io	
+heldout5	01a1425e-255e-79af-b418-7c893faa3772	phish	lure	ledger	"Ledger.com/Start" setup-guide page on netlify.app	brand-domain-in-title/medium
+heldout5	01a1425f-6fc6-7d50-9379-56c8e2562cf9	phish	lure	roblox	fake Roblox group "one-time payout" page on blogspot	brand-presented-off-domain/info
+heldout5	01a14260-817d-723b-bd83-f794c68dee65	phish	lure	imtoken	imToken wallet site clone on tokvcdn-hk07.lat	brand-presented-off-domain/info,kit-match/medium
+heldout5	01a14261-363f-7b7b-8f86-7666eadf5fd2	unsure	-	-	half-loaded shop with "Credit Loan Service" on ttkkc002.shop	
+heldout5	01a14262-a354-7315-84a5-687784038e23	phish	lure	ledger	"Ledgér.com/Start" setup-guide page on typedream.app	brand-domain-in-title/medium
+heldout5	01a14263-105d-70f2-b6e1-5bfbfb796b7c	benign	-	-	Fortra phishing-simulation notice page	
+heldout5	01a14264-88cf-7bdb-ab4b-6caf9ea6f3c8	phish	lure	-	"DEXCUNNECT Multi Wallet Connect" USDT matrix scheme (wallet connect)	
+heldout5	01a1426b-9a5b-779a-b803-70f1312f4278	benign	-	-	HotelMania apartment listing (Bulgaria)	
+heldout5	01a14273-8a44-7b04-9667-dd5d33624b0e	benign	-	-	MetaMask docs on a consensys Vercel preview URL (official)	brand-presented-off-domain/info
+heldout5	01a14274-604b-7ac9-b9c7-2102b735f275	unsure	-	-	Microsoft password page with a prefilled address on a Fortra phishing-simulation domain	brand-name-off-domain/high
+heldout5	01a14274-af67-7bd7-afc3-47299a8dd167	phish	lure	whatsapp	"WhatsApp Group / Gabung ke grup" lure on blogspot	brand-presented-off-domain/info
+heldout5	01a14274-ebb6-70d7-a788-d273e3063b28	phish	lure	shopee	Shopee prize-draw scam on blogspot (same kit)	brand-offer-off-domain/medium,brand-presented-off-domain/info
+heldout5	01a14275-54ec-7452-adaf-1961832444c4	phish	lure	-	"Your shared document" behind a security check (Turnstile), asks for the email address	kit-match/medium
+heldout5	01a14275-9903-70e3-989e-f8cedb0051fc	phish	lure	shopee	Shopee prize-draw scam on blogspot (same kit)	brand-offer-off-domain/medium,brand-presented-off-domain/info
+heldout5	01a14275-ea69-704e-aa9a-a25e7fa575b9	phish	lure	shopee	Shopee prize-draw scam on blogspot (same kit)	brand-offer-off-domain/medium,brand-presented-off-domain/info
+heldout5	01a14276-b7bc-7165-a68e-c24f4461f041	real-site	-	-	www.facebook.com itself	
+heldout5	01a14277-9fa0-7787-8b22-8ae71095de19	phish	lure	unionpay	China UnionPay site clone on 288755.xyz	
+heldout5	01a14277-f6e5-7290-9b41-aa0d7deaedee	phish	lure	-	"Secure Document Access" asks for the email address, on 2hmes.com	
+heldout5	01a14278-74a4-73ff-b85a-ea36dc1f4f6d	phish	lure	docusign	DocuSign "Review Document" page (kit error shown) on workers.dev	brand-name-off-domain/medium
+heldout5	01a14278-b7c5-7f41-9187-bdf4cad760bf	real-site	-	-	www.google.com itself	
+heldout5	01a14279-49b8-7cfc-bc1c-2d12460239b5	benign	-	-	Amazon India clone (tutorial) on github.io	brand-domain-in-title/medium,brand-presented-off-domain/info
+heldout5	01a14279-8961-78bf-b4f3-4b76fe2e011a	phish	credential	att	AT&T / BellSouth sign-in on webflow.io	brand-name-off-domain/medium,brand-domain-in-title/medium,form-on-free-hosting/medium
+heldout5	01a14279-d997-7643-85c8-815aef25bcb8	benign	-	-	hosting provider's "Domain Suspended" page	
+heldout5	01a1427a-9577-7c91-9d8f-c8f55b051efe	phish	payment	amazon	"Amazon" task-scam sign-up asking a payment password and invite code	brand-name-off-domain/high
+heldout5	01a1427b-5bde-7615-8e19-1ac43b254887	phish	lure	-	blurred "business contract" PDF viewer lure	
+heldout5	01a1427b-d66c-78e6-b794-18b2f0368f1e	phish	payment	pichincha	Banco Pichincha loan form on replit.app	form-on-free-hosting/medium,kit-match/medium
+heldout5	01a1427d-546c-7e89-b6e2-a3f3a34ee2eb	phish	lure	adobe	blurred PDF viewer asking to update Adobe, on vercel.app	form-on-free-hosting/medium
+heldout5	01a1427e-24a8-7286-9d52-42a5d4faa87a	phish	credential	scotiabank	Scotiabank sign-in clone on cdicsecure-prevention.com	
+heldout5	01a1428c-19a3-7eff-b878-8075d75c8afb	benign	-	-	MetaMask docs on a consensys Vercel preview URL (official)	
+heldout5	01a1428c-bf32-7c81-b28c-3a4dd55d6b3f	benign	-	-	Amazon India clone (tutorial) on github.io	brand-domain-in-title/medium,brand-presented-off-domain/info
+heldout5	01a1428d-3210-7a01-9563-47c5d1381e69	benign	-	-	Amazon clone (tutorial) on github.io	brand-presented-off-domain/info
+heldout5	01a1428d-74ae-71b4-95cc-6cf478275e60	phish	credential	instagram	Instagram login clone (Portuguese) on github.io	brand-name-off-domain/high,form-on-free-hosting/medium
+heldout5	01a1428d-abb6-742d-b9e4-bfc4bc199c1e	unsure	-	-	1xBet "Winning Five" prize-drawing promo	
+heldout5	01a1428d-fd3b-7a9f-b6ab-eb1ee861e050	benign	-	-	"Amazon Clone Project" (tutorial) on github.io	brand-presented-off-domain/info
+heldout5	01a1428f-20cd-7a2d-add8-ff45c423548b	phish	lure	facebook	"Facebook has temporarily suspended your account" over a Facebook feed, on azurefd.net	
+heldout5	01a1428f-5d76-7efb-944c-514bd87b35bd	phish	credential	metanet	Metanet (Plesk) webmail login on a Dutch heritage site	
+heldout5	01a1428f-b650-75ed-a043-f3c5e856212e	phish	credential	orange	Orange "Identifiez-vous" sign-in on facture-secure.com	
+heldout5	01a14290-0862-7e9a-95f7-34cdaec8e495	phish	lure	roblox	"Get Robux" username form on blogspot	
+heldout5	01a14290-7272-77e7-98fa-21eca90cfeca	phish	lure	microsoft	Outlook-styled "Proforma loading" document lure	
+heldout5	01a14290-b891-798a-be17-13090ea767a6	phish	lure	whatsapp	"WhatsApp Group / Gabung ke grup" lure on blogspot (same host)	brand-presented-off-domain/info
+heldout5	01a14291-7fd3-7d16-8d5a-a73131284dc3	benign	-	-	Fortra phishing-simulation notice page	
+heldout5	01a14292-086e-76b1-9cbf-4101215ff65b	phish	lure	google	Google Drive "shared files" lure on keych.org	
+heldout5	01a14292-34bf-7e39-ab6b-a672f36dba81	phish	credential	-	brandless "Account Verification" email/password login on an Italian site	kit-match/medium
+heldout5	01a142a1-d294-77fe-8065-e38776c2bafe	benign	-	-	MetaMask docs on a consensys Vercel preview URL (official)	brand-presented-off-domain/info
+heldout5	01a142a2-281b-721a-9f7d-2c3385019c15	benign	-	-	Amazon India clone (tutorial) on github.io	brand-domain-in-title/medium,brand-presented-off-domain/info
+heldout5	01a142a2-d2bf-7dfe-860c-1e9a3f2b5f1f	phish	lure	facebook	"Facebook has suspended your account" over a Facebook feed, on azurefd.net	
+heldout5	01a142a3-56e0-7b23-9c5e-39a708d89062	unsure	-	-	Microsoft password page with a prefilled address on a Fortra phishing-simulation domain	brand-name-off-domain/high
+heldout5	01a142a3-ac4e-7720-87b9-385d9c2ee722	phish	credential	-	brandless "Account Verification" email/password login (same host)	kit-match/medium
+heldout5	01a142a4-22c1-74b4-8b2f-e0fc90ce8a1a	phish	lure	spectrum	Spectrum webmail "click here to update your account" on gitbook.io	
+heldout5	01a142a4-c4c7-717e-a068-520c7ba53081	phish	payment	netflix	Netflix "verify your credit or debit card" form on github.io	brand-name-off-domain/medium
+heldout5	01a142a4-f0ef-75d3-b9ba-0b576b550d69	phish	lure	-	blurred "business contract" PDF viewer lure	
+heldout5	01a142a6-7c5d-789d-8ad3-021b6f7cf398	phish	payment	pichincha	Banco Pichincha loan form on replit.app (same kit)	form-on-free-hosting/medium,kit-match/medium
+heldout5	01a142a6-be0f-7678-8ef8-fb00ca6f8322	benign	-	-	Walmart clone (tutorial) on github.io	
+heldout5	01a142a7-1915-7e2e-a0ad-0595d5e6f614	phish	gate	-	"Vérification anti-bot / vérification de votre navigateur" page on prim-factu-11916.com	
+heldout5	01a142a7-6392-7892-b148-1b249c02c99c	phish	lure	amazon	Amazon Books page copy on prime.riverai7z.com	brand-domain-in-title/medium,brand-offer-off-domain/medium,brand-presented-off-domain/info
+heldout5	01a142a8-30d5-7373-8dbb-7b8b2a4ea0d8	benign	-	-	hosting provider's "Domain Suspended" page	
+heldout5	01a142a8-a8f2-7808-bd4f-76be0559b998	phish	lure	roblox	"Get Robux" username form on blogspot	
+heldout5	01a142a8-ea93-7118-852b-0f417de46342	phish	credential	adobe	"ADOBE PDF" email/password over a blurred invoice	brand-name-off-domain/high
+heldout5	01a142a9-2c82-7881-b982-5d5d37f3a3c2	benign	-	-	eSIM demo site branded Santander on webflow.io (vendor demo)	brand-presented-off-domain/info
+heldout5	01a142aa-155b-77c1-a5c1-72ba2bf845df	phish	gate	-	drawn "I am not a robot" box, titled "Webmail Sign-in", on replit.app	form-on-free-hosting/medium,fake-human-check/medium
+heldout5	01a142aa-5b66-7ddc-94e9-4021f8e829ca	phish	credential	whatsapp	WhatsApp "activate account" phone-number form (Arabic) on vercel.app	brand-presented-off-domain/info
+heldout5	01a142aa-85e1-714a-a6eb-3edc03ac3568	phish	lure	shopee	Shopee prize-draw scam on blogspot (same kit)	brand-offer-off-domain/medium,brand-presented-off-domain/info
+heldout5	01a142b9-350c-7a8a-bb3e-d64f4a700e66	benign	-	-	Multi Services Team LLC handyman site	
+heldout5	01a142ba-c534-70bf-80a7-46ede1e1e8f1	phish	lure	amazon	Amazon Books page copy on prime.riverai7z.com (same host)	
+heldout5	01a142bb-2195-7cc8-b711-1696bb144fac	phish	credential	swisscom	Swisscom webmail login on craftum.io	
+heldout5	01a142bb-9ffa-7b04-b926-d54812cb7e5d	phish	lure	orange	Orange "Cybersecure" activation lure on sites.google.com (same kit)	
+heldout5	01a142bb-e00a-7ef1-91ff-6694cf28a5f4	benign	-	-	Amazon clone (tutorial) on github.io	brand-presented-off-domain/info
+heldout5	01a142bf-a798-75c0-8331-9051eb6ea38d	benign	-	-	Netflix India clone (tutorial) on github.io	brand-presented-off-domain/info
+heldout5	01a142bf-d82a-77cc-9c59-71eecccdb757	benign	-	-	"Stranger Things: The Official Store" pop-up store site	
+heldout5	01a142c0-25c2-7be5-b9e8-858a7054e7e1	benign	-	-	"Stranger Things: The Official Store" pop-up store site (seen again)	
+heldout5	01a142c0-cec9-732b-9bad-0f5f359b9ef0	unsure	-	-	"Link is no longer available" on a tracking domain	
+heldout5	01a142c7-e953-77c2-965e-1bda67abe9cd	benign	-	-	Korean small-business ledger app on hosted.app (CT)	
