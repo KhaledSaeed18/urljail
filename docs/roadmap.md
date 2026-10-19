@@ -1,6 +1,6 @@
 # Roadmap
 
-Status: **P0–P5 done; live gate passed; P6 next**. Each phase ends with a written note in [`docs/journal/`](./journal/): what worked, what broke, what changed in the design.
+Status: **P0–P7 done** (P6 results 2026-10-13, P7 closed 2026-10-14); detection side quest in progress (held-out sets, [P7 journal](./journal/p7-control-plane.md#side-quest-look-alike-pages-and-brand-signals-2026-10-14)). Each phase ends with a written note in [`docs/journal/`](./journal/): what worked, what broke, what changed in the design.
 
 The order is deliberate: **safety before live URLs, a working end-to-end slice before optimization, the familiar web stack last.**
 
@@ -80,14 +80,14 @@ The whole pipeline, as simple as possible, **cold boot** (no snapshots yet).
 - [x] Proton VPN Free WireGuard config installed ([ADR 0017](./decisions/0017-proton-vpn-free.md)); live self-test passes with it
 - [x] Feed ingestion design treating URLs strictly as data ([feed-ingestion.md](./feed-ingestion.md))
 
-## P6: Anti-cloaking research (in progress)
+## P6: Anti-cloaking research (results 2026-10-13)
 See [research/anti-cloaking.md](./research/anti-cloaking.md).
 - [x] Snapshot profiles as experimental conditions: six profiles, one snapshot each ([ADR 0018](./decisions/0018-profiles-as-snapshots.md)), verified live
 - [x] Fresh-feed ingestion; detonate within minutes of publication (phishing URLs die in hours): `urljail feeds` with OpenPhish Community, plus own discovery from CT logs (`urljail feeds watch`) ([feed-ingestion.md](./feed-ingestion.md))
 - [x] Cloaking measurement: same URL, multiple profiles at once, outcome labels, control runs, single-factor attribution (`urljail feeds compare`); one exit only
 - [x] Write-up with results: [research/r1-results.md](./research/r1-results.md) (2026-10-13)
 
-**Exit:** cloaking rate per countermeasure on a real feed, with methodology documented.
+**Exit:** cloaking rate per countermeasure on a real feed, with methodology documented. **Met:** [R1 results](./research/r1-results.md).
 
 ## P7: Control plane (done 2026-10-14)
 - [x] NestJS orchestrator + Postgres + BullMQ queue; gRPC client to `urljaild` ([control-plane](../control-plane/README.md), [ADR 0019](./decisions/0019-control-plane-deployment.md))
@@ -101,5 +101,5 @@ See [research/anti-cloaking.md](./research/anti-cloaking.md).
 ## Side quests (can slot in anywhere after P4)
 - **Snapshot entropy study**: [research/snapshot-entropy.md](./research/snapshot-entropy.md); a good standalone write-up.
 - ~~HAR export~~: done 2026-10-14 (`har.json` beside each report, "Download HAR" on the run page).
-- ~~pHash of screenshots, brand-impersonation heuristics~~: done 2026-10-14 (`urljail similar`, report `indicators`; [journal](./journal/p7-control-plane.md)).
+- ~~pHash of screenshots, brand-impersonation heuristics~~: done 2026-10-14 (`urljail similar`, report `indicators`; [journal](./journal/p7-control-plane.md)); tuned since on blind-labelled held-out sets (S1–S18).
 - **Rust rewrite of one component** (e.g. the eBPF loader with aya) as a comparison exercise.

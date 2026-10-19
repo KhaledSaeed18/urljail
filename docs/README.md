@@ -2,7 +2,7 @@
 
 > Detonate suspicious URLs in disposable Firecracker microVMs and report what they actually do.
 
-**Status:** live gate passed (2026-10-12): urljaild runs as a service in live mode, WireGuard (Proton VPN Free) the only exit, verified by its own startup self-test. P6 (anti-cloaking research) next. No code yet. Last updated 2026-10-12.
+**Status:** all roadmap phases done: live gate passed 2026-10-12 (urljaild runs as a service in live mode, WireGuard the only exit, verified by its own startup self-test), P6 results 2026-10-13, P7 control plane 2026-10-14. Detection rules are tuned on blind-labelled held-out sets ([P7 journal](./journal/p7-control-plane.md)). Last updated 2026-10-19.
 
 ## Reading order
 
