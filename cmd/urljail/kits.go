@@ -16,7 +16,10 @@ import (
 )
 
 // cmdKits builds the kit references (internal/kits/refs.json) from labelled runs: every run
-// labelled phishing whose page is large enough to fingerprint.
+// labelled phishing whose page is large enough to fingerprint, except those that match a page
+// labelled benign or the brand's real site elsewhere: a site builder's template, not a kit
+// (found in P7, S19: a lure on sites.google.com matched an unrelated Google Sites page on its
+// own domain). Brands' own pages aren't compared: kit-match never runs there.
 func cmdKits(args []string) error {
 	if len(args) == 0 || args[0] != "refs" {
 		return errors.New("usage: urljail kits refs -labels labels.tsv > internal/kits/refs.json")
@@ -40,7 +43,7 @@ func cmdKits(args []string) error {
 	sc.Buffer(make([]byte, 1<<20), 1<<20)
 	// Columns by header name: "run" or "run_id"; "label" or "verdict".
 	col := map[string]int{}
-	var refs []kits.Ref
+	var refs, others []kits.Ref
 	seen := map[string]bool{}
 	skipped := 0
 	for line := 0; sc.Scan(); line++ {
@@ -60,10 +63,22 @@ func cmdKits(args []string) error {
 			return ""
 		}
 		run, verdict := get("run", "run_id"), get("label", "verdict")
-		if verdict != "phish" || !isRunID(run) || seen[run] {
+		if !isRunID(run) || seen[run] {
 			continue
 		}
 		seen[run] = true
+		if verdict == "benign" || verdict == "real-site" {
+			// Not a brand's own page: kit-match never runs there, and a faithful clone matches it.
+			if ref, err := kitRef(filepath.Join(runsDir, run)); err == nil {
+				if _, owned := brands.Owner(brands.DomainOf("https://" + ref.Host + "/")); !owned {
+					others = append(others, ref)
+				}
+			}
+			continue
+		}
+		if verdict != "phish" {
+			continue
+		}
 		ref, err := kitRef(filepath.Join(runsDir, run))
 		if err != nil {
 			skipped++
@@ -75,7 +90,21 @@ func cmdKits(args []string) error {
 	if err := sc.Err(); err != nil {
 		return err
 	}
-	fmt.Fprintf(os.Stderr, "%d kit references (%d phishing runs skipped: no DOM, or too small to fingerprint)\n", len(refs), skipped)
+	kept := refs[:0]
+	var dropped []string
+	for _, r := range refs {
+		if o, sim, ok := kits.Match(others, r.Fingerprint, r.Host); ok {
+			dropped = append(dropped, fmt.Sprintf("  %s (%s) matches %s, not phishing (%.0f %%)", r.Host, r.Run, o.Host, sim*100))
+			continue
+		}
+		kept = append(kept, r)
+	}
+	refs = kept
+	fmt.Fprintf(os.Stderr, "%d kit references (%d phishing runs skipped: no DOM, or too small to fingerprint; %d dropped: they match a page that isn't phishing)\n",
+		len(refs), skipped, len(dropped))
+	for _, d := range dropped {
+		fmt.Fprintln(os.Stderr, d)
+	}
 	out, err := json.Marshal(refs)
 	if err != nil {
 		return err

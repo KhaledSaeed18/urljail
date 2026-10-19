@@ -378,6 +378,15 @@ Three changes from set 6's misses, made after the test, so not held-out:
 
 All 15 changed runs are on the four phishing hosts (the labelled runs and their other-profile runs) and three unlabelled runs of `bitmart-cex.cc` titled "BitMart", which gain only the info indicator. No false alarm added or removed. Set 6's false alarms stay (the Coinbase write-up, the "Microsoft Official" tutorial clone, the LinkedIn headline tool, the Ledger debt tracker, two CT look-alike domains): each looks like a phishing page by the signal that fired, and narrowing it would lose catches. Misses left: the Microsoft "verify your email" kit (the brand only in the footer), the CRS kit, blurred-document lures, the Meta "Page restricted" notice (no brand in title or headings), FedEx and Sunrise landing pages, the image-only Ledger page.
 
+**Kit references refreshed.** They still held only the pages labelled 13–15 October (137, from S13): sets 5 and 6 were never added. (So S18's "three imToken wallet clones matching set 5's" is wrong: they matched `tokenimone-cdn-edge-hk35.xyz`, labelled 15 October.) Rebuilt from all labels: 219 references, and two of them, lures on `sites.google.com`, matched `facebook.tamil.bid` and `www.multiservicesteam.co`, both labelled benign (75 %, 73 %): Google Sites pages on their own domains share the builder's template, which `SamePlace` can't see. `urljail kits refs` now drops a reference that matches a page labelled benign or real-site at another place, leaving out brands' own pages (kit-match never runs there, and a faithful Google sign-in clone matches `accounts.google.com` at 84 %). **217 references**, 2 dropped.
+
+| Rules | Phishing flagged (of 325) | Others flagged (of 254) | Set 6: phishing / others | Stored runs changed |
+| --- | --- | --- | --- | --- |
+| + S19 rules | 246 | 17 | 27 / 7 | – |
+| + refreshed references | 256 | 17 | 31 / 7 | 29 |
+
+All 29 changed runs gain `kit-match` on phishing hosts: 11 labelled, 18 their other-profile runs. Set 6's 31 is in-sample twice over (the references include its own kits, matched across their hosts: the Microsoft "verify your email" kit on two hosts, the CRS kit on three); the seventh set measures what carries over.
+
 ### Freeze for the seventh held-out set
 
-Frozen with this commit.
+Frozen with this commit: the S19 rules and the 217 references.
