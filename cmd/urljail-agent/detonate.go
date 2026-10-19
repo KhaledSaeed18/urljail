@@ -76,6 +76,11 @@ func (a *agent) detonate(ctx context.Context, req *guestv1.DetonateRequest, out 
 		}
 	} else {
 		b.discardQueued() // events from about:blank before the snapshot aren't this run's
+		if err := b.freshRenderer(ctx); err != nil {
+			b.ch.close()
+			return done, fmt.Errorf("replacing the renderer from before the snapshot: %w", err)
+		}
+		b.discardQueued()
 	}
 	ch, targetID := b.ch, b.targetID
 	bctx := cdpctx.WithExecutor(ctx, b.browser)

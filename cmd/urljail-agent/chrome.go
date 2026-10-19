@@ -18,10 +18,12 @@ import (
 	"github.com/KhaledSaeed18/urljail/internal/cdp"
 )
 
-const (
+const runDir = "/run/urljail"
+
+// Variables only so the Chrome integration test can point them elsewhere.
+var (
 	chromeBin  = "/usr/bin/google-chrome" // Google's wrapper script, as on a real install
-	runDir     = "/run/urljail"
-	keyLogPath = runDir + "/sslkeys.log" // TLS keys for offline decryption of the host pcap (ADR 0004)
+	keyLogPath = runDir + "/sslkeys.log"  // TLS keys for offline decryption of the host pcap (ADR 0004)
 	chromeLog  = runDir + "/chrome.log"
 )
 

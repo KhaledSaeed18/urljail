@@ -59,7 +59,7 @@ What it costs urljail:
 - **A cloaking signal.** A page can compare the first few `Math.random()` outputs with values seen before: a visitor whose "random" numbers repeat a previous visitor's is a cloned scanner. One evaluation in a kit's script is enough, and no browser countermeasure profile changes it.
 - **Research validity.** Profile comparisons (R1) assume independent visits; on this axis clones aren't.
 
-Fix (pending): start the page in a renderer created after the restore, not in the snapshot's. The renderer is forked from Chrome's zygote, so its V8 isolate is seeded after the VMGenID reseed. To be verified the same way: the GA client IDs of runs after the fix should never repeat.
+Fix (written, not yet in the image): before navigating, the agent kills Chrome's renderer processes (those in its process group whose command line says `--type=renderer`) and waits for `Inspector.targetCrashed` on the tab; `Page.navigate` then starts the page in a renderer forked from the zygote after the restore, whose V8 isolate is seeded after the VMGenID reseed ([renderer.go](../../cmd/urljail-agent/renderer.go)). Against Chrome 155 on the host (`URLJAIL_TEST_CHROME`), 8 of 8 runs: 5 renderers replaced in 35–56 ms, the page loads and its script runs in new ones. To be verified in the VMs the same way as found: GA client IDs of runs after the fix should never repeat.
 
 ## Experiments
 
