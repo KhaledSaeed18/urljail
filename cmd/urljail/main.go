@@ -36,6 +36,8 @@ commands:
   brands refs > internal/brands/refs.json    take reference screenshots of brands' sign-in pages
   kits refs -labels f > internal/kits/refs.json
                                              fingerprint labelled phishing pages (kit-match)
+  indicators dump|score|diff                 rebuild every stored run's indicators offline,
+                                             score them against labels, diff two dumps
   version                                    show CLI and daemon versions
 `
 
@@ -96,6 +98,8 @@ func run() error {
 		return cmdBrands(ctx, client, args)
 	case "kits":
 		return cmdKits(args)
+	case "indicators":
+		return cmdIndicators(args)
 	default:
 		fmt.Fprintf(os.Stderr, "unknown command %q\n\n", cmd)
 		flag.Usage()
