@@ -161,8 +161,16 @@ func (s *Server) bootVM(ctx context.Context, r *run, slot int, runDir string, ad
 	addCleanup(func(context.Context) { _ = jail.Remove() }) // also if the VMM never started
 	const rootfs, vsock = "rootfs.ext4", "v.sock"           // paths inside the jail
 	base := img.Rootfs
+	// The snapshot's files must stay in place until the clone has its own links to them: a
+	// background rebuild replaces them only between restores.
+	unlock := func() {}
 	if r.snap != nil {
-		base = r.snap.rootfs // the disk the snapshot's page cache expects
+		s.snapMu.RLock()
+		var once sync.Once
+		unlock = func() { once.Do(s.snapMu.RUnlock) }
+		defer unlock()
+		r.snap = s.snaps[r.profile] // the newest, if it was rebuilt since the run started
+		base = r.snap.rootfs        // the disk the snapshot's page cache expects
 	}
 	if err := vm.CloneFile(base, jail.Path(rootfs)); err != nil {
 		return nil, nil, fmt.Errorf("cloning rootfs: %w", err)
@@ -255,6 +263,7 @@ func (s *Server) bootVM(ctx context.Context, r *run, slot int, runDir string, ad
 	var machine *vm.Machine
 	if r.snap != nil {
 		machine, err = vm.Restore(ctx, vmCfg, r.snap.files)
+		unlock()
 	} else {
 		machine, err = vm.Start(ctx, vmCfg)
 	}

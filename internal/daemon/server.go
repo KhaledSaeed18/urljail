@@ -50,12 +50,17 @@ type Config struct {
 	Operator      operator.Operator // owns run directories and runs the VMMs
 	SocketDir     string            // Firecracker API sockets (short paths: Unix sockets are limited to 108 bytes)
 	SnapshotsDir  string            // built snapshots; empty: cold boot every run
-	CgroupParent  string            // VM cgroups, relative to /sys/fs/cgroup (ServiceCgroup)
-	WorkDir       string            // per-run scratch (disk clones), deleted at teardown
-	MaxVMs        int
-	VCPUs         int
-	MemMiB        int
-	ExitTimezone  string // the VPN exit's IANA zone, for the stealth profiles' timezone
+	// SnapshotMaxAge: older snapshots are rebuilt, at startup and in the background (0: never).
+	// A restore moves the guest's clock across the snapshot's whole age, and across days the
+	// guest kernel can crash on it (found 2026-10-19: every restore of a 4.9-day-old snapshot
+	// panicked in the scheduler).
+	SnapshotMaxAge time.Duration
+	CgroupParent   string // VM cgroups, relative to /sys/fs/cgroup (ServiceCgroup)
+	WorkDir        string // per-run scratch (disk clones), deleted at teardown
+	MaxVMs         int
+	VCPUs          int
+	MemMiB         int
+	ExitTimezone   string // the VPN exit's IANA zone, for the stealth profiles' timezone
 
 	// Pinned component versions, reported by Version and recorded per run.
 	FirecrackerVersion string
@@ -68,6 +73,7 @@ type Server struct {
 	log      *slog.Logger
 	net      *netns.Egress        // nil: no VM lifecycle (tests of the API only)
 	profiles []browserProfile     // DefaultProfile first
+	snapMu   sync.RWMutex         // held for reading from a snapshot's use to its clone's restore; for writing while one is replaced
 	snaps    map[string]*snapshot // by profile; nil: cold boot
 	slots    *slots
 	active   sync.WaitGroup // running detonations, so shutdown can wait for their teardown
@@ -133,7 +139,9 @@ func (s *Server) useProfile(r *run, name string) error {
 	}
 	for _, p := range s.profiles {
 		if p.name == name {
+			s.snapMu.RLock()
 			r.profile, r.browser, r.snap = p.name, p.browser, s.snaps[p.name]
+			s.snapMu.RUnlock()
 			return nil
 		}
 	}

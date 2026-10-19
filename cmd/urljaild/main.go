@@ -78,6 +78,7 @@ func run() error {
 	maxDwell := flag.Duration("max-dwell", 15*time.Second, "maximum observation after navigation")
 	jitter := flag.Duration("dwell-jitter", time.Second, "random extra minimum observation, up to this")
 	useSnapshots := flag.Bool("snapshots", true, "restore runs from a snapshot (false: cold boot every run)")
+	snapMaxAge := flag.Duration("snapshot-max-age", 24*time.Hour, "rebuild snapshots older than this, at startup and when idle (0: never); a restore moves the guest clock across the snapshot's age")
 	flag.Parse()
 
 	log := slog.New(slog.NewTextHandler(os.Stderr, nil))
@@ -181,6 +182,7 @@ func run() error {
 		SocketDir:      socketDir,
 		WorkDir:        filepath.Join(dataDir, "work"),
 		SnapshotsDir:   filepath.Join(dataDir, "snapshots"),
+		SnapshotMaxAge: *snapMaxAge,
 		MaxVMs:         *maxVMs,
 		ExitTimezone:   *exitTZ,
 		VCPUs:          *vcpus,
@@ -298,6 +300,9 @@ func run() error {
 		gs.Stop()
 	}()
 
+	if *useSnapshots && eg != nil {
+		go srv.RefreshSnapshots(ctx)
+	}
 	log.Info("urljaild listening", "version", version.String(), "socket", *socket, "egress", mode,
 		"operator", op.Name, "firecracker", cfg.FirecrackerVersion, "image", cfg.Image.Manifest.Name)
 	err = gs.Serve(l)

@@ -390,3 +390,10 @@ All 29 changed runs gain `kit-match` on phishing hosts: 11 labelled, 18 their ot
 ### Freeze for the seventh held-out set
 
 Frozen with this commit: the S19 rules and the 217 references.
+
+### Snapshots older than a day (2026-10-19)
+
+The seventh set's first 40 minutes had **every `stealth` run fail**: the guest agent never answered. The guest console shows why: on restore the guest kernel reports `BUG: workqueue lockup ... stuck for 426346s!` and then a NULL pointer dereference in the scheduler (`pick_task_fair`, from a kworker). 426,346 s is the time since the snapshot was built (14 October, 4.9 days): the restore moves the guest's clock across the snapshot's whole age (`clock_realtime`, [ADR 0015](../decisions/0015-restore-on-demand.md)). The lockup warning itself is old and harmless: it is in 1,617 earlier runs' consoles, set 6's among them (1.8 days). The crash is new: all 20 cases are today's, all `stealth`; the other five snapshots, built minutes apart on the same day, still restore. So it depends on what each snapshot's kernel was doing at the instant it was taken, and on the jump.
+
+- **Set 7 continued on `stealth-headful`** (with `baseline` as control): the same desktop User-Agent as `stealth`, and its restores work. The URLs already run in the first 40 minutes have `stealth-headful` control runs, so they stay in the set.
+- **Fix in the daemon:** `-snapshot-max-age` (default 24 h). A snapshot older than that is rebuilt at startup, and in the background while serving: checked every minute, rebuilt one at a time when no run is active, the old one serving until the new one is installed. A read lock is held from a run picking its snapshot to its clone's restore, so a rebuild only swaps files between restores. Unit tests for the age rule; **not yet running**: installing the daemon needs root (`sudo scripts/install-daemon.sh`), and the restart rebuilds all six snapshots.
