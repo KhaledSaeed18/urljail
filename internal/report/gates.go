@@ -45,6 +45,7 @@ type pageText struct {
 	text  string
 	words int
 	srcs  []string
+	alts  []string // images' alt text, which names a logo's brand when the page's text doesn't
 }
 
 func readPageText(domPath string) (pageText, bool) {
@@ -65,6 +66,15 @@ func readPageText(domPath string) (pageText, bool) {
 		case html.StartTagToken, html.SelfClosingTagToken:
 			n, hasAttr := z.TagName()
 			name := string(n)
+			if name == "img" {
+				for hasAttr {
+					var k, v []byte
+					k, v, hasAttr = z.TagAttr()
+					if string(k) == "alt" && len(v) > 0 && len(v) <= 80 && len(p.alts) < 32 {
+						p.alts = append(p.alts, string(v))
+					}
+				}
+			}
 			if name == "script" || name == "iframe" {
 				for hasAttr {
 					var k, v []byte

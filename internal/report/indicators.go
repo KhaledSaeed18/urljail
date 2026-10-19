@@ -126,6 +126,18 @@ func indicators(r *reportv0.Report, domPath string) []*reportv0.Indicator {
 		}
 	}
 
+	// A password asked for on a page that names a brand only in its copyright notice (or a
+	// logo's alt text), off the brand's domains: the title says "Sign In", the footer "© 2023
+	// Microsoft" (found in P7, S20: four Outlook kits on S3, Scaleway storage and hacked sites).
+	if page.GetPasswordFields() > 0 && havePage && !hasBrandIndicator(out) {
+		if b, where, ok := pageBrand(pt, domain); ok {
+			out = append(out, &reportv0.Indicator{
+				Id: "brand-footer-off-domain", Severity: "medium", Brand: b.ID, Source: guestDOM,
+				Detail: fmt.Sprintf("The page asks for a password and names %s in %s, on %s", b.Name, where, domain),
+			})
+		}
+	}
+
 	out = append(out, lureIndicators(domain, append([]string{title}, heads...), classHeads, pt, havePage)...)
 
 	// A password field or a details form on free hosting (found in P7: brandless webmail kits,
@@ -316,7 +328,7 @@ var machineFilled = map[string]bool{"g-recaptcha-response": true, "h-captcha-res
 func commentForm(f *reportv0.Form) bool {
 	message := false
 	for _, x := range f.GetFields() {
-		name := strings.ToLower(x.GetName())
+		name := fieldName(x.GetName())
 		switch x.GetType() {
 		case "textarea":
 			if !messageNames[name] {
@@ -332,6 +344,17 @@ func commentForm(f *reportv0.Form) bool {
 		}
 	}
 	return message
+}
+
+// fieldName is a form field's name, lowercase, without a form builder's wrapper: Elementor
+// names its contact form's fields "form_fields[name]", "form_fields[message]" (found in P7,
+// S20: a consultant's contact form under a "Google Ads" title read as asking for details).
+func fieldName(n string) string {
+	n = strings.ToLower(n)
+	if i := strings.LastIndexByte(n, '['); i >= 0 && strings.HasSuffix(n, "]") && i+1 < len(n)-1 {
+		n = n[i+1 : len(n)-1]
+	}
+	return n
 }
 
 var (

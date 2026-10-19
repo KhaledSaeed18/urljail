@@ -421,3 +421,22 @@ Installed with the snapshot age fix (`a892eda`; all six snapshots rebuilt, self-
 Changed: the renderers are still killed, but the page now loads in a **new foreground window** (`Target.createTarget` with `newWindow`), whose renderer is forked after the restore, and the crashed tab is closed; nothing loads in a crash-recovered tab. On host Chrome the new window is visible, the same size, and timers, frames, `IntersectionObserver` and fetches fire (now asserted by the integration test; about 170 ms). To check in the VMs the same way: GA hit rate back near 12 of 15, and client IDs distinct.
 
 Installed (`8a24e24`; snapshots rebuilt at 00:39, self-test passed). Same four sites, 20 `stealth` runs: Google Analytics hits in 15 (12 of 15 before any fix, 2 of 28 with the in-place reload), 40.8 page flows on average (36.7 before, 20.6 in place), and all 16 client IDs distinct. Details in [R2](../research/snapshot-entropy.md#third-data-point-2026-10-19-mathrandom-is-cloned).
+
+### S21: after the seventh set (2026-10-20)
+
+From set 7's misses and false alarms, after the test, so not held-out; measured with `urljail indicators` over all 7,998 stored runs.
+
+- **`brand-footer-off-domain`** (medium): a password field on a page that names a brand only in its visible copyright notice ("© 2023 Microsoft") or in an image's alt text ("Outlook", "Microsoft Logo"), off the brand's domains, and no other brand rule fired. Only visible text counts: the same kits carry "Copyright (c) Microsoft Corporation" inside Microsoft's own JavaScript, which legitimate sites embed too. The alt text doesn't count on a page that offers to "sign in with" or "continue with" another service, whose buttons carry that brand's logo anywhere; and no brand counts when one of those named owns the domain (AWS GovCloud's sign-in names "Amazon Web Services", which is Amazon and AWS). The two signals measured apart and together: no labelled benign or real-site page gains either; footer and alt text both catch set 7's two S3/Scaleway Outlook kits, the alt text also an already-flagged set-6 page. Kept both.
+- **Contact forms built with Elementor** name their fields `form_fields[name]`, `form_fields[message]`: the contact-form exemption now reads the name inside the brackets. That removes set 7's Google Ads consultant false alarm.
+- **Kit references** rebuilt with set 7's labels: 240 (the same two Google Sites lures dropped); 4 runs change, the same two Outlook kits.
+
+| Rules | Phishing flagged (of 366) | Others flagged (of 287) | Set 7: phishing / others | Stored runs changed |
+| --- | --- | --- | --- | --- |
+| `c97191a` (set 7 freeze) | 275 | 20 | 19 / 3 | – |
+| + S21 | 277 | 19 | 21 / 2 | 17 |
+
+All 17 changed runs are on phishing hosts (the labelled pages and their other-profile runs, a DocuSign kit on `bluesoftsdocrks.com`, a "PDF Document Viewer" on replit, a Facebook-lure blog), except the consultant's page losing its false alarm. Left as they are: set 7's other two false alarms (sign-in wording next to a brand name on a mod-APK site and a Netflix tutorial), and the misses that name the brand only in the logo image itself (German PayPal, Korean Instagram) or ask for nothing (lures).
+
+### Freeze for the eighth held-out set
+
+Frozen with this commit: the S21 rules and the 240 references. Profile back to `stealth`: its snapshot is rebuilt daily now, and the agent loads each page in a fresh renderer (R2).

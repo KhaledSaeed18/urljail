@@ -24,6 +24,8 @@ func TestIndicators(t *testing.T) {
 	os.WriteFile(threat, []byte(`<h2>Sign in to continue</h2><p>Enter your correct password to avoid deactivation</p>`), 0o600)
 	signIn := filepath.Join(t.TempDir(), "signin.html")
 	os.WriteFile(signIn, []byte(`<h2>Sign in to continue</h2><p>Too many attempts will lock your account for an hour.</p>`), 0o600)
+	outlookKit := filepath.Join(t.TempDir(), "outlook.html")
+	os.WriteFile(outlookKit, []byte(`<img alt="Outlook" src="o.png"><p>Please sign in to continue.</p><input type=password><p>© 2023 Microsoft</p><script>/* Copyright (c) Microsoft Corporation */</script>`), 0o600)
 	cardFields := []*reportv0.Field{{Type: "hidden", Name: "cc"}, {Type: "text", Name: "fullname"}, {Type: "text", Name: "cardnumber"},
 		{Type: "text", Name: "exp"}, {Type: "text", Name: "cvv"}, {Type: "text", Name: "zip"}}
 
@@ -88,6 +90,8 @@ func TestIndicators(t *testing.T) {
 		{name: "a password asked for under a threat", final: "https://avtech-ltd.example/xinu9.html", title: "Webmail Portal Access", dom: threat, passwords: 1,
 			want: "password-under-threat:"},
 		{name: "a lockout notice isn't a threat", final: "https://mail.example/login", title: "Webmail", dom: signIn, passwords: 1, want: ""},
+		{name: "an Outlook kit: Microsoft only in the footer", final: "https://amdd-s3-vivo-hader.s3.us-east-2.amazonaws.com/verify.html", title: "Sign In", dom: outlookKit, passwords: 1,
+			want: "brand-footer-off-domain:microsoft"},
 		{name: "password posted elsewhere", final: "https://shop.example/", dom: noDOM, passwords: 1,
 			forms: []*reportv0.Form{{HasPassword: true, CrossOriginAction: true, Action: "https://collect.evil.test/p"}},
 			want:  "password-form-cross-origin:"},
