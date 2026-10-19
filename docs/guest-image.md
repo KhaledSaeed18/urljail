@@ -68,7 +68,7 @@ Snapshot "profiles" = different browser configurations (baseline, stealth varian
 - [x] Wall clock right before navigation: `clock_realtime` + `clocksource=kvm-clock`; skew recorded per run (~214 ms) and checked by the self-test
 - [x] Kernel RNG reseeded: VMGenID, logged by the guest kernel, recorded per run, checked by the self-test
 - [x] TLS randomness independent: 0 repeats of client random, session ID or X25519 key share over 34,955 ClientHellos from 2,614 restores (BoringSSL reads the reseeded kernel) ([research/snapshot-entropy.md](./research/snapshot-entropy.md))
-- [ ] Page JavaScript randomness (`Math.random()`): **cloned** in a renderer from before the snapshot (22 Google Analytics client IDs repeated across 46 runs, 2026-10-19). Fix: the agent replaces the snapshot's renderers before navigating ([renderer.go](../cmd/urljail-agent/renderer.go)); written and tested against Chrome 155 on the host, not yet in the image. Check after the rebuild: GA client IDs never repeat
+- [x] Page JavaScript randomness (`Math.random()`): was **cloned** in the snapshot's renderer (22 Google Analytics client IDs repeated across 46 runs); the agent now loads each page in a new window whose renderer is forked after the restore ([renderer.go](../cmd/urljail-agent/renderer.go)); verified 2026-10-20: 16 of 16 client IDs distinct, pages behave as before ([research/snapshot-entropy.md](./research/snapshot-entropy.md))
 - [x] Disk is fresh per run: reflink of the snapshot's disk in the run's work directory
 - [x] Network identity unique outside: each clone's own VM namespace, SNAT to `10.200.<n>.2`
 

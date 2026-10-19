@@ -99,7 +99,7 @@ See [research/anti-cloaking.md](./research/anti-cloaking.md).
 ---
 
 ## Side quests (can slot in anywhere after P4)
-- **Snapshot entropy study**: [research/snapshot-entropy.md](./research/snapshot-entropy.md); kernel and TLS randomness independent across clones; V8 `Math.random()` cloned (2026-10-19), fix pending.
+- **Snapshot entropy study**: [research/snapshot-entropy.md](./research/snapshot-entropy.md); kernel, TLS and page `Math.random()` independent across clones (the last fixed 2026-10-20).
 - ~~HAR export~~: done 2026-10-14 (`har.json` beside each report, "Download HAR" on the run page).
 - ~~pHash of screenshots, brand-impersonation heuristics~~: done 2026-10-14 (`urljail similar`, report `indicators`; [journal](./journal/p7-control-plane.md)); tuned since on blind-labelled held-out sets (S1–S18).
 - **Rust rewrite of one component** (e.g. the eBPF loader with aya) as a comparison exercise.

@@ -1,6 +1,6 @@
 # Research track R2: entropy uniqueness across snapshot clones
 
-Status: **in progress**: kernel and TLS randomness verified independent across clones; V8 `Math.random()` found cloned (2026-10-19), fix pending. Side quest after Phase 4.
+Status: **kernel, TLS and page JavaScript randomness independent across clones** (`Math.random()` was cloned; fixed 2026-10-20). Browser-process state from before the snapshot not yet checked. Side quest after Phase 4.
 
 ## Problem
 
@@ -59,7 +59,17 @@ What it costs urljail:
 - **A cloaking signal.** A page can compare the first few `Math.random()` outputs with values seen before: a visitor whose "random" numbers repeat a previous visitor's is a cloned scanner. One evaluation in a kit's script is enough, and no browser countermeasure profile changes it.
 - **Research validity.** Profile comparisons (R1) assume independent visits; on this axis clones aren't.
 
-Fix (written, not yet in the image): before navigating, the agent kills Chrome's renderer processes (those in its process group whose command line says `--type=renderer`) and waits for `Inspector.targetCrashed` on the tab; `Page.navigate` then starts the page in a renderer forked from the zygote after the restore, whose V8 isolate is seeded after the VMGenID reseed ([renderer.go](../../cmd/urljail-agent/renderer.go)). Against Chrome 155 on the host (`URLJAIL_TEST_CHROME`), 8 of 8 runs: 5 renderers replaced in 35–56 ms, the page loads and its script runs in new ones. To be verified in the VMs the same way as found: GA client IDs of runs after the fix should never repeat.
+Fix (installed 2026-10-20): before navigating, the agent kills Chrome's renderer processes (those in its process group whose command line says `--type=renderer`), waits for `Inspector.targetCrashed` on the tab, opens a new foreground window whose renderer is forked from the zygote after the restore, drives that, and closes the old tab ([renderer.go](../../cmd/urljail-agent/renderer.go)). About 170 ms.
+
+A first version reloaded the crashed tab in place instead. In the VMs that made pages do less (it doesn't on host Chrome): on the four test sites below, Google Analytics hits fell from 12 of 15 runs to 2 of 28, and the host saw a third fewer connections. Measured the same way, on the same four sites, `stealth`:
+
+| Agent | Runs | Runs with a GA hit | Mean page flows (host) | Client IDs repeated across runs |
+| --- | --- | --- | --- | --- |
+| Before (snapshot's renderer) | 15 | 12 | 36.7 | yes: the same ID on every run of a site |
+| Crashed tab reloaded in place | 28 | 2 | 20.6 | – (two IDs) |
+| **New window** | 20 | **15** | **40.8** | **none (16 distinct)** |
+
+So the page's `Math.random()` now differs from clone to clone, and pages behave as before (more connections than before, if anything). Still unchecked: anything else the browser process holds from before the snapshot (it isn't restarted).
 
 ## Experiments
 
