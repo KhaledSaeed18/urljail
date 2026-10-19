@@ -640,3 +640,95 @@ heldout6	01a14669-447c-7779-a5a6-fbe9c5574238	unsure	-	-	Russian "Введите
 heldout6	01a14672-0fb4-7a76-b9ef-7325d9339917	unsure	-	-	"SteamUnlock" pirated-games site (CT)	
 heldout6	01a14672-abe5-7570-8e8e-362f647ec51c	real-site	-	-	Royal Mail's ForgeRock/Ping identity sign-in on forgerock.io (CT)	
 heldout6	01a14678-5157-74cd-8743-0f66791517ac	benign	-	-	OrangeMatchAI card game (CT)	
+heldout7	01a154be-4c80-7431-b4f9-a8f56b0ddf03	phish	credential	nike	Nike sign-in clone with a password form on github.io ("exzamen")	form-on-free-hosting/medium
+heldout7	01a154bf-d3a9-7501-a10b-b3dd2c4d9836	phish	credential	att	BellSouth / AT&T sign-in (email, password) on webflow.io	brand-name-off-domain/medium,form-on-free-hosting/medium
+heldout7	01a154c0-55f8-7851-8a56-84da8549786d	benign	-	netflix	"netflix clone" landing page (tutorial) on netlify.app	brand-presented-off-domain/info
+heldout7	01a154c1-5a98-7dcc-8e03-56410562d005	phish	credential	dropbox	Dropbox "sign in to access document" email form on an S3 bucket	brand-name-off-domain/medium
+heldout7	01a154c3-63fe-77f7-8384-714a2b9b5698	phish	lure	apple	"$1,000 Apple Gift Card" claim-a-reward offer on vercel.app	
+heldout7	01a154c3-e673-78b7-ae78-8111b5974571	phish	credential	google	Google sign-in clone (email first) on compliance-educational-resources.com	brand-name-off-domain/medium
+heldout7	01a154c6-ad07-70d0-aa44-e8b300486868	phish	credential	microsoft	Microsoft "you've (7) held messages" email form on demo.beamon.com	
+heldout7	01a154c9-9929-7c5d-8407-58313363a13f	phish	lure	metamask	"MetaMask Login" guide page on gitbook.io	brand-name-off-domain/medium
+heldout7	01a154ca-2f7d-7054-9801-e15103d43008	phish	gate	-	"Access Restricted" VPN/proxy block page on netlify.app	block-page-on-free-hosting/medium
+heldout7	01a154ca-7d40-782c-a4ed-1958744f4619	phish	lure	meta	"Meta for Business | Page Appeal" on pages.dev (renders blank)	brand-presented-off-domain/info
+heldout7	01a154ca-ce4e-7811-86cc-1e0f827ae9a5	phish	gate	-	"Access Restricted" VPN/proxy block page on netlify.app (same kit)	block-page-on-free-hosting/medium
+heldout7	01a154ca-f58a-740e-9142-395fa9884f01	phish	lure	ledger	"Ledger Live: Getting Started" on typedream.app (renders a blank blue page)	brand-official-claim/medium,brand-presented-off-domain/info
+heldout7	01a154cb-3a31-730f-a4d4-7c7f586e8b10	phish	credential	facebook	Spanish Facebook login ("adult content detected") on vercel.app	brand-name-off-domain/high,form-on-free-hosting/medium,password-form-cross-origin/medium
+heldout7	01a154cb-b84c-789d-ba82-e22f9080ebf1	phish	credential	facebook	Spanish Facebook login ("adult content detected") on vercel.app (same kit)	brand-name-off-domain/high,form-on-free-hosting/medium,password-form-cross-origin/medium
+heldout7	01a154cd-ae7a-759b-b21a-4e578615fce4	unsure	-	-	fake Google Play page for an "Amazon Slots" casino app (renders blank)	brand-presented-off-domain/info
+heldout7	01a154ce-27a4-7aca-b05f-f1cfd594cdff	unsure	-	-	"Phantom Pro" fake-wallet-screenshot generator on netlify.app	
+heldout7	01a154ce-68fc-708b-a34e-79162e802225	benign	-	netflix	Netflix landing clone (tutorial) on github.io	
+heldout7	01a154d0-b1c9-7e40-82ac-153a75e2fe69	unsure	-	santander	Santander corporate homepage copy on netlify.app ("santander-br"), no form	brand-lookalike-domain/medium,brand-presented-off-domain/info
+heldout7	01a154dd-c5c6-7b17-8e88-528870e60a6d	benign	-	-	"LuckSphere" gambling app site (CT)	
+heldout7	01a154de-e859-724d-91df-6e93787f4da1	phish	credential	-	brandless "Web Mail" email/password kit on mdbgo.io	
+heldout7	01a154df-292e-722b-9278-b8addd2a18bf	phish	lure	shopee	Shopee prize-draw (undian) scam on blogspot	brand-offer-off-domain/medium,brand-presented-off-domain/info
+heldout7	01a154df-5653-70c9-9cf1-d753faa6fee3	benign	-	netflix	Netflix landing clone (tutorial) on github.io	brand-presented-off-domain/info
+heldout7	01a154e4-0718-71e0-8d0a-486b7b1c1088	phish	lure	bybit	"Bybit Login" page on typedream.app (renders blank)	
+heldout7	01a154e4-4a63-7eeb-a568-d689fad1ea98	unsure	-	-	"shopify" titled blank page on spf757.com.mx	
+heldout7	01a154e4-a29d-75fa-b6e1-4e71edfb92a0	benign	-	spotify	Spotify mod-APK download site	brand-name-off-domain/medium
+heldout7	01a154e5-3694-7218-8905-d81c2d5dc40e	benign	-	amazon	"Amazon Clone" (tutorial) on github.io	brand-presented-off-domain/info
+heldout7	01a154e5-7145-742f-bbf3-3a4b26f16ce8	real-site	-	facebook	redirected to www.facebook.com itself	
+heldout7	01a154e5-c5b1-754c-b227-2ba09c00a167	benign	-	netflix	"Netflix landing page" (tutorial) on netlify.app	brand-name-off-domain/medium
+heldout7	01a154f3-e2b7-7573-944d-deebfa733f14	phish	credential	xfinity	Xfinity sign-in clone (ID first) on mexican.eu.cc	brand-name-off-domain/medium
+heldout7	01a154f4-d8b5-796c-8b0d-a9b50b703dfd	phish	credential	microsoft	Outlook "connecting to secure mail server" loader at Roundcube.zip (webmail kit)	brand-presented-off-domain/info
+heldout7	01a154f6-fe6c-73e6-9440-07a99ec9870c	benign	-	-	hostel booking site (hostel.town)	
+heldout7	01a154f7-5dc2-7ae1-a81e-fe04bada35ea	real-site	-	facebook	redirected to www.facebook.com itself	
+heldout7	01a154f8-a8c2-78b2-a35b-d65d5c342221	phish	device-code	docusign	Swedish DocuSign "verify with Microsoft" code page (device-code phishing)	brand-presented-off-domain/info
+heldout7	01a154f9-6f5e-74fb-a81f-54ab24018ad4	phish	credential	microsoft	OWA sign-in clone (email, domain\\user, password) on abcgil.com	
+heldout7	01a154f9-9bb8-7e69-9b7e-b4632eb9cbce	phish	credential	microsoft	Outlook sign-in with a prefilled address on an S3 bucket	
+heldout7	01a154f9-be08-789c-ba7b-638a88e2448e	benign	-	netflix	Netflix front-end clone (tutorial) on github.io	brand-presented-off-domain/info
+heldout7	01a154f9-ffd5-77ab-84e8-35953017e09e	phish	lure	atomic	"Atomic Wallet" page with disguised letters on gitbook.io	
+heldout7	01a15504-ae70-784c-9a12-47e4f1bcdaa1	benign	-	-	lottery-prediction site (togel) on pages.dev (CT)	
+heldout7	01a15508-8614-7d94-830b-3c20b1f69818	phish	lure	-	German "your document is ready" PDF lure on webflow.io	
+heldout7	01a15508-bba5-72aa-b463-5cd647f16b2e	phish	gate	auspost	Cloudflare "Verify you are human" box on auspost.addllw.com	fake-human-check/medium
+heldout7	01a15508-d1ff-794a-8e60-f75bee1fd358	benign	-	-	Interswitch homepage clone (tutorial) on github.io	
+heldout7	01a15509-1383-7c18-8310-c4b1fe7b606d	unsure	-	-	"365" betting site, blank	
+heldout7	01a15509-55f0-77dd-9a2f-7846fc86d9c0	unsure	-	-	"365" betting site, blank	
+heldout7	01a15509-96ac-7209-8e7b-b54292ffbac6	unsure	-	-	"365" betting site, blank	
+heldout7	01a15509-ebed-77cd-985e-f2216f5d59fa	real-site	-	coinbase	Coinbase's job board on getro.com	
+heldout7	01a1550a-2d37-7c2c-8f0a-2224a5fd2915	phish	lure	coinbase	"Çoinbase Pro @ Login" guide page on gitbook.io	brand-name-disguised/medium
+heldout7	01a1550b-2e88-76e3-9412-baef7d1543d0	benign	-	amazon	Amazon homepage clone (tutorial) on github.io	brand-presented-off-domain/info
+heldout7	01a1550b-88be-7687-a3a4-d68a19890738	phish	lure	fedex	FedEx homepage copy on eevfv9.com	brand-presented-off-domain/info
+heldout7	01a1550c-e5bb-7f2b-a6a7-3a579928a1c0	phish	credential	garena	Free Fire "log in for free redeem code" login on blogspot	
+heldout7	01a1550d-3e14-7937-8216-61e6c376a2e2	phish	credential	paypal	German PayPal login clone on haantjesphotography.nl	
+heldout7	01a1550d-7329-7a1f-938e-df3b9caab517	phish	lure	trezor	"Trezor.io/Start" guide page on gitbook.io	brand-domain-in-title/medium,brand-official-claim/medium,brand-presented-off-domain/info
+heldout7	01a1550e-0abd-7931-a549-d0560e92c7d5	phish	credential	docusign	DocuSign "review document" email confirmation on ideeca.com.mx	brand-name-off-domain/medium
+heldout7	01a1550e-22d1-7763-9b73-b631b35f1acc	unsure	-	instagram	"Instagram" titled blank page on vercel.app	brand-presented-off-domain/info
+heldout7	01a1550e-631c-77f3-96bb-527f8bb6c4de	phish	credential	instagram	Korean Instagram login clone on dothome.co.kr	brand-presented-off-domain/info
+heldout7	01a1550e-b38d-7a7b-8db9-a7ccfc024441	phish	lure	trezor	"Trezor Bridge" page on pineapple.page (renders blank)	brand-presented-off-domain/info
+heldout7	01a1550f-0f28-7774-bc09-a206b895be6b	benign	-	amazon	Amazon homepage clone (tutorial) on github.io	brand-presented-off-domain/info
+heldout7	01a1550f-5101-76bc-aca3-ebf31bdb3f8f	phish	lure	sunrise	"Login Sunrise mail" landing page on flazio.online	
+heldout7	01a1551b-9f97-7ceb-b927-8579ea052c19	benign	-	-	"welcome" placeholder page (CT)	
+heldout7	01a1551d-e46d-7923-84bc-18f269db1d9f	unsure	-	-	"365" betting site, blank	
+heldout7	01a1551e-272d-72bf-ab03-1485bc381dcc	unsure	-	-	"365" betting site, blank	
+heldout7	01a1551f-07a8-784b-a81d-0436b5dcc8de	phish	lure	ledger	Ledger Wallet download page copy on ledger.hk.cn	brand-presented-off-domain/info
+heldout7	01a15520-bdb7-7c0c-95a6-dc28f5ae208d	benign	-	-	redirected to qianzhan.com, an unrelated Chinese news site	
+heldout7	01a15521-025e-7048-8541-a8525ffbbca6	unsure	-	-	blank page on github.io (?receiverEmail=null)	
+heldout7	01a15522-0e86-7410-9cda-8a0a8d29edf0	benign	-	netflix	Netflix landing clone (tutorial) on github.io	
+heldout7	01a15522-f8fa-7a29-9ae4-33e8f72b5ee4	benign	-	spotify	Spotify player clone (tutorial) on github.io	brand-presented-off-domain/info
+heldout7	01a15531-412e-7220-af84-ff1769d93e89	unsure	-	-	"365" betting site, blank	
+heldout7	01a15531-8216-7c92-9ad9-16c02b01c638	unsure	-	-	"365" betting site, blank	
+heldout7	01a15532-b9ff-7a39-bbae-ab880dee6546	phish	lure	shopee	Shopee prize-draw (undian) scam on blogspot	brand-offer-off-domain/medium,brand-presented-off-domain/info
+heldout7	01a15533-4d3a-7884-bb29-4aa743ef2c38	real-site	-	facebook	redirected to www.facebook.com itself	
+heldout7	01a15535-4559-74ae-9cdf-29cd47e2c319	phish	lure	meta	"Meta for Business | Page Appeal" on pages.dev (renders blank)	brand-presented-off-domain/info
+heldout7	01a15536-dfe5-7ef8-9926-d1ce8f6efcd3	phish	lure	trezor	"Trezor.io/Start" guide page on gitbook.io	brand-domain-in-title/medium,brand-official-claim/medium,brand-presented-off-domain/info
+heldout7	01a15537-3e4a-7039-87a0-249d4943c52a	phish	credential	microsoft	Outlook sign-in with a prefilled address on Scaleway object storage	
+heldout7	01a15540-ed78-7cd5-b1d9-12ef3df4f82c	benign	-	-	AI service-insights landing page on hosted.app (CT)	
+heldout7	01a15545-485a-7d5f-9df0-8ce9196b1c6f	unsure	-	-	"365" betting site, blank	
+heldout7	01a15545-9ca9-7b82-a3ad-bde3d744af18	unsure	-	-	"365" betting site, blank	
+heldout7	01a15546-d118-7bbf-b505-9d6abc56879e	phish	gate	usps	"Checking your browser" page on uspstracking.fun	fake-human-check/medium
+heldout7	01a15547-b68f-7654-84cd-c91b93fb6c11	benign	-	-	hosting "account suspended" page	
+heldout7	01a15548-3a9b-72bd-8485-9404df0ee1fd	phish	lure	-	"XRPL Connect" connect-your-wallet page (drainer)	
+heldout7	01a1554a-7a1a-77d9-b9ff-a307933de885	real-site	-	facebook	redirected to www.facebook.com itself	
+heldout7	01a15550-6750-7c4f-b20a-d8db5fe76415	benign	-	-	game-accounts and VPN shop (CT)	
+heldout7	01a15554-85f0-72d6-8fb9-58311d877b67	benign	-	-	tax-relief lead-generation site (CT)	
+heldout7	01a15558-a4de-7b9b-bef9-158bdab813ca	unsure	-	-	"365" betting site, blank	
+heldout7	01a15558-e638-70e9-850e-a10768a2194c	unsure	-	-	"365" betting site, blank	
+heldout7	01a1555a-3d74-7ca5-8a46-6bfe966f43b0	real-site	-	facebook	redirected to www.facebook.com itself	
+heldout7	01a1555a-f23e-769e-9a95-c2d7002b3d06	phish	lure	dana	DANA "customer care" PayLater/loan menu on wristband.my.id	
+heldout7	01a1555b-6574-7e7a-8c30-ed55eb32187a	benign	-	spotify	Spotify player clone (tutorial) on edgeone.dev	brand-presented-off-domain/info
+heldout7	01a1555d-c896-7c3e-9eae-3f512defff5a	benign	-	-	tax-relief lead-generation site (CT)	
+heldout7	01a1556a-56c7-7dbb-997b-d8ff06957fb2	benign	-	-	contact-apple.support redirected to www.google.com (CT)	
+heldout7	01a155a1-15f5-71c1-98ed-d0e5ce1e3655	benign	-	-	Danish Google Ads consultant's site (CT)	brand-name-off-domain/medium
+heldout7	01a155cb-88dc-727b-83d1-06fe69dee9dc	benign	-	roblox	Roblox game-cheat blog post on pages.dev (CT)	
+heldout7	01a155d9-8c5a-7a54-983c-cdf2e0e01a6b	unsure	-	-	"connect wallet, log in to Discord, claim your role" page on pages.dev (CT)	
+heldout7	01a155df-9ebe-7532-88a6-7c6dd8788c8e	benign	-	-	AdsPostX "Purchase Rewards" service domain (CT)	
