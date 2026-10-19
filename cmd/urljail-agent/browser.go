@@ -45,15 +45,24 @@ func startBrowser(ctx context.Context, bp *guestv1.BrowserProfile, browserVersio
 	if b.targetID, err = initialTab(bctx); err != nil {
 		return nil, err
 	}
-	sessionID, err := target.AttachToTarget(b.targetID).WithFlatten(true).Do(bctx)
-	if err != nil {
+	if err := b.attach(ctx, b.targetID); err != nil {
 		return nil, err
 	}
-	b.page = ch.conn.Session(sessionID)
-	pctx := cdpctx.WithExecutor(ctx, b.page)
+	ok = true
+	return b, nil
+}
 
-	// The only domains enabled (ADR 0013). No Runtime.enable: it is a well-known way for
-	// pages to detect automation, and nothing here needs it.
+// attach makes targetID the page the session drives: attaches to it and enables the only
+// domains used (ADR 0013). No Runtime.enable: it is a well-known way for pages to detect
+// automation, and nothing here needs it.
+func (b *browserSession) attach(ctx context.Context, targetID target.ID) error {
+	bctx := cdpctx.WithExecutor(ctx, b.browser)
+	sessionID, err := target.AttachToTarget(targetID).WithFlatten(true).Do(bctx)
+	if err != nil {
+		return err
+	}
+	b.targetID, b.page = targetID, b.ch.conn.Session(sessionID)
+	pctx := cdpctx.WithExecutor(ctx, b.page)
 	for _, step := range []func() error{
 		func() error { return network.Enable().Do(pctx) },
 		func() error { return page.Enable().Do(pctx) },
@@ -67,11 +76,10 @@ func startBrowser(ctx context.Context, bp *guestv1.BrowserProfile, browserVersio
 		},
 	} {
 		if err := step(); err != nil {
-			return nil, err
+			return err
 		}
 	}
-	ok = true
-	return b, nil
+	return nil
 }
 
 // discardQueued drops CDP events that arrived before this detonation started.

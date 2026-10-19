@@ -15,15 +15,20 @@ import (
 	"github.com/chromedp/cdproto"
 	cdpctx "github.com/chromedp/cdproto/cdp"
 	"github.com/chromedp/cdproto/inspector"
+	"github.com/chromedp/cdproto/target"
 )
 
-// freshRenderer replaces the renderer processes Chrome started before the snapshot, so the page
-// loads in one forked after the restore. A renderer from before the snapshot carries its V8
-// random state in the snapshot: every clone's pages replayed the same Math.random() sequence
-// (research R2, 2026-10-19: one Google Analytics client ID on two sites hours apart). The
-// kernel reseeds on restore (VMGenID), so a renderer forked now seeds itself afresh. Kills
-// them, then waits until Chrome has seen the tab's renderer go: the next navigation starts a
-// new one.
+// freshRenderer moves the session to a page whose renderer was forked after the restore. A
+// renderer from before the snapshot carries its V8 random state in the snapshot: every clone's
+// pages replayed the same Math.random() sequence (research R2, 2026-10-19: one Google Analytics
+// client ID on two sites hours apart). The kernel reseeds on restore (VMGenID), so a renderer
+// forked now seeds itself afresh.
+//
+// It kills Chrome's renderers (the tab's and any spare), waits until Chrome has seen the tab's
+// go, opens a new foreground window, whose renderer is forked now, and drives that one, closing
+// the old tab. Reloading the crashed tab in place was tried first and deployed briefly: its
+// pages did less (lazy images and analytics hits missing, a third fewer connections; journal
+// P7, 2026-10-20).
 func (b *browserSession) freshRenderer(ctx context.Context) error {
 	pids := rendererPIDs("/proc", b.ch.cmd.Process.Pid)
 	if len(pids) == 0 {
@@ -48,7 +53,7 @@ func (b *browserSession) freshRenderer(ctx context.Context) error {
 				return errors.New("chrome exited while its renderers were replaced")
 			}
 			if m.Method == cdproto.EventInspectorTargetCrashed && m.SessionID == b.page.ID {
-				return nil
+				return b.newWindow(ctx)
 			}
 		case <-timeout.C:
 			return fmt.Errorf("chrome didn't report its renderer gone within 5 s (killed %d)", len(pids))
@@ -56,6 +61,21 @@ func (b *browserSession) freshRenderer(ctx context.Context) error {
 			return ctx.Err()
 		}
 	}
+}
+
+// newWindow opens a foreground window, drives it instead of the current page, and closes the
+// current one.
+func (b *browserSession) newWindow(ctx context.Context) error {
+	bctx := cdpctx.WithExecutor(ctx, b.browser)
+	old := b.targetID
+	id, err := target.CreateTarget("about:blank").WithNewWindow(true).WithBackground(false).Do(bctx)
+	if err != nil {
+		return fmt.Errorf("new window: %w", err)
+	}
+	if err := b.attach(ctx, id); err != nil {
+		return err
+	}
+	return target.CloseTarget(old).Do(bctx)
 }
 
 // rendererPIDs lists Chrome's renderer processes: those in Chrome's process group (the agent

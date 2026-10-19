@@ -9,6 +9,7 @@ import (
 	"path/filepath"
 	"slices"
 	"strconv"
+	"strings"
 	"testing"
 	"time"
 
@@ -68,14 +69,27 @@ func TestFreshRendererChrome(t *testing.T) {
 		t.Fatal("no renderer before")
 	}
 	start := time.Now()
-	if err := b.freshRenderer(ctx); err != nil {
+	if os.Getenv("URLJAIL_TEST_SKIP_FRESH") != "" {
+		t.Log("skipping freshRenderer")
+	} else if err := b.freshRenderer(ctx); err != nil {
 		t.Fatal(err)
 	}
 	t.Logf("replaced %d renderer(s) in %s", len(before), time.Since(start))
 	b.discardQueued()
 
 	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		fmt.Fprint(w, `<html><head><title>loading</title></head><body><script>document.title = "r=" + Math.random()</script></body></html>`)
+		switch r.URL.Path {
+		case "/img", "/ping":
+			fmt.Fprint(w, "ok")
+			return
+		}
+		fmt.Fprint(w, `<html><head><title>loading</title></head><body><div style="height:3000px"></div><img loading="lazy" src="/img" onload="window.lz=1"><script>
+const f = {raf: 0, io: 0, t: 0, fetch: 0};
+requestAnimationFrame(() => f.raf = 1);
+new IntersectionObserver(() => f.io = 1).observe(document.body);
+setTimeout(() => { f.t = 1; fetch("/ping").then(() => f.fetch = 1) }, 1000);
+setTimeout(() => { document.title = "r=" + Math.random() + " " + JSON.stringify(f) + " vis=" + document.visibilityState + " size=" + innerWidth + "x" + innerHeight + " anim=" + document.getAnimations().length + " hist=" + history.length }, 3000);
+</script></body></html>`)
 	}))
 	defer srv.Close()
 	pctx := cdpctx.WithExecutor(ctx, b.page)
@@ -84,7 +98,7 @@ func TestFreshRendererChrome(t *testing.T) {
 	}
 	bctx := cdpctx.WithExecutor(ctx, b.browser)
 	title := ""
-	for range 50 {
+	for range 80 {
 		info, err := target.GetTargetInfo().WithTargetID(b.targetID).Do(bctx)
 		if err == nil && len(info.Title) > 2 && info.Title[:2] == "r=" {
 			title = info.Title
@@ -94,6 +108,12 @@ func TestFreshRendererChrome(t *testing.T) {
 	}
 	if title == "" {
 		t.Fatal("the page's script never ran")
+	}
+	// The page must behave as in an untouched tab: visible, painting, timers and network.
+	for _, want := range []string{`"raf":1`, `"io":1`, `"t":1`, `"fetch":1`, "vis=visible"} {
+		if !strings.Contains(title, want) {
+			t.Errorf("page reported %q, want %s", title, want)
+		}
 	}
 	after := rendererPIDs("/proc", b.ch.cmd.Process.Pid)
 	if len(after) == 0 {
