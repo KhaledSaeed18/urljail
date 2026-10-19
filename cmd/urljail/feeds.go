@@ -6,7 +6,6 @@ import (
 	"errors"
 	"flag"
 	"fmt"
-	"google.golang.org/protobuf/encoding/protojson"
 	"io"
 	"net/http"
 	"os"
@@ -17,6 +16,10 @@ import (
 	"strings"
 	"sync"
 	"time"
+
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/status"
+	"google.golang.org/protobuf/encoding/protojson"
 
 	daemonv1 "github.com/KhaledSaeed18/urljail/gen/urljail/daemon/v1"
 	reportv0 "github.com/KhaledSaeed18/urljail/gen/urljail/report/v0"
@@ -285,10 +288,11 @@ func runItem(ctx context.Context, c daemonv1.DaemonServiceClient, st *feeds.Stor
 		return err
 	}
 	results := detonateProfiles(ctx, c, it.URL, profs, parallel)
-	runs, ran, errs := map[string]string{}, 0, []string{}
+	runs, ran, errs, passing := map[string]string{}, 0, []string{}, true
 	for _, res := range results {
 		if res.runDir == "" {
 			errs = append(errs, res.profile+": "+errString(res.err))
+			passing = passing && transient(res.err)
 			continue
 		}
 		ran++
@@ -312,6 +316,13 @@ func runItem(ctx context.Context, c daemonv1.DaemonServiceClient, st *feeds.Stor
 	it.Attempts++
 	it.Status, it.Error = "done", strings.Join(errs, "; ")
 	switch {
+	case ran == 0 && passing:
+		// The daemon restarting, the tunnel between handshakes, every slot busy: the URL
+		// wasn't refused, so it goes back in the queue (S18 lost 130 URLs this way). The
+		// queue's age limit still expires it.
+		it.Attempts--
+		it.Status, it.NotBefore = "queued", time.Now().UTC().Add(transientRetry)
+		fmt.Printf("  not run (%s): retry after %s\n", it.Error, it.NotBefore.Local().Format(time.TimeOnly))
 	case ran == 0:
 		it.Status = "refused"
 	case it.Attempts < 2 && allNotUp(results):
@@ -322,7 +333,24 @@ func runItem(ctx context.Context, c daemonv1.DaemonServiceClient, st *feeds.Stor
 	return st.Save()
 }
 
-const retryAfter = 30 * time.Minute
+const (
+	retryAfter     = 30 * time.Minute
+	transientRetry = 2 * time.Minute
+)
+
+// transient reports whether a detonation failed for a reason that passes: the daemon not
+// reachable (restarting), its preflight failing (the WireGuard tunnel unhealthy, the egress
+// checks), or every VM slot busy. A refusal of the URL itself (policy) is not transient.
+func transient(err error) bool {
+	if err == nil {
+		return false
+	}
+	if st, ok := status.FromError(err); ok && st.Code() == codes.Unavailable {
+		return true
+	}
+	msg := err.Error()
+	return strings.Contains(msg, "preflight: ") || strings.Contains(msg, "VM slots are busy")
+}
 
 var cloudflareOriginDown = regexp.MustCompile(`\| 52[0-9]: `)
 
