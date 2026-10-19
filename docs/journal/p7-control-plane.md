@@ -360,3 +360,24 @@ Frozen at `7394876` (12:45 UTC). OpenPhish refreshed the same minute (261 URLs).
 - **Gates: 3 of 3.** The drawn Cloudflare "Verify you are human" box again (`usepoints05.ink`, its second fresh catch), a Cloudflare-style challenge on `mygovato.icu`, and a "raiffeisen.ch Access Denied, your country or IP is not allowed" cloak on vercel. The Outlook "confirming it's you" kit still hasn't come back. All 8 Russian captcha pages on `sion17.cc` subdomains are flagged, and not a ninth with the same box on `kraken666.cc` (its DOM holds no text: the box is drawn by script, so there is no wording to read); labelled unsure, as in set 5.
 - **False alarms (7, five pages):** the write-up and the Microsoft clone above; two CT look-alike domains (`facebookno.live`, a Lao gambling site; `adwhatsapp.info`, an empty WordPress site); a LinkedIn headline-generator tool whose job-title form reads as a details form under a LinkedIn heading (two captures); a personal "Ledger — Cash & Debt Tracker" app with a login on github.io.
 - **Misses (14):** two Microsoft "verify your email" kits over a blurred page (the email field sits in a modal with no brand in the title), the Indian civil-registration kit twice, Netcoins and BitMart homepage clones, two blurred-document lures, a Meta "Page restricted" notice, a DHL card form, FedEx and Sunrise landing pages, a webmail kit with an unfilled `[[-Email-]]` placeholder, an image-only Ledger page.
+
+### S19: after the sixth set (2026-10-19)
+
+Measured with a new command, `urljail indicators` (`dump` rebuilds every stored run's indicators with the running binary without writing anything; `score` counts them against the labels by set and kind, `-v` lists false alarms and misses; `diff` lists the runs that change between two dumps). It replaces the hand rebuild-and-diff of S11–S17, and reproduces S18 exactly (set 6: 23 of 37 phishing, 7 of 91 others).
+
+Three changes from set 6's misses, made after the test, so not held-out:
+
+- **`card-form-in-page`** (medium): a form with a card-number field and a security-code field typed into the page itself, off brands' domains. Card payments go through a provider's iframe or page (PCI DSS keeps raw card fields off merchants' pages), so the provider being absent is the signal. Over all 7,208 stored runs it fires only on the DHL "parcel fee" kit (`misspport.adieforhair.com`, 3 runs), which nothing else flagged. One kit: whether legitimate small shops with self-hosted card fields show up as false alarms is for later sets; none of the stored control runs, Tranco top sites included, has such a form.
+- **`password-under-threat`** (medium): a password field with wording that threatens the account if the visitor doesn't sign in ("to avoid deactivation", "your mailbox will be closed", "failure to verify", and French and Spanish forms). No brand needed. Fires only on the brandless webmail kit with the unfilled `[[-Email-]]` placeholder (`avtech-ltd.com`, 3 runs). Lockout notices ("too many attempts will lock your account") don't count.
+- **Brands** Netcoins and BitMart (two webflow.io "Login" homepage clones). The Indian Civil Registration System was tried and left out: its kit titles the page "Validate Certificate | Civil Registration System | …" with no sign-in wording or form, so naming the brand changed nothing.
+
+| Rules | Phishing flagged (of 325) | Others flagged (of 254) | Set 6: phishing / others | Stored runs changed |
+| --- | --- | --- | --- | --- |
+| `7394876` (S18 freeze) | 242 | 17 | 23 / 7 | – |
+| + S19 | 246 | 17 | 27 / 7 | 15 |
+
+All 15 changed runs are on the four phishing hosts (the labelled runs and their other-profile runs) and three unlabelled runs of `bitmart-cex.cc` titled "BitMart", which gain only the info indicator. No false alarm added or removed. Set 6's false alarms stay (the Coinbase write-up, the "Microsoft Official" tutorial clone, the LinkedIn headline tool, the Ledger debt tracker, two CT look-alike domains): each looks like a phishing page by the signal that fired, and narrowing it would lose catches. Misses left: the Microsoft "verify your email" kit (the brand only in the footer), the CRS kit, blurred-document lures, the Meta "Page restricted" notice (no brand in title or headings), FedEx and Sunrise landing pages, the image-only Ledger page.
+
+### Freeze for the seventh held-out set
+
+Frozen with this commit.

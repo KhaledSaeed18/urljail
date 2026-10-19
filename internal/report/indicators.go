@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"io"
 	"os"
+	"regexp"
 	"strings"
 
 	"golang.org/x/net/html"
@@ -42,6 +43,18 @@ func indicators(r *reportv0.Report, domPath string) []*reportv0.Indicator {
 				Detail: fmt.Sprintf("A form with a password field sends to %s, not to the page's domain %s", brands.DomainOf(f.GetAction()), domain),
 			})
 			break
+		}
+	}
+	// A card number and its security code typed straight into the page: card payments go
+	// through a payment provider's iframe or page (PCI DSS keeps raw card fields off merchants'
+	// pages), so a page that takes them itself is rare outside the providers (found in P7, S19:
+	// a DHL "parcel fee" kit, flagged by nothing else). Not on a brand's own domains.
+	if _, owned := brands.Owner(brands.DomainOf(r.GetNavigation().GetFinalUrl())); !owned {
+		if f := cardForm(page.GetForms()); f != nil {
+			out = append(out, &reportv0.Indicator{
+				Id: "card-form-in-page", Severity: "medium", Source: guestDOM,
+				Detail: fmt.Sprintf("A form takes a card number and its security code in the page itself, on %s (sends to %s)", domain, brands.DomainOf(f.GetAction())),
+			})
 		}
 	}
 	// A top-level page from a blob: URL was built in script by the page itself: the URL a
@@ -97,6 +110,18 @@ func indicators(r *reportv0.Report, domPath string) []*reportv0.Indicator {
 			out = append(out, &reportv0.Indicator{
 				Id: "brand-name-off-domain", Severity: "medium", Brand: b.ID, Source: guestDOM,
 				Detail: fmt.Sprintf("The page names %s in its title or headings and is a human check (%q), on %s", b.Name, gatePhrase, domain),
+			})
+		}
+	}
+
+	// A password asked for under a threat: real sign-in pages don't warn that the account goes
+	// if the visitor doesn't sign in (found in P7, S19: "Enter your correct password to avoid
+	// deactivation" on a brandless webmail kit).
+	if page.GetPasswordFields() > 0 && havePage {
+		if m := pressureWording.FindString(text + " \n " + pt.text); m != "" {
+			out = append(out, &reportv0.Indicator{
+				Id: "password-under-threat", Severity: "medium", Source: guestDOM,
+				Detail: fmt.Sprintf("The page asks for a password and threatens the account (%q), on %s", strings.ToLower(m), domain),
 			})
 		}
 	}
@@ -248,6 +273,38 @@ func asksForDetails(forms []*reportv0.Form) bool {
 	}
 	return false
 }
+
+// cardForm returns the first form with a card-number field and a security-code field a person
+// types into.
+func cardForm(forms []*reportv0.Form) *reportv0.Form {
+	for _, f := range forms {
+		number, code := false, false
+		for _, x := range f.GetFields() {
+			switch x.GetType() {
+			case "text", "tel", "number", "password":
+				n := strings.ToLower(x.GetName())
+				number = number || cardNumberName.MatchString(n)
+				code = code || cardCodeName.MatchString(n)
+			}
+		}
+		if number && code {
+			return f
+		}
+	}
+	return nil
+}
+
+var (
+	cardNumberName = regexp.MustCompile(`^(cc|cc[-_.]?(num|number|no)|card[-_.]?(num|number|no)|cardnumber|credit[-_.]?card([-_.]?(num|number|no))?|ccnum|pan|numero[-_.]?tarjeta|kartennummer)$`)
+	cardCodeName   = regexp.MustCompile(`^(cvv2?|cvc2?|cvn|csc|cid|cc[-_.]?(cvv|cvc|csc)|card[-_.]?(cvv|cvc|code)|security[-_.]?code)$`)
+)
+
+// pressureWording is a threat to the account if the visitor doesn't act: what a credential kit
+// says to hurry the password out of them.
+var pressureWording = regexp.MustCompile(`(?i)\b(to avoid (account |mailbox |email )?(deactivation|suspension|termination|closure|being (deactivated|suspended|closed|locked))|` +
+	`(account|mailbox|email|e-mail) (will|may) be (permanently )?(deactivated|suspended|terminated|closed|deleted|locked)|` +
+	`(will|may) be (permanently )?(deactivated|suspended|terminated|closed|deleted) (within|in|after) (\d+|twenty|forty)|` +
+	`failure to (verify|confirm|update|sign in|log in)|pour [ée]viter (la |une )?(d[ée]sactivation|suspension|fermeture)|para evitar (la )?(desactivaci[óo]n|suspensi[óo]n|cierre))`)
 
 // machineFilled are hidden textareas a CAPTCHA widget fills in, not fields a person types into.
 var machineFilled = map[string]bool{"g-recaptcha-response": true, "h-captcha-response": true, "cf-turnstile-response": true}

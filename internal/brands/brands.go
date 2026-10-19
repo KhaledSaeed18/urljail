@@ -107,6 +107,9 @@ var All = []Brand{
 	{"ar24", "AR24", []string{"ar24"}, []string{"ar24.fr"}, "https://www.ar24.fr/"},
 	{"metanet", "Metanet", []string{"metanet"}, []string{"metanet.ch"}, "https://www.metanet.ch/"},
 	{"steam", "Steam", []string{"steam community", "steampowered"}, []string{"steampowered.com", "steamcommunity.com"}, "https://store.steampowered.com/login/"},
+	// Added after the sixth held-out set, from its misses.
+	{"netcoins", "Netcoins", []string{"netcoins"}, []string{"netcoins.com", "netcoins.ca", "netcoins.app"}, "https://netcoins.com/"},
+	{"bitmart", "BitMart", []string{"bitmart"}, []string{"bitmart.com"}, "https://www.bitmart.com/"},
 }
 
 // ByID returns the brand with this ID.

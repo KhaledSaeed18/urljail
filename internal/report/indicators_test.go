@@ -20,6 +20,12 @@ func TestIndicators(t *testing.T) {
 	dom := filepath.Join(t.TempDir(), "dom.html")
 	os.WriteFile(dom, []byte(`<h1>Log in to <b>PayPal</b></h1><p>paypal</p>`), 0o600)
 	noDOM := filepath.Join(t.TempDir(), "none.html")
+	threat := filepath.Join(t.TempDir(), "threat.html")
+	os.WriteFile(threat, []byte(`<h2>Sign in to continue</h2><p>Enter your correct password to avoid deactivation</p>`), 0o600)
+	signIn := filepath.Join(t.TempDir(), "signin.html")
+	os.WriteFile(signIn, []byte(`<h2>Sign in to continue</h2><p>Too many attempts will lock your account for an hour.</p>`), 0o600)
+	cardFields := []*reportv0.Field{{Type: "hidden", Name: "cc"}, {Type: "text", Name: "fullname"}, {Type: "text", Name: "cardnumber"},
+		{Type: "text", Name: "exp"}, {Type: "text", Name: "cvv"}, {Type: "text", Name: "zip"}}
 
 	type tc struct {
 		name, final, title, phash, dom string
@@ -73,6 +79,15 @@ func TestIndicators(t *testing.T) {
 		{name: "reCAPTCHA's hidden textarea isn't a field a person fills", final: "https://someone.github.io/", title: "My portfolio", dom: noDOM,
 			forms: []*reportv0.Form{{Fields: []*reportv0.Field{{Type: "email", Name: "email"}, {Type: "textarea", Name: "g-recaptcha-response"}}}}, want: ""},
 		{name: "a static page on free hosting asks for nothing", final: "https://someone.github.io/", title: "My portfolio", dom: noDOM, want: ""},
+		{name: "card number and CVV typed into the page (a DHL parcel-fee kit)", final: "https://misspport.adieforhair.com/source/card.php", title: "Package", dom: noDOM,
+			forms: []*reportv0.Form{{Action: "https://misspport.adieforhair.com/source/card.php", Fields: cardFields}}, want: "card-form-in-page:"},
+		{name: "a card form on a payment provider's own domain", final: "https://checkout.stripe.com/c/pay/x", title: "Pay", dom: noDOM,
+			forms: []*reportv0.Form{{Fields: cardFields}}, want: ""},
+		{name: "a card number without a security code (a gift-card balance check)", final: "https://shop.example/balance", title: "Balance", dom: noDOM,
+			forms: []*reportv0.Form{{Fields: []*reportv0.Field{{Type: "text", Name: "cardnumber"}}}}, want: ""},
+		{name: "a password asked for under a threat", final: "https://avtech-ltd.example/xinu9.html", title: "Webmail Portal Access", dom: threat, passwords: 1,
+			want: "password-under-threat:"},
+		{name: "a lockout notice isn't a threat", final: "https://mail.example/login", title: "Webmail", dom: signIn, passwords: 1, want: ""},
 		{name: "password posted elsewhere", final: "https://shop.example/", dom: noDOM, passwords: 1,
 			forms: []*reportv0.Form{{HasPassword: true, CrossOriginAction: true, Action: "https://collect.evil.test/p"}},
 			want:  "password-form-cross-origin:"},
