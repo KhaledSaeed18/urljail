@@ -1,6 +1,6 @@
 # Research track R2: entropy uniqueness across snapshot clones
 
-Status: **idea / design**. Side quest after Phase 4.
+Status: **in progress**: kernel and TLS randomness verified independent across clones; V8 `Math.random()` found cloned (2026-10-19), fix pending. Side quest after Phase 4.
 
 ## Problem
 
@@ -36,6 +36,30 @@ Three clones of one snapshot, Chrome 155 prepared before the snapshot, guest ker
 | X25519 key share | 34,758 | 34,725 | **0** |
 
 Every repeat is a TCP retransmission inside one run (same random, same session ID, the key share agreeing or past the captured segment in one copy: 186 of 186). So Chromium's TLS randomness is not cloned across restores of one snapshot: BoringSSL draws from the kernel, and the kernel reseeds on VMGenID. This closes the TLS part of experiment 1 for the configuration urljail runs (VMGenID on). Still open: V8 `Math.random()` and `crypto.getRandomValues()` in pages, which need a test page served to the guest, and anything cached in the browser process before the snapshot.
+
+## Third data point (2026-10-19): `Math.random()` is cloned
+
+No test page was needed: Google Analytics 4 is one. gtag.js makes the client ID (`cid=<random>.<seconds>` on every `g/collect` request) the first time a site is visited, the random part from `Math.random()` in the page. Each restore starts with no cookies, so every run makes a new one. [`scripts/research/ga-client-ids.py`](../../scripts/research/ga-client-ids.py) pulls them from every run's guest request log (`python3 -I`):
+
+| | |
+| --- | --- |
+| Runs with a GA4 client ID | 164 (on all six snapshots) |
+| Distinct random parts | 132 |
+| Random parts seen in more than one run | **22, covering 46 runs (28 %)** |
+| ... on different sites | 5 |
+| ... across different snapshots | 0 |
+
+Two independent draws of a 31-bit value colliding 22 times in 156 is impossible by chance (expected ≈ 6 × 10⁻⁶). The seconds part differs in nearly every pair (the ID was made fresh, minutes to hours apart), and the repeats cross sites: `754490377` on `tracking.autosoftdms.com` at 01:51 and on `kdgaccounting.co.nz` at 03:33 (`baseline`); `881706934` on `pedenaccountingservices.com` at 07:00 and on `ideanote.korange.work` at 09:20 (`stealth`); `1831006613` on `fine-ants-ing.net` and four hours later on `strangerthings-store.com` (`stealth-headful`). So **every clone of a snapshot replays the same `Math.random()` sequence**: two pages that call it the same number of times before making the ID get the same ID, whatever site they're on.
+
+Why, most likely (to be confirmed by the fix): the guest agent drives the tab Chrome opened before the snapshot ([browser.go](../../cmd/urljail-agent/browser.go)), and the first navigation from that tab's initial `about:blank` stays in its renderer process, created before the snapshot. V8 seeds each isolate's xorshift128+ once, at creation, from the OS; the kernel reseed on restore (VMGenID) doesn't reach state already in a process. TLS randomness is different (second data point): BoringSSL in the network process reads the kernel for each handshake's randomness.
+
+What it costs urljail:
+
+- **Linkability.** Google Analytics, and any tracker that draws an ID from `Math.random()`, receives the same IDs from runs that are supposed to be unrelated visitors. A kit operator's analytics can tie urljail's visits together across sites and exits.
+- **A cloaking signal.** A page can compare the first few `Math.random()` outputs with values seen before: a visitor whose "random" numbers repeat a previous visitor's is a cloned scanner. One evaluation in a kit's script is enough, and no browser countermeasure profile changes it.
+- **Research validity.** Profile comparisons (R1) assume independent visits; on this axis clones aren't.
+
+Fix (pending): start the page in a renderer created after the restore, not in the snapshot's. The renderer is forked from Chrome's zygote, so its V8 isolate is seeded after the VMGenID reseed. To be verified the same way: the GA client IDs of runs after the fix should never repeat.
 
 ## Experiments
 
