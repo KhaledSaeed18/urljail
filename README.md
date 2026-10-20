@@ -53,7 +53,7 @@ Start at [docs/README.md](docs/README.md).
 | [Threat model](docs/threat-model.md) | Assets, adversaries, mitigations |
 | [Roadmap](docs/roadmap.md) | Phases and exit criteria |
 | [Decisions](docs/decisions/) | Architecture Decision Records |
-| [Research](docs/research/) | Anti-cloaking, snapshot entropy, related work |
+| [Research](docs/research/) | Anti-cloaking, snapshot entropy, phishing detection results, related work |
 
 ## Stack
 

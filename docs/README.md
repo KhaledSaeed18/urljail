@@ -24,7 +24,7 @@
 | Folder | Contents |
 | ------ | -------- |
 | [decisions/](./decisions/) | Architecture Decision Records (ADRs) |
-| [research/](./research/) | Research tracks: [anti-cloaking](./research/anti-cloaking.md), [snapshot entropy](./research/snapshot-entropy.md), [related work](./research/related-work.md) |
+| [research/](./research/) | Research tracks: [anti-cloaking](./research/anti-cloaking.md) ([R1 results](./research/r1-results.md)), [snapshot entropy](./research/snapshot-entropy.md), [detection](./research/r3-detection-results.md), [related work](./research/related-work.md) |
 | [naming/](./naming/) | Name-check reports that led to "urljail" |
 | [journal/](./journal/) | One entry per phase: what worked, what broke, what changed |
 
