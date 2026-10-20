@@ -230,6 +230,22 @@ func indicators(r *reportv0.Report, domPath string) []*reportv0.Indicator {
 		})
 	}
 
+	// A fake software update, a coin send screen, off the brands' own domains (update.go).
+	if havePage && !ownedByBrand {
+		if coin, ok := cryptoSend(pt); ok {
+			out = append(out, &reportv0.Indicator{
+				Id: "crypto-send-page", Severity: "medium", Source: guestDOM,
+				Detail: fmt.Sprintf("A short page shaped like a wallet's send screen (%s, amount and recipient), on %s", coin, domain),
+			})
+		}
+		if claim, step, ok := fakeUpdate(pt.text); ok {
+			out = append(out, &reportv0.Indicator{
+				Id: "fake-software-update", Severity: "medium", Source: guestDOM,
+				Detail: fmt.Sprintf("The page claims the visitor's software needs updating (%q) and adds an install step or a device requirement (%q), on %s", claim, step, domain),
+			})
+		}
+	}
+
 	if h, err := visual.Parse(page.GetScreenshotPhash()); err == nil {
 		if b, d, ok := brands.LooksLikeIn(brandRefs(), h, brandLookMax); ok && !b.Owns(domain) {
 			out = append(out, &reportv0.Indicator{

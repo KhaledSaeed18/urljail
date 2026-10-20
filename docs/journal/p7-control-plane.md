@@ -462,3 +462,17 @@ Frozen at `a863671` (22:04 UTC on the 19th): the S21 rules and 240 kit reference
   - lures as in every set: guide pages for brands not on the list (Robinhood ×2, Sky.money), a Zoom "client update" (×2), Swiss parcel and "call Amazon" support-number pages, blank or blurred Meta pages.
 
 Seven sets in, the held-out rate stays where the brand list reaches: rules added after a set catch that set's kits and rarely the next set's, while brand-list growth and kit references help only when the same operations come back. Labels are in the [labels file](../research/data/p7-indicator-labels.tsv) and the dashboard.
+
+### S23: after the eighth set (2026-10-20)
+
+Two rules for acts rather than brands, from set 8's misses, after the test, so not held-out. [R3](../research/r3-detection-results.md) sums up S1–S22: the rules that held up across sets were the few that describe one deceptive act; these are two more.
+
+- **`fake-software-update`** (medium): the visible text claims the visitor's software is out of date or tells them to update or download a reader, client or browser, *and* adds an install step ("double-click the setup file", "redirected to Microsoft Store", "download starts automatically") or a device requirement ("designed for Windows desktop computers only"). Off brands' domains. The "PDF Viewer" kit (fake Adobe Reader update; its install instructions sit in a `<template>`, so only the claim and the Windows requirement are visible) was in sets 5, 6 and 8 on six hacked sites and a vercel app, missed every time; the "Zoom Client Update" kit in set 8. A hyphen there is U+2011, not ASCII, which first hid the match.
+- **`crypto-send-page`** (medium): a short page (150 words or fewer) shaped like a wallet's send screen: send or transfer wording, a coin ticker, and two or more of amount / recipient / address / max. Wallets show that screen in an app or extension; a web page that does fills in the scammer's address. The Trust Wallet "send" kits of sets 3 and 8 (payment, 0 of 5 caught in set 8).
+- Kit references rebuilt with set 8's labels: 282.
+
+Over all 8,881 stored runs, rebuilt before and after: 44 runs change (30 `fake-software-update`, 9 `crypto-send-page`, 5 kit-match), all on hosts of the kits above or other phishing hosts (`mfacebooks.com.vn`, `programagovregulariza.org`); no labelled benign or real-site page gains an indicator. In-sample: 329 of 443 phishing pages flagged (317 before), others 22 of 319 (unchanged). Each rule had zero false alarms in the prototype pass over every stored page too.
+
+### Freeze for the ninth held-out set
+
+Frozen with this commit: the S23 rules and 282 references, profile `stealth`.
