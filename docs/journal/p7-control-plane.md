@@ -440,3 +440,25 @@ All 17 changed runs are on phishing hosts (the labelled pages and their other-pr
 ### Freeze for the eighth held-out set
 
 Frozen with this commit: the S21 rules and the 240 references. Profile back to `stealth`: its snapshot is rebuilt daily now, and the agent loads each page in a fresh renderer (R2).
+
+### S22: eighth held-out set (2026-10-20)
+
+Frozen at `a863671` (22:04 UTC on the 19th): the S21 rules and 240 kit references; profile `stealth` again, on snapshots a day old at most and the R2 agent (each page in a renderer forked after the restore). OpenPhish didn't change its list until 00:05 (226 new URLs); until then the loop ran CT candidates only. It ended at 04:18: 882 runs, every `stealth` restore came up, 124 pages loaded with a screenshot (110 OpenPhish, 14 CT). Labelled blind: **77 phishing (37 credential, 28 lures, 7 gates, 5 payment), 23 benign, 9 the brand's real site, 15 unsure** (four "365" betting sites with their own login, two blank AT&T-named workers.dev redirects).
+
+| Rules | Phishing flagged (of 77) | Others flagged (of 32) |
+| --- | --- | --- |
+| `c97191a` (set 7 freeze) | 40 (52 %) | 3 |
+| `a863671` (+ S21, the freeze) | 40 | 3 |
+
+- **By kind:** credential 22 of 37, lures 15 of 28, gates 3 of 7, payment 0 of 5.
+- **S21 held-out: nothing.** `brand-footer-off-domain` fired on no page: the set's Outlook pages were the "connecting to secure mail server" loader with no password field, and the brand-footer pages it had ("© 2026 Salesforce, Inc.") ask for a user name first, or name a brand not on the list.
+- **`kit-match`: 4 of 4 right, 2 caught by nothing else**: a "Hotmail" webmail kit on wpengine (the kit with the `pdf2` password field, also on r2.dev and 4everland in this set) and a gov.br CPF page. After two sets with no kit-match catch, kits came back within a day of being labelled.
+- **`password-under-threat`, first held-out catch:** a WeTransfer kit on a hacked Brazilian site ("enter your password to …"), nothing else flagged it.
+- **False alarms (3):** a WhatsApp Web clone on github.io (brand-name-off-domain), Implico's test login on `test.cticloud.dev` (brand-lookalike-domain: a name a few letters from a brand's), a "Ledger" expense-tracker app on github.io (form-on-free-hosting; the same false alarm as set 6).
+- **Misses (37), the largest groups:**
+  - brands not on the list, with sign-in clones: ConstructConnect (three hosts, email first), Salesforce, Banco CTT, OCA (caught by another rule), Israel's Bituah Leumi, Garena Free Fire, LinkedIn spelled "Linkedln";
+  - a new gate kit, "PDF Viewer: Windows computer required" with honeypot fields, on three hacked sites; and "Verification Required / Verifying..." with no wording the gate rules know;
+  - payment pages: Trust Wallet "send USDT" pages (2), fake Magalu product pages (2), a Zé Delivery order form: none asks for card fields in the page;
+  - lures as in every set: guide pages for brands not on the list (Robinhood ×2, Sky.money), a Zoom "client update" (×2), Swiss parcel and "call Amazon" support-number pages, blank or blurred Meta pages.
+
+Seven sets in, the held-out rate stays where the brand list reaches: rules added after a set catch that set's kits and rarely the next set's, while brand-list growth and kit references help only when the same operations come back. Labels are in the [labels file](../research/data/p7-indicator-labels.tsv) and the dashboard.

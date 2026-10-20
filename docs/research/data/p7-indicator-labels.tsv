@@ -732,3 +732,127 @@ heldout7	01a155a1-15f5-71c1-98ed-d0e5ce1e3655	benign	-	-	Danish Google Ads consu
 heldout7	01a155cb-88dc-727b-83d1-06fe69dee9dc	benign	-	roblox	Roblox game-cheat blog post on pages.dev (CT)	
 heldout7	01a155d9-8c5a-7a54-983c-cdf2e0e01a6b	unsure	-	-	"connect wallet, log in to Discord, claim your role" page on pages.dev (CT)	
 heldout7	01a155df-9ebe-7532-88a6-7c6dd8788c8e	benign	-	-	AdsPostX "Purchase Rewards" service domain (CT)	
+heldout8	01a15649-2fa8-7df2-8e95-961cc3ea6d36	benign	-	-	"Hidden Rose Apples" site, images not loading (CT)	
+heldout8	01a15653-de9e-7d1d-b96d-cdeebf7fbd29	real-site	-	google	redirected to accounts.google.com itself (Google Cloud sign-in)	
+heldout8	01a15654-11d5-7703-90dd-089db99849a1	benign	-	-	"Hidden Rose Apples" site, images not loading (CT)	
+heldout8	01a15692-9601-7569-be2f-0ec9a0a0d015	unsure	-	-	"CellPoint" phone shop on getsupports-apple.com (CT)	
+heldout8	01a156a1-1632-7216-81e6-59be2c1e156c	unsure	-	amazon	Amazon Seller Central page in a Ziflow proofing proxy	brand-presented-off-domain/info
+heldout8	01a156a1-6b64-7232-ac15-1edd56d3a29c	benign	-	whatsapp	WhatsApp Web QR-login clone (tutorial) on github.io	brand-name-off-domain/medium
+heldout8	01a156a1-8ed0-7c40-8fb1-b9250ab0879a	phish	credential	microsoft	Microsoft sign-in clone (password step) on authentication.ms	brand-name-off-domain/high
+heldout8	01a156a1-aacc-748c-b287-5200e2ec9e4d	phish	credential	microsoft	"Hotmail" email/password kit on wpengine.com	kit-match/medium
+heldout8	01a156a2-918a-77a2-934d-5b523e72f7ca	phish	credential	-	"Email Update" email/password kit on a hacked WordPress site	
+heldout8	01a156a2-ab7b-711c-891e-f933b3a2e93a	phish	lure	ledger	"Ledger Live: Download" guide page on typedream.app	brand-official-claim/medium,brand-presented-off-domain/info
+heldout8	01a156a2-fba8-7200-b9bb-9749fb19beba	phish	lure	ledger	"Ledger.com/Start" guide page on typedream.app	brand-domain-in-title/medium
+heldout8	01a156a3-2593-7827-b17b-965aa959497e	phish	lure	ledger	"Ledger.com/Start" guide page on typedream.app	brand-domain-in-title/medium
+heldout8	01a156a3-522d-7655-bb7a-61ff8a47a793	phish	gate	-	"Verify you are human" box on za-xltv.xyz	fake-human-check/medium
+heldout8	01a156a3-70e5-7955-b174-5ccd41d16148	phish	lure	roblox	"Reward Robux" username form on blogspot	
+heldout8	01a156a3-9a26-7e71-8589-8871e594e115	phish	lure	shopee	Shopee prize-draw scam on blogspot	brand-offer-off-domain/medium,brand-presented-off-domain/info
+heldout8	01a156a3-e078-7b0c-9b11-54f0f8e11af3	phish	gate	-	"Verification Required / Verifying..." page on hotelhautbuyeg.click	
+heldout8	01a156a4-0208-7c57-83a7-90be26530933	benign	-	netflix	"Netflix Clone" (tutorial) on github.io	brand-presented-off-domain/info
+heldout8	01a156a4-2d47-70d5-95c0-13f67032d34c	phish	lure	kucoin	"KuCoin Self-Service Login" guide page on webflow.io	brand-alert-off-domain/medium,brand-name-off-domain/medium
+heldout8	01a156a4-5dc5-70e2-bb37-ee1e00936d9a	phish	lure	ledger	"Ledger Live login" guide page on webflow.io	brand-name-off-domain/medium
+heldout8	01a156a4-848b-7d4f-bbad-954af6b4da35	phish	credential	instagram	Spanish Instagram login on lnstagram.cu.ma	brand-name-off-domain/high
+heldout8	01a156a4-a408-7915-8fe1-068f113dec67	phish	credential	facebook	Spanish Facebook login ("adult content detected") on vercel.app	brand-name-off-domain/high,form-on-free-hosting/medium,password-form-cross-origin/medium
+heldout8	01a156a5-0c12-7260-9801-9595f1e3332c	benign	-	netflix	Korean Netflix clone-coding page that says it isn't Netflix (github.io)	brand-presented-off-domain/info
+heldout8	01a156a5-3f96-7e59-a43e-539e1955c529	real-site	-	facebook	redirected to www.facebook.com itself	
+heldout8	01a156a5-7c4a-7679-b960-339771e898f7	phish	gate	-	"Access Restricted" VPN/proxy block page on netlify.app	block-page-on-free-hosting/medium
+heldout8	01a156a5-9c7e-73db-b747-52170627afeb	phish	lure	metamask	"Metåmåsk Login" (disguised letters) guide page on gitbook.io	brand-name-disguised/medium
+heldout8	01a156a6-27cb-79ff-b977-8b1aaa76e30e	benign	-	-	dothome hosting "access restricted" takedown page	
+heldout8	01a156a6-5a7c-73dd-8a77-cdc3049b76e8	phish	lure	meta	blurred "Meta | Privacy Center" copy on vercel.app (page-status-help)	brand-presented-off-domain/info
+heldout8	01a156a6-895e-7145-9c94-b6b073b11ac4	phish	credential	-	"Expired session! Login to continue" webmail kit on netlify.app	form-on-free-hosting/medium
+heldout8	01a156a6-c522-7961-9661-8f221f4d7c93	phish	credential	-	French webmail login kit on r2.dev	form-on-free-hosting/medium,kit-match/medium
+heldout8	01a156a7-86b9-75a0-acd7-a7cc88c5ccf3	benign	-	-	Implico "Carrier Integration Cloud" test login (CT)	brand-lookalike-domain/medium
+heldout8	01a156b5-735a-7eae-b3bd-9ca96a3b688e	phish	credential	govbr	gov.br CPF identification page on regulamentabr.click	kit-match/medium
+heldout8	01a156b5-a6ef-709c-b70f-e475b81718ea	benign	-	netflix	"Netflix Clone" (tutorial) on github.io	brand-presented-off-domain/info
+heldout8	01a156b6-5c15-7a95-a014-d80af2656e2d	phish	credential	instagram	Instagram login clone on vercel.app	brand-name-off-domain/high,form-on-free-hosting/medium
+heldout8	01a156b6-76cd-7375-9ad6-54b18b5cc960	benign	-	amazon	Amazon homepage clone (tutorial) on github.io	brand-presented-off-domain/info
+heldout8	01a156b6-a948-7953-82d9-4ee5a32b0493	benign	-	amazon	Amazon homepage clone (tutorial) on github.io	brand-presented-off-domain/info
+heldout8	01a156b6-c91e-7935-9917-4bf7a9118580	real-site	-	facebook	redirected to www.facebook.com itself	
+heldout8	01a156b7-010b-7e1c-86d1-836b7cbabe04	real-site	-	facebook	redirected to www.facebook.com itself	
+heldout8	01a156b8-9ba8-7b26-80be-518128a0aa6e	real-site	-	facebook	redirected to www.facebook.com itself	
+heldout8	01a156b9-015f-7861-b85e-6b82886c4ed3	benign	-	spotify	Spotify web player clone (tutorial) on netlify.app	brand-presented-off-domain/info
+heldout8	01a156b9-7b2c-7906-910a-b33d9771f8c6	phish	lure	ledger	"Ledger Live" page on pages.dev (appeals path)	brand-official-claim/medium,brand-presented-off-domain/info
+heldout8	01a156b9-958d-72b3-8854-93c4a0efd0b8	unsure	-	trezor	Netlify password-protected site ("suite-apps-trez-help")	form-on-free-hosting/medium
+heldout8	01a156b9-af11-7eaa-ac6e-c2a64827cccf	benign	-	amazon	"Amazon Clone" (tutorial) on github.io	brand-presented-off-domain/info
+heldout8	01a156ba-1eb2-7c5d-abcc-c2fdf6816f02	phish	lure	zoom	"Zoom Client Update" fake update redirecting to a download	brand-presented-off-domain/info
+heldout8	01a156ba-40c1-7c18-b7cf-fe150aa6736d	phish	lure	netcoins	"Netcoins" login guide page on typedream.app	brand-name-off-domain/medium,brand-official-claim/medium
+heldout8	01a156ba-67c0-7d1f-9243-b9a22e100b35	phish	credential	microsoft	Outlook "connecting to secure mail server" loader on ciasskllc.com	brand-presented-off-domain/info
+heldout8	01a156ba-aac8-7368-9b07-18319092ae50	phish	credential	facebook	Vietnamese Facebook device-approval kit on www-mfacebook.com.vn	
+heldout8	01a156ba-d5c7-7392-a161-c176a88b2c42	phish	credential	garena	Free Fire "log in for free redeem code" login on blogspot	
+heldout8	01a156c7-5824-7b62-b062-25ff8533767c	benign	-	-	Kibana login of a company's own Elastic install (CT)	
+heldout8	01a156c9-68ef-70e7-b2a9-49bf97a83251	phish	lure	zoom	"Zoom Client Update" fake update redirecting to a download	brand-presented-off-domain/info
+heldout8	01a156c9-855d-7414-ac6a-70bff9e0c36c	phish	credential	sunrise	"Login Sunrise mail" email/password form on flazio.online	
+heldout8	01a156c9-c38c-72c1-a5b1-73d99426e338	phish	credential	instagram	Spanish Instagram login on lnstagram.cu.ma	brand-name-off-domain/high
+heldout8	01a156c9-fa96-7d22-bb62-a77306c65ab7	phish	lure	roblox	"Get Robux" claim page on blogspot	brand-lookalike-domain/medium
+heldout8	01a156ca-cd25-7d89-b0e8-f94faad87971	phish	payment	trustwallet	"Transfer Trust Wallet" send-USDT page on vercel.app	brand-presented-off-domain/info
+heldout8	01a156ca-ebb4-7675-80c6-ebb0e264152d	phish	credential	microsoft	Microsoft "Enter password" with a prefilled address (RSVP lure) on 135461223.site	brand-name-off-domain/high
+heldout8	01a156cb-2ad0-7bc8-a5e8-a17d2e5bdb3c	phish	lure	-	Swiss courier "parcel ready for delivery scheduling" page on pages.dev	
+heldout8	01a156cb-47c6-73b8-91dc-e74885cc5572	phish	gate	apple	iCloud "Security Check" with an hCaptcha box, from a blob: page on workers.dev	blob-document/medium,brand-name-off-domain/medium
+heldout8	01a156cb-82e8-76d2-8c1e-dfa39e6df297	phish	credential	att	AT&T/BellSouth sign-in (email, password) on webflow.io	brand-domain-in-title/medium,brand-name-off-domain/medium,form-on-free-hosting/medium
+heldout8	01a156cb-aafe-7b99-bba7-23c9a86f6379	benign	-	airbnb	Airbnb room page clone (tutorial) on vercel.app	
+heldout8	01a156cc-195c-78e0-9140-46610d45cb04	unsure	-	bet365	"bet365"-named Chinese betting site with its own login	
+heldout8	01a156cc-646a-7deb-a87e-a1a437cd2d5a	unsure	-	bet365	"365" betting site with its own login	
+heldout8	01a156cc-b035-7bde-8da1-41662163391e	unsure	-	bet365	"365" betting site with its own login	
+heldout8	01a156cc-fd44-7279-8660-7b9de6135da8	unsure	-	bet365	"365" betting site with its own login	
+heldout8	01a156cd-4a15-7e4e-becd-a5c14ff15c6f	phish	gate	-	"PDF Viewer: Windows computer required" device gate on botsea.club	
+heldout8	01a156cd-90aa-7d67-9fc8-ac5dddf8c1ec	real-site	-	facebook	redirected to www.facebook.com itself	
+heldout8	01a156ce-47ab-752f-a489-9a5efc724f12	benign	-	-	Chinese 404 page	
+heldout8	01a156ce-9aac-7b58-9e7d-b90ad123812b	unsure	-	facebook	spam blog of fake "Facebook support phone number" posts	brand-presented-off-domain/info
+heldout8	01a156ce-bc9a-7d7f-8a9f-c485306079f5	phish	gate	-	"PDF Viewer: Windows computer required" device gate on a law firm's site (same kit)	
+heldout8	01a156ce-e475-7b37-8984-267730520e73	phish	lure	ledger	"Official | Ledger.com/Start" guide page on zapier.app	brand-domain-in-title/medium,brand-presented-off-domain/info
+heldout8	01a156da-8c84-7796-92ad-19a6dde92639	benign	-	-	synth-pop band's website (CT)	brand-presented-off-domain/info
+heldout8	01a156dd-8715-7662-a04d-e41b8b5b1699	phish	credential	microsoft	Microsoft "Enter password" with a prefilled address (RSVP lure, same kit)	brand-name-off-domain/high
+heldout8	01a156dd-bf1e-7921-90d8-8d73b3f9320c	unsure	-	-	"365" betting site, blank	
+heldout8	01a156de-23f9-7723-a381-8ad25e6e6da6	phish	credential	constructconnect	ConstructConnect email-first sign-in clone on ftsdrci.ca	
+heldout8	01a156de-3cad-77c2-a7c5-e04ac1257ceb	phish	gate	-	"PDF Viewer: Windows computer required" device gate (same kit)	
+heldout8	01a156de-640d-788a-beaf-445863cfd49d	phish	payment	ze	Zé Delivery drinks-delivery address and order form on .sbs	
+heldout8	01a156de-ae40-7915-978b-d6f0a9956eca	phish	credential	btl	Israeli National Insurance (Bituah Leumi) refund page on pacmantogel.pro	
+heldout8	01a156df-16b9-7ef9-9864-d8c2c0775a87	phish	credential	constructconnect	ConstructConnect email-first sign-in clone (same kit)	
+heldout8	01a156df-2fa0-7021-9ba8-6589e7d8a2d0	phish	lure	trezor	"Trezor.io/Start" guide page on gitbook.io	brand-domain-in-title/medium,brand-official-claim/medium,brand-presented-off-domain/info
+heldout8	01a156df-99f0-754b-8915-d4b61f3c2081	phish	credential	adobe	"PDF Viewer" password kit ("loading secure viewer") on github.io	brand-name-off-domain/high,form-on-free-hosting/medium
+heldout8	01a156df-b2f3-71ec-9b5d-9db5dfa9d4ef	phish	credential	docusign	DocuSign "loading secure envelope" kit on kevincloete.co.za	brand-presented-off-domain/info
+heldout8	01a156e0-1947-7257-95ca-bb7a763ed835	phish	credential	adobe	"ADOBE PDF" email/password over a blurred invoice on IONOS storage	brand-name-off-domain/high
+heldout8	01a156e0-4397-7f0b-8ac1-358f9cdeaca0	phish	credential	adobe	"ADOBE PDF" email/password over a blurred invoice (same host)	brand-name-off-domain/high
+heldout8	01a156e0-7096-761b-a44e-539a679de814	phish	credential	sunrise	"Login Sunrise mail" email/password form on flazio.online	
+heldout8	01a156e0-b5d5-7317-a483-795205e1502c	benign	-	-	"Ledger" personal expense-tracker app on github.io	form-on-free-hosting/medium
+heldout8	01a156e1-03bc-7187-8d24-f2a08cc76b06	phish	payment	magalu	fake Magalu product page (fridge) on novidadedasemana.com	
+heldout8	01a156e1-3b0a-78cf-aba0-22545c8f5b9e	phish	credential	ctt	Banco CTT sign-in clone on mytemp.website	
+heldout8	01a156e1-9d12-71fc-8d24-a9ee1dd80ab4	phish	credential	oca	OCA (Uruguay) card account login on netlify.app	form-on-free-hosting/medium
+heldout8	01a156e1-dd3e-785d-8b4a-25e227ad746e	phish	credential	constructconnect	ConstructConnect email-first sign-in clone (same kit)	
+heldout8	01a156e2-0d4c-7568-b1e3-75b56f0e59b1	phish	lure	meta	"Meta Verified - Rewards for you" page on vercel.app	brand-alert-off-domain/medium,brand-name-off-domain/medium,brand-offer-off-domain/medium,form-on-free-hosting/medium
+heldout8	01a156e2-8108-7050-acec-ea0aa3d63f77	phish	credential	linkedin	"Linkedln" corporate credentials page (Chinese) on myafteryuo60.com	
+heldout8	01a156e2-a44f-7a16-89e9-1af0b3722fec	phish	lure	steam	Steam Community profile clone on steamcommunutty.com	brand-lookalike-domain/medium,brand-presented-off-domain/info
+heldout8	01a156ed-8e79-7aa8-afb1-5f962dffd1f4	benign	-	-	car-glass repair shop (CT)	
+heldout8	01a156f1-3890-7802-82da-0917c84ae839	phish	credential	adobe	"ADOBE PDF" email/password over a blurred invoice on IONOS storage	brand-name-off-domain/high
+heldout8	01a156f1-874c-75c7-be38-158b841d47fe	phish	lure	roblox	"Get Robux" claim page on blogspot	brand-lookalike-domain/medium
+heldout8	01a156f1-c86c-72ac-b05d-612f69d57026	phish	lure	robinhood	"Log in to My Account" guide page on gitbook.io (robnxhondlogen)	
+heldout8	01a156f1-f19e-7147-a236-93e0b94003e6	phish	credential	dropbox	Dropbox "sign in to access document" email form on an S3 bucket	brand-name-off-domain/medium
+heldout8	01a156f2-3305-7e04-8ade-c91be5b3a60d	phish	credential	salesforce	Salesforce login clone on salesforce-security-verification.com	
+heldout8	01a156f2-6c09-7b00-9717-867dda49c53b	benign	-	spotify	Spotify homepage clone (tutorial) on github.io	brand-presented-off-domain/info
+heldout8	01a156f2-d883-71e8-81ab-20a23aeb9ac1	phish	credential	microsoft	Microsoft "enter password" (sensitive info) page on replit.app	form-on-free-hosting/medium
+heldout8	01a156f3-0e2e-7e68-bd64-0d97212b6c87	phish	payment	trustwallet	"Transfer Trust Wallet" send-USDT page on vercel.app	brand-presented-off-domain/info
+heldout8	01a156f3-5276-7f3b-bd3e-331ca0f190a2	phish	credential	-	brandless webmail kit on 4everland.app	form-on-free-hosting/medium,kit-match/medium
+heldout8	01a156f3-8eb7-7b20-b6b5-5aa50bc4c18f	phish	lure	shopee	Shopee Malaysia homepage copy on shopeemypartner.com	brand-presented-off-domain/info
+heldout8	01a156f3-d477-7b64-8394-2d0d1741b6f2	unsure	-	att	blank "Redirecting..." page on an AT&T-named workers.dev host	
+heldout8	01a156f4-10b9-7daf-95b8-3979ad8e96db	phish	lure	sky	Sky.money (stablecoin) homepage copy on sky.money.irish	
+heldout8	01a156f4-2a79-7940-ab73-d93f94384068	phish	credential	wetransfer	WeTransfer download kit with email/password on a hacked site	password-under-threat/medium
+heldout8	01a156f4-b648-7826-8c94-e3ecc0b5d7c9	real-site	-	facebook	redirected to www.facebook.com itself	
+heldout8	01a156f5-cee6-7cb6-b4ca-2ac19fec9e62	unsure	-	-	"Could not parse url" error page	
+heldout8	01a156f6-6b81-78ba-9158-6f03a0689ba1	phish	lure	roblox	"Delta Executor for Roblox" username-and-connect scam page	brand-presented-off-domain/info
+heldout8	01a15705-71e7-77d3-9832-9958310afac2	phish	lure	robinhood	"Log in to My Account" guide page on gitbook.io (robnxhondlogen)	
+heldout8	01a15705-a34d-772a-a6b8-1592a92d98ed	phish	credential	-	brandless "Login to Mail" kit on an S3 bucket	
+heldout8	01a15705-dda8-7493-abf9-074978bcadb5	unsure	-	att	blank "Redirecting..." page on an AT&T-named workers.dev host	
+heldout8	01a15705-fa5c-7828-a9e7-c6b07fa4d970	real-site	-	facebook	redirected to www.facebook.com itself	
+heldout8	01a15706-406f-757d-984b-889fe3f12872	phish	payment	magalu	fake Magalu product page (luggage) on laravel.cloud	
+heldout8	01a15706-6bd6-7954-b9bb-f0395e3dce54	phish	lure	amazon	fake "call Amazon Netherlands" support-number site	brand-presented-off-domain/info
+heldout8	01a15706-bac1-776b-bf65-b3bc040aa8e9	phish	lure	ledger	Ledger Support homepage copy on ledgerupdate.org	
+heldout8	01a15708-2367-78b4-92f6-7bfaac3dc021	unsure	-	webull	"Webull" login route, blank (loading) on webulebt.com	
+heldout8	01a15708-8bcb-77c2-8627-602ba9be688c	unsure	-	-	"Could not parse url" error page	
+heldout8	01a15708-ab6c-7bef-acae-738007363ca2	phish	lure	-	"PDF Viewer" blurred business-contract lure on zcontainx.cloud	
+heldout8	01a15717-1db2-7a25-a575-937963ea6d48	phish	credential	dropbox	Dropbox "sign in to access document" email form on an S3 bucket	brand-name-off-domain/medium
+heldout8	01a15748-6a70-7e23-98ac-0a81a3df2596	benign	-	-	tech-house radio site on pages.dev (CT)	
+heldout8	01a15750-f9ea-7302-a8ed-63508ce3fbec	benign	-	-	self-hosted wiki login (petite-maison-orange.fr, CT)	
+heldout8	01a1575a-42d9-7d81-83a8-e0b04f5a587c	benign	-	-	self-hosted Trilium Notes login (same owner, CT)	
+heldout8	01a15763-6b0a-7bec-8500-299b137a1b0e	benign	-	-	self-hosted SFTPGo login (same owner, CT)	
+heldout8	01a1577a-765c-77e2-bbd7-0628af7af5cc	real-site	-	coinbase	redirected to a coinbase.com referral page	
+heldout8	01a1577a-a3f4-73ff-9a79-ae4028a582df	unsure	-	-	"Access Notice: DNS & configuration check" page on gagmail.top (CT)	
